@@ -35,8 +35,8 @@ namespace Twist
 
 /-- MLS Example A.8, with linear coordinates before angular coordinates. -/
 def bracket (ξ η : Twist) : Twist :=
-  (Vec3.cross ξ.angular η.linear - Vec3.cross η.angular ξ.linear,
-    Vec3.cross ξ.angular η.angular)
+  ⟨Vec3.cross ξ.angular η.linear - Vec3.cross η.angular ξ.linear,
+    Vec3.cross ξ.angular η.angular⟩
 
 @[simp] theorem bracket_linear (ξ η : Twist) :
     (bracket ξ η).linear =
@@ -53,7 +53,7 @@ theorem hat_bracket (ξ η : Twist) :
   rcases i with i | i <;> rcases j with j | j
   all_goals
     fin_cases i <;> fin_cases j <;>
-      simp [hat, bracket, linear, angular, Vec3.hat, Vec3.cross, cross_apply, Matrix.mul_apply,
+      simp [hat, bracket, Vec3.hat, Vec3.cross, cross_apply, Matrix.mul_apply,
         Fintype.sum_sum_type, Fin.sum_univ_succ, Matrix.fromBlocks] <;> ring
 
 /-- Compatibility with Mathlib's associative matrix Lie bracket. -/

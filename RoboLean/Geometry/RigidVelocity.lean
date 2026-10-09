@@ -89,14 +89,14 @@ def spatialVelocity (g : ℝ → RigidTransform) (D : HomogeneousMatrix) (t : �
     (h : HasDerivAt (fun s ↦ (g s).toHomogeneous) D t) : Twist :=
   let ω := Rotation.spatialAngularVelocity (fun s ↦ (g s).rotation) D.toBlocks₁₁ t
     (hasDerivAt_rotation h)
-  (translationDerivative D - Vec3.cross ω (g t).translation, ω)
+  ⟨translationDerivative D - Vec3.cross ω (g t).translation, ω⟩
 
 /-- MLS (2.55)/(2.60): body twist with derivative evidence retained. -/
 def bodyVelocity (g : ℝ → RigidTransform) (D : HomogeneousMatrix) (t : ℝ)
     (h : HasDerivAt (fun s ↦ (g s).toHomogeneous) D t) : Twist :=
-  ((g t).rotation⁻¹.act (translationDerivative D),
+  ⟨(g t).rotation⁻¹.act (translationDerivative D),
     Rotation.bodyAngularVelocity (fun s ↦ (g s).rotation) D.toBlocks₁₁ t
-      (hasDerivAt_rotation h))
+      (hasDerivAt_rotation h)⟩
 
 @[simp] theorem spatialVelocity_linear
     (h : HasDerivAt (fun s ↦ (g s).toHomogeneous) D t) :
@@ -123,7 +123,7 @@ theorem hat_spatialVelocity
   rw [Rotation.act_inv_act] at hcross
   rw [← toHomogeneous_inv]
   conv_rhs => rw [derivative_eq_fromBlocks h]
-  simp only [Twist.hat, spatialVelocity, Twist.angular, Twist.linear,
+  simp only [Twist.hat, spatialVelocity,
     Rotation.hat_spatialAngularVelocity, toHomogeneous, inv_rotation, inv_translation,
     Rotation.inv_val, Matrix.fromBlocks_multiply, Matrix.mul_zero, Matrix.zero_mul,
     Matrix.mul_one, add_zero]
@@ -144,7 +144,7 @@ theorem hat_bodyVelocity
     (bodyVelocity g D t h).hat = (g t).toHomogeneous⁻¹ * D := by
   rw [← toHomogeneous_inv]
   conv_rhs => rw [derivative_eq_fromBlocks h]
-  simp only [Twist.hat, bodyVelocity, Twist.angular, Twist.linear,
+  simp only [Twist.hat, bodyVelocity,
     Rotation.hat_bodyAngularVelocity, toHomogeneous, inv_rotation, inv_translation,
     Rotation.inv_val, Matrix.fromBlocks_multiply, Matrix.mul_zero, Matrix.zero_mul,
     add_zero]
@@ -179,7 +179,7 @@ theorem hasDerivAt_applyPoint_spatial
     (Matrix.toEuclideanLin D.toBlocks₁₁ q + translationDerivative D) t at hd
   convert hd using 1
   rw [Rotation.spatial_velocity_eq_cross (hasDerivAt_rotation h) q]
-  simp only [spatialVelocity, Twist.angular, Twist.linear, applyPoint, Vec3.cross_add]
+  simp only [spatialVelocity, applyPoint, Vec3.cross_add]
   abel
 
 /-- MLS (2.56): rotate physical spatial velocity into body coordinates. -/
@@ -194,16 +194,12 @@ theorem body_point_velocity
 theorem spatialVelocity_eq_adjoint_body
     (h : HasDerivAt (fun s ↦ (g s).toHomogeneous) D t) :
     spatialVelocity g D t h = Twist.adjoint (g t) (bodyVelocity g D t h) := by
-  apply Prod.ext
-  · change (spatialVelocity g D t h).linear =
-      (Twist.adjoint (g t) (bodyVelocity g D t h)).linear
-    rw [Twist.adjoint_linear, bodyVelocity_linear, bodyVelocity_angular,
+  apply Twist.ext
+  · rw [Twist.adjoint_linear, bodyVelocity_linear, bodyVelocity_angular,
       Rotation.act_inv_act, Rotation.act_inv_act, spatialVelocity_linear,
       Vec3.cross_anticomm (g t).translation]
     rfl
-  · change (spatialVelocity g D t h).angular =
-      (Twist.adjoint (g t) (bodyVelocity g D t h)).angular
-    rw [Twist.adjoint_angular, bodyVelocity_angular, Rotation.act_inv_act]
+  · rw [Twist.adjoint_angular, bodyVelocity_angular, Rotation.act_inv_act]
 
 /-- MLS p58: differentiate a constant-twist motion with an arbitrary differentiable parameter. -/
 theorem hasDerivAt_toHomogeneous_exp_mul (ξ : Twist) (g₀ : RigidTransform)

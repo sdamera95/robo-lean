@@ -60,11 +60,11 @@ theorem inverseTranslation_eq_iff (ω : Vec3) (hω : ‖ω‖ = 1)
 /-- The solved linear component reconstructs the actual rigid exponential. -/
 theorem exp_inverseTranslation (ω : Vec3) (hω : ‖ω‖ = 1)
     (θ : ℝ) (hθ₀ : 0 < θ) (hθ₂π : θ < 2 * Real.pi) (p : Vec3) :
-    exp (inverseTranslation ω θ p, ω) θ =
+    exp ⟨inverseTranslation ω θ p, ω⟩ θ =
       { rotation := Rotation.exp ω θ, translation := p } := by
   apply RigidTransform.ext
-  · exact exp_rotation (inverseTranslation ω θ p, ω) θ
-  · rw [exp_translation_of_angular_norm_eq_one (inverseTranslation ω θ p, ω) hω θ]
+  · exact exp_rotation ⟨inverseTranslation ω θ p, ω⟩ θ
+  · rw [exp_translation_of_angular_norm_eq_one ⟨inverseTranslation ω θ p, ω⟩ hω θ]
     apply WithLp.ofLp_injective
     exact translationJacobian_inverseTranslation ω hω θ hθ₀ hθ₂π p
 
@@ -88,15 +88,15 @@ are scaled in the nonzero-angle branch. Zero angle uses pure translation. -/
 def principalTwist (g : RigidTransform) : Twist := by
   classical
   exact if Rotation.principalAngle g.rotation = 0 then
-    (g.translation, 0)
+    ⟨g.translation, 0⟩
   else
     Rotation.principalAngle g.rotation •
-      (Twist.inverseTranslation (selectedPrincipalAxis g)
-        (Rotation.principalAngle g.rotation) g.translation, selectedPrincipalAxis g)
+      (⟨Twist.inverseTranslation (selectedPrincipalAxis g)
+        (Rotation.principalAngle g.rotation) g.translation, selectedPrincipalAxis g⟩ : Twist)
 
 /-- Pure translation has zero angular component, including zero translation. -/
 theorem principalTwist_of_rotation_eq_one (g : RigidTransform) (hR : g.rotation = 1) :
-    principalTwist g = (g.translation, 0) := by
+    principalTwist g = ⟨g.translation, 0⟩ := by
   have hθ : Rotation.principalAngle g.rotation = 0 := by
     rw [hR]
     norm_num [Rotation.principalAngle, Matrix.trace_one]
@@ -105,13 +105,13 @@ theorem principalTwist_of_rotation_eq_one (g : RigidTransform) (hR : g.rotation 
 theorem principalTwist_of_principalAngle_ne_zero (g : RigidTransform)
     (hθ : Rotation.principalAngle g.rotation ≠ 0) :
     principalTwist g = Rotation.principalAngle g.rotation •
-      (Twist.inverseTranslation (selectedPrincipalAxis g)
-        (Rotation.principalAngle g.rotation) g.translation, selectedPrincipalAxis g) := by
+      (⟨Twist.inverseTranslation (selectedPrincipalAxis g)
+        (Rotation.principalAngle g.rotation) g.translation, selectedPrincipalAxis g⟩ : Twist) := by
   simp [principalTwist, hθ]
 
 @[simp] theorem principalTwist_one : principalTwist 1 = 0 := by
   rw [principalTwist_of_rotation_eq_one (1 : RigidTransform) rfl]
-  apply Prod.ext <;> ext i <;> simp
+  apply Twist.ext <;> ext i <;> simp
 
 /-- The selected twist reconstructs every rigid transform at parameter one,
 including identity, pure translation, and half-turn rotations. -/
@@ -139,7 +139,7 @@ theorem norm_principalTwist_angular (g : RigidTransform) :
     ‖(principalTwist g).angular‖ = Rotation.principalAngle g.rotation := by
   classical
   by_cases hθ : Rotation.principalAngle g.rotation = 0
-  · simp [principalTwist, hθ, Twist.angular]
+  · simp [principalTwist, hθ]
   · rw [principalTwist_of_principalAngle_ne_zero g hθ]
     change ‖Rotation.principalAngle g.rotation • selectedPrincipalAxis g‖ = _
     rw [norm_smul, Real.norm_eq_abs,

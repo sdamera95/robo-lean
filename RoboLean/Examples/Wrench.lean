@@ -37,7 +37,7 @@ theorem transform_g_mixedWrench :
 /-- In B coordinates the two dot products are `14` and `77` (MLS printed p. 61
 pairing). -/
 theorem mixedWrench_pair_mixedTwist : Wrench.pair mixedWrench mixedTwist = 91 := by
-  simp only [Wrench.pair, Twist.linear, Twist.angular,
+  simp only [Wrench.pair,
     mixedWrench, mixedTwist, EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 
@@ -46,7 +46,7 @@ theorem mixedWrench_pair_mixedTwist : Wrench.pair mixedWrench mixedTwist = 91 :=
 theorem transformed_mixedWrench_pair_mixedTwist :
     Wrench.pair (Wrench.transform g mixedWrench) (Twist.adjoint g mixedTwist) = 91 := by
   rw [transform_g_mixedWrench, adjoint_g_mixedTwist]
-  simp only [Wrench.pair, Twist.linear, Twist.angular,
+  simp only [Wrench.pair,
     EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 
@@ -56,7 +56,7 @@ theorem rotated_only_mixedWrench_pair :
     Wrench.pair ⟨quarterTurn.act (vec 1 2 3), quarterTurn.act (vec 4 5 6)⟩
       (Twist.adjoint g mixedTwist) = 112 := by
   rw [quarterTurn_act, quarterTurn_act, adjoint_g_mixedTwist]
-  simp only [Wrench.pair, Twist.linear, Twist.angular,
+  simp only [Wrench.pair,
     EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 

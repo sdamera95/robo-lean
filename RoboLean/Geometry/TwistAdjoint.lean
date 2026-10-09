@@ -68,8 +68,8 @@ namespace Twist
 
 /-- MLS equation (2.58): the coordinate adjoint, with linear coordinates first. -/
 def adjoint (g : RigidTransform) (ξ : Twist) : Twist :=
-  (g.rotation.act ξ.linear + Vec3.cross g.translation (g.rotation.act ξ.angular),
-    g.rotation.act ξ.angular)
+  ⟨g.rotation.act ξ.linear + Vec3.cross g.translation (g.rotation.act ξ.angular),
+    g.rotation.act ξ.angular⟩
 
 @[simp] theorem adjoint_linear (g : RigidTransform) (ξ : Twist) :
     (adjoint g ξ).linear =
@@ -80,16 +80,16 @@ def adjoint (g : RigidTransform) (ξ : Twist) : Twist :=
 
 @[simp] theorem adjoint_add (g : RigidTransform) (ξ η : Twist) :
     adjoint g (ξ + η) = adjoint g ξ + adjoint g η := by
-  apply Prod.ext
+  apply Twist.ext
   · simp [adjoint, map_add, add_add_add_comm]
   · simp [adjoint, map_add]
 
 @[simp] theorem adjoint_smul (g : RigidTransform) (c : ℝ) (ξ : Twist) :
     adjoint g (c • ξ) = c • adjoint g ξ := by
-  apply Prod.ext <;> simp [adjoint, map_smul, smul_add]
+  apply Twist.ext <;> simp [adjoint, map_smul, smul_add]
 
 @[simp] theorem adjoint_zero (g : RigidTransform) : adjoint g 0 = 0 := by
-  apply Prod.ext <;> simp [adjoint]
+  apply Twist.ext <;> simp [adjoint]
 
 /-- The adjoint packaged as a real linear map. -/
 def adjointLinearMap (g : RigidTransform) : Twist →ₗ[ℝ] Twist where
@@ -98,13 +98,13 @@ def adjointLinearMap (g : RigidTransform) : Twist →ₗ[ℝ] Twist where
   map_smul' := adjoint_smul g
 
 @[simp] theorem adjoint_one (ξ : Twist) : adjoint 1 ξ = ξ := by
-  apply Prod.ext <;> simp [adjoint]
+  apply Twist.ext <;> simp [adjoint]
 
 /-- Composition applies the right transform first, as for the rigid action. -/
 @[simp] theorem adjoint_mul (g h : RigidTransform) (ξ : Twist) :
     adjoint (g * h) ξ = adjoint g (adjoint h ξ) := by
-  apply Prod.ext
-  · simp [adjoint, linear, angular, map_add, Rotation.act_cross, add_assoc]
+  apply Twist.ext
+  · simp [adjoint, map_add, Rotation.act_cross, add_assoc]
   · simp [adjoint]
 
 @[simp] theorem adjoint_inv_adjoint (g : RigidTransform) (ξ : Twist) :
@@ -133,9 +133,9 @@ def adjointEquiv (g : RigidTransform) : Twist ≃ₗ[ℝ] Twist where
 /-- The explicit inverse coordinate formula from MLS printed p. 56. -/
 theorem adjoint_inv (g : RigidTransform) (ξ : Twist) :
     adjoint g⁻¹ ξ =
-      (g.rotation⁻¹.act (ξ.linear - Vec3.cross g.translation ξ.angular),
-        g.rotation⁻¹.act ξ.angular) := by
-  apply Prod.ext
+      ⟨g.rotation⁻¹.act (ξ.linear - Vec3.cross g.translation ξ.angular),
+        g.rotation⁻¹.act ξ.angular⟩ := by
+  apply Twist.ext
   · simp [adjoint, Rotation.act_cross, sub_eq_add_neg]
   · rfl
 
@@ -195,7 +195,7 @@ def coordinates (ξ : Twist) : Fin 3 ⊕ Fin 3 → ℝ :=
 
 theorem coordinates_injective : Function.Injective coordinates := by
   intro ξ η h
-  apply Prod.ext <;> ext i
+  apply Twist.ext <;> ext i
   · exact congrFun h (Sum.inl i)
   · exact congrFun h (Sum.inr i)
 
@@ -218,12 +218,12 @@ theorem adjointMatrix_mulVec (g : RigidTransform) (ξ : Twist) :
       (Vec3.hat g.translation *ᵥ WithLp.ofLp (g.rotation.act ξ.angular)) i = _
     rw [Vec3.hat_mulVec]
     rfl
-  | inr i => simp [coordinates, adjoint, angular, Matrix.zero_mulVec, Rotation.act_apply]
+  | inr i => simp [coordinates, adjoint, Matrix.zero_mulVec, Rotation.act_apply]
 
 private theorem coordinates_surjective : Function.Surjective coordinates := by
   intro x
-  refine ⟨(WithLp.toLp 2 (fun i => x (Sum.inl i)),
-    WithLp.toLp 2 (fun i => x (Sum.inr i))), ?_⟩
+  refine ⟨⟨WithLp.toLp 2 (fun i => x (Sum.inl i)),
+    WithLp.toLp 2 (fun i => x (Sum.inr i))⟩, ?_⟩
   funext i
   cases i <;> rfl
 

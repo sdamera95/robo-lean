@@ -73,12 +73,12 @@ theorem finite_reconstruction (ξ : Twist) (hω : ξ.angular ≠ 0) :
 /-- Algebraic twist generator for axis direction, axis point, and finite pitch.
 Nonzero or unit direction is required separately for geometric interpretations. -/
 def fromScrew (ω q : Vec3) (pitch : ℝ) : Twist :=
-  (-Vec3.cross ω q + pitch • ω, ω)
+  ⟨-Vec3.cross ω q + pitch • ω, ω⟩
 
 /-- The finite parameters reconstruct the original twist, including unnormalized axes. -/
 theorem fromScrew_reconstruction (ξ : Twist) (hω : ξ.angular ≠ 0) :
     fromScrew ξ.angular (axisPoint ξ hω) (finitePitch ξ hω) = ξ := by
-  apply Prod.ext
+  apply Twist.ext
   · exact (finite_reconstruction ξ hω).symm
   · rfl
 
@@ -90,7 +90,7 @@ theorem fromScrew_axis_shift (ω q : Vec3) (pitch r : ℝ) :
 /-- Scaling a twist scales both components; the finite-pitch parameter is unchanged. -/
 theorem fromScrew_smul (ω q : Vec3) (pitch c : ℝ) :
     c • fromScrew ω q pitch = fromScrew (c • ω) q pitch := by
-  apply Prod.ext
+  apply Twist.ext
   · simp [fromScrew, Vec3.smul_cross, smul_add, smul_neg, smul_smul, mul_comm]
   · rfl
 
@@ -138,26 +138,26 @@ def screwPitch (ξ : Twist) : ScrewPitch := by
 
 /-- A nonzero pure translation has the infinite-pitch tag, not a finite real pitch. -/
 @[simp] theorem screwPitch_pure_translation (v : Vec3) (hv : v ≠ 0) :
-    screwPitch (v, 0) = .infinite := by
-  simp [screwPitch, linear, angular, hv]
+    screwPitch ⟨v, 0⟩ = .infinite := by
+  simp [screwPitch, hv]
 
 /-- Zero twist has no directed axis and receives its own stationary tag. -/
 @[simp] theorem screwPitch_zero : screwPitch (0 : Twist) = .stationary := by
-  simp [screwPitch, linear, angular]
+  simp [screwPitch]
 
 theorem screwPitch_eq_stationary_iff (ξ : Twist) :
     screwPitch ξ = .stationary ↔ ξ = 0 := by
   classical
   rcases ξ with ⟨v, ω⟩
   by_cases hω : ω = 0 <;> by_cases hv : v = 0 <;>
-    simp [screwPitch, linear, angular, hω, hv]
+    simp [screwPitch, hω, hv]
 
 theorem screwPitch_eq_infinite_iff (ξ : Twist) :
     screwPitch ξ = .infinite ↔ ξ.angular = 0 ∧ ξ.linear ≠ 0 := by
   classical
   rcases ξ with ⟨v, ω⟩
   by_cases hω : ω = 0 <;> by_cases hv : v = 0 <;>
-    simp [screwPitch, linear, angular, hω, hv]
+    simp [screwPitch, hω, hv]
 
 /-- A nonzero whole-twist rescaling preserves the pitch classification and finite value. -/
 theorem screwPitch_smul (ξ : Twist) (c : ℝ) (hc : c ≠ 0) :
@@ -167,7 +167,7 @@ theorem screwPitch_smul (ξ : Twist) (c : ℝ) (hc : c ≠ 0) :
   · have hωc : (c • ξ).angular = 0 := by
       change c • ξ.angular = 0
       rw [hω, smul_zero]
-    simp [screwPitch, hωc, hω, hc, linear]
+    simp [screwPitch, hωc, hω, hc]
   · rw [screwPitch_of_angular_ne_zero _ (angular_smul_ne_zero ξ hω c hc),
       screwPitch_of_angular_ne_zero ξ hω, finitePitch_smul ξ hω c hc]
 
@@ -185,7 +185,7 @@ def screwMagnitude (ξ : Twist) : ℝ := by
   simp [screwMagnitude, hω]
 
 @[simp] theorem screwMagnitude_zero : screwMagnitude (0 : Twist) = 0 := by
-  simp [screwMagnitude, linear, angular]
+  simp [screwMagnitude]
 
 theorem screwMagnitude_nonneg (ξ : Twist) : 0 ≤ screwMagnitude ξ := by
   classical
@@ -195,7 +195,7 @@ theorem screwMagnitude_nonneg (ξ : Twist) : 0 ≤ screwMagnitude ξ := by
 theorem screwMagnitude_eq_zero_iff (ξ : Twist) : screwMagnitude ξ = 0 ↔ ξ = 0 := by
   classical
   rcases ξ with ⟨v, ω⟩
-  by_cases hω : ω = 0 <;> simp [screwMagnitude, linear, angular, hω]
+  by_cases hω : ω = 0 <;> simp [screwMagnitude, hω]
 
 /-- Norm-based magnitude scales by the absolute scalar, including negative and zero scalars. -/
 theorem screwMagnitude_smul (ξ : Twist) (c : ℝ) :

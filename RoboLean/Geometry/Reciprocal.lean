@@ -29,6 +29,20 @@ noncomputable section
 
 namespace RoboLean
 
+/-- Twist coordinates form a six-dimensional real vector space, `ξ ∈ ℝ⁶`
+(MLS printed p. 41). The proof uses a component linear equivalence with
+`Vec3 × Vec3` built only inside it; no public identification of twists with
+pairs is declared. -/
+private theorem finrank_twist_eq_six : Module.finrank ℝ Twist = 6 := by
+  rw [LinearEquiv.finrank_eq
+    ({ toFun := fun ξ => (ξ.linear, ξ.angular)
+       invFun := fun p => ⟨p.1, p.2⟩
+       map_add' := fun _ _ => rfl
+       map_smul' := fun _ _ => rfl
+       left_inv := fun _ => rfl
+       right_inv := fun _ => rfl } : Twist ≃ₗ[ℝ] Vec3 × Vec3)]
+  simp [Vec3, Module.finrank_prod]
+
 namespace Wrench
 
 /-- Coordinate reciprocity, MLS printed p. 66: a wrench does zero instantaneous
@@ -54,7 +68,7 @@ algebraic dual of twists (MLS printed pp. 61 and 68). This is not a claim about
 a physical norm. -/
 def pairingEquiv : Wrench ≃ₗ[ℝ] Module.Dual ℝ Twist :=
   pairing.linearEquivOfInjective pairing_injective
-    (by simp [finrank_eq_six, Twist, Vec3, Module.finrank_prod])
+    (by simp [finrank_eq_six, finrank_twist_eq_six])
 
 /-- `pairingEquiv` evaluates to the pairing (MLS printed p. 61). -/
 @[simp] theorem pairingEquiv_apply (F : Wrench) (ξ : Twist) :
@@ -69,7 +83,7 @@ namespace Twist
 def pairingEquiv : Twist ≃ₗ[ℝ] Module.Dual ℝ Wrench :=
   Wrench.pairing.flip.linearEquivOfInjective (by
     intro ξ η h
-    apply Prod.ext
+    apply Twist.ext
     · apply ext_inner_left ℝ
       intro v
       have hv := congrArg (fun φ : Module.Dual ℝ Wrench => φ ⟨v, 0⟩) h
@@ -78,7 +92,7 @@ def pairingEquiv : Twist ≃ₗ[ℝ] Module.Dual ℝ Wrench :=
       intro ω
       have hω := congrArg (fun φ : Module.Dual ℝ Wrench => φ ⟨0, ω⟩) h
       simpa [Wrench.pair, linear, angular] using hω)
-    (by simp [Wrench.finrank_eq_six, Twist, Vec3, Module.finrank_prod])
+    (by simp [Wrench.finrank_eq_six, finrank_twist_eq_six])
 
 /-- `Twist.pairingEquiv` evaluates to the pairing (MLS printed p. 61). -/
 @[simp] theorem pairingEquiv_apply (ξ : Twist) (F : Wrench) :
@@ -93,7 +107,7 @@ two distinct types, not a type identity; it carries no frame, unit, or physical
 meaning of its own. -/
 def swapWrench : Twist ≃ₗ[ℝ] Wrench where
   toFun ξ := ⟨ξ.angular, ξ.linear⟩
-  invFun F := (F.torque, F.force)
+  invFun F := ⟨F.torque, F.force⟩
   map_add' _ _ := rfl
   map_smul' _ _ := rfl
   left_inv _ := rfl
@@ -108,7 +122,7 @@ def swapWrench : Twist ≃ₗ[ℝ] Wrench where
 /-- The inverse swap reads a wrench `(f, τ)` as twist coordinates `(τ, f)`
 (MLS printed p. 67). -/
 @[simp] theorem swapWrench_symm_apply (F : Wrench) :
-    swapWrench.symm F = (F.torque, F.force) := rfl
+    swapWrench.symm F = ⟨F.torque, F.force⟩ := rfl
 
 /-- MLS p. 67 reciprocal product, defined through the actual wrench pairing. -/
 def reciprocalProduct (ξ η : Twist) : ℝ := Wrench.pair (swapWrench ξ) η
@@ -182,12 +196,11 @@ theorem reciprocalProduct_nondegenerate (ξ : Twist) :
 /-- Pure linear coordinates have zero reciprocal product with themselves,
 regardless of their Euclidean length (MLS printed p. 67). -/
 @[simp] theorem reciprocalProduct_pureLinear_self (v : Vec3) :
-    reciprocalProduct (v, 0) (v, 0) = 0 := by
-  simp [reciprocalProduct_eq, linear, angular]
+    reciprocalProduct ⟨v, 0⟩ ⟨v, 0⟩ = 0 := by
+  simp [reciprocalProduct_eq]
 
 /-- The algebraic twist-coordinate space has dimension six (MLS printed p. 69). -/
-theorem finrank_eq_six : Module.finrank ℝ Twist = 6 := by
-  simp [Twist, Vec3, Module.finrank_prod]
+theorem finrank_eq_six : Module.finrank ℝ Twist = 6 := finrank_twist_eq_six
 
 end Twist
 

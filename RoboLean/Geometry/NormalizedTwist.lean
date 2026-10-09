@@ -34,8 +34,8 @@ theorem normalized_of_angular_ne_zero (ξ : Twist) (hω : ξ.angular ≠ 0) :
 
 /-- The pure-translation branch normalizes its linear direction, including the zero convention. -/
 theorem normalized_pure_translation (v : Vec3) :
-    normalized (v, 0) = (‖v‖⁻¹ • v, 0) := by
-  simp [normalized, screwMagnitude, linear, angular]
+    normalized ⟨v, 0⟩ = ⟨‖v‖⁻¹ • v, 0⟩ := by
+  apply Twist.ext <;> simp [normalized, screwMagnitude]
 
 /-- Every nonzero twist normalizes to unit screw magnitude. -/
 theorem normalized_unit (ξ : Twist) (hξ : ξ ≠ 0) : IsUnitTwist (normalized ξ) := by

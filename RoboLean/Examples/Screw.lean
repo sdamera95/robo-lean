@@ -20,7 +20,7 @@ namespace RoboLean.Examples
 open Matrix
 
 /-- Nonunit angular coordinates with transverse and axial linear components. -/
-def screwTwist : Twist := (vec 4 (-2) 6, vec 0 0 2)
+def screwTwist : Twist := ⟨vec 4 (-2) 6, vec 0 0 2⟩
 
 private theorem screwTwist_angular_ne_zero : Twist.angular screwTwist ≠ 0 := by
   intro h
@@ -48,7 +48,7 @@ theorem screwTwist_axisPoint :
 /-- The displayed axis/pitch reconstruct the literal twist via the origin-sensitive cross sign. -/
 theorem screwTwist_fromScrew :
     Twist.fromScrew (vec 0 0 2) (vec 1 2 0) 3 = screwTwist := by
-  apply Prod.ext <;> ext i <;> fin_cases i <;>
+  apply Twist.ext <;> ext i <;> fin_cases i <;>
     norm_num [Twist.fromScrew, screwTwist, Vec3.cross, cross_apply, vec]
 
 /-- The magnitude is angular norm two, even with a larger nonzero linear component. -/
@@ -59,8 +59,8 @@ theorem screwTwist_magnitude : Twist.screwMagnitude screwTwist = 2 := by
 
 /-- A negative scalar changes both coordinate components and reverses the angular sign. -/
 theorem screwTwist_negative_components :
-    (-3 : ℝ) • screwTwist = (vec (-12) 6 (-18), vec 0 0 (-6)) := by
-  apply Prod.ext <;> ext i <;> fin_cases i <;> norm_num [screwTwist, vec]
+    (-3 : ℝ) • screwTwist = ⟨vec (-12) 6 (-18), vec 0 0 (-6)⟩ := by
+  apply Twist.ext <;> ext i <;> fin_cases i <;> norm_num [screwTwist, vec]
 
 private theorem negative_screwTwist_angular_ne_zero :
     Twist.angular ((-3 : ℝ) • screwTwist) ≠ 0 :=
@@ -93,8 +93,8 @@ theorem screwTwist_negative_magnitude : Twist.screwMagnitude ((-3 : ℝ) • scr
 
 /-- A 3–4–5 pure translation receives infinite pitch and linear magnitude five. -/
 theorem translation_screw_parameters :
-    Twist.screwPitch (vec 0 3 4, 0) = ScrewPitch.infinite ∧
-      Twist.screwMagnitude (vec 0 3 4, 0) = 5 := by
+    Twist.screwPitch ⟨vec 0 3 4, 0⟩ = ScrewPitch.infinite ∧
+      Twist.screwMagnitude ⟨vec 0 3 4, 0⟩ = 5 := by
   have hv : vec 0 3 4 ≠ 0 := by
     intro h
     have h₂ := congrArg (fun v : Vec3 => v 2) h
@@ -109,6 +109,6 @@ theorem translation_screw_parameters :
 theorem stationary_screw_parameters :
     Twist.screwPitch (0 : Twist) = ScrewPitch.stationary ∧
       Twist.screwMagnitude (0 : Twist) = 0 := by
-  simp [Twist.screwPitch, Twist.screwMagnitude, Twist.linear, Twist.angular]
+  simp [Twist.screwPitch, Twist.screwMagnitude]
 
 end RoboLean.Examples

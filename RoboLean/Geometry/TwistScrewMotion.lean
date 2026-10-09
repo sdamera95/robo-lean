@@ -23,7 +23,7 @@ namespace RoboLean
 namespace Twist
 
 private theorem exp_parallel_axis (ω : Vec3) (hω : ‖ω‖ = 1) (pitch t : ℝ) :
-    exp (pitch • ω, ω) t = ⟨Rotation.exp ω t, (pitch * t) • ω⟩ := by
+    exp ⟨pitch • ω, ω⟩ t = ⟨Rotation.exp ω t, (pitch * t) • ω⟩ := by
   have houter : Vec3.outer ω ω *ᵥ WithLp.ofLp ω = WithLp.ofLp ω := by
     have h := congrArg (fun A : Matrix (Fin 3) (Fin 3) ℝ ↦ A *ᵥ WithLp.ofLp ω)
       (Vec3.hat_sq_of_norm_eq_one ω hω)
@@ -31,8 +31,8 @@ private theorem exp_parallel_axis (ω : Vec3) (hω : ‖ω‖ = 1) (pitch t : �
       Matrix.sub_mulVec, Matrix.one_mulVec] at h
     exact sub_eq_zero.mp h.symm
   apply RigidTransform.ext
-  · exact exp_rotation (pitch • ω, ω) t
-  · rw [exp_translation_of_angular_norm_eq_one (pitch • ω, ω) hω t]
+  · exact exp_rotation ⟨pitch • ω, ω⟩ t
+  · rw [exp_translation_of_angular_norm_eq_one ⟨pitch • ω, ω⟩ hω t]
     apply WithLp.ofLp_injective
     change (((1 - NormedSpace.exp (t • Vec3.hat ω)) * Vec3.hat ω +
       t • Vec3.outer ω ω) *ᵥ (pitch • WithLp.ofLp ω)) =
@@ -47,8 +47,8 @@ theorem exp_fromScrew (ω q : Vec3) (pitch t : ℝ) (hω : ‖ω‖ = 1) :
     exp (fromScrew ω q pitch) t =
       ⟨Rotation.exp ω t,
         q - (Rotation.exp ω t).act q + (pitch * t) • ω⟩ := by
-  have hξ : fromScrew ω q pitch = adjoint (⟨1, q⟩ : RigidTransform) (pitch • ω, ω) := by
-    apply Prod.ext
+  have hξ : fromScrew ω q pitch = adjoint (⟨1, q⟩ : RigidTransform) ⟨pitch • ω, ω⟩ := by
+    apply Twist.ext
     · change -Vec3.cross ω q + pitch • ω =
         (1 : Rotation).act (pitch • ω) + Vec3.cross q ((1 : Rotation).act ω)
       rw [Rotation.act_one, Rotation.act_one, Vec3.cross_anticomm q ω]
@@ -80,7 +80,7 @@ theorem exp_fromScrew_applyPoint_on_axis (ω q : Vec3) (pitch t r : ℝ)
 
 /-- The pure-translation branch, including a zero direction or zero parameter. -/
 theorem exp_pure_translation_applyPoint (v : Vec3) (t : ℝ) (x : Vec3) :
-    (exp (v, 0) t).applyPoint x = x + t • v := by
+    (exp ⟨v, 0⟩ t).applyPoint x = x + t • v := by
   rw [exp_pure_translation]
   simp [RigidTransform.applyPoint]
 
@@ -105,7 +105,7 @@ def toRigidTransform : ScrewMotion → RigidTransform
 /-- The associated generator; its exponential is not used to define the motion. -/
 def generator : ScrewMotion → Twist
   | .finite ω q pitch _ _ => Twist.fromScrew ω q pitch
-  | .translation v _ _ => (v, 0)
+  | .translation v _ _ => ⟨v, 0⟩
   | .stationary => 0
 
 /-- The signed motion parameter, independent of the norm-based screw magnitude. -/
@@ -164,12 +164,12 @@ private theorem norm_zAxis_motion : ‖Rotation.zAxis‖ = 1 := by
 
 /-- The explicit translation coefficient for any twist with positive unit z-axis. -/
 theorem exp_zAxis_translation (v : Vec3) (t : ℝ) :
-    (exp (v, Rotation.zAxis) t).translation = WithLp.toLp 2
+    (exp ⟨v, Rotation.zAxis⟩ t).translation = WithLp.toLp 2
       ![Real.sin t * v 0 + (Real.cos t - 1) * v 1,
         (1 - Real.cos t) * v 0 + Real.sin t * v 1, t * v 2] := by
   have hR : NormedSpace.exp (t • Vec3.hat Rotation.zAxis) =
       (Rotation.zRotation t).val := rfl
-  rw [exp_translation_of_angular_norm_eq_one (v, Rotation.zAxis) norm_zAxis_motion t,
+  rw [exp_translation_of_angular_norm_eq_one ⟨v, Rotation.zAxis⟩ norm_zAxis_motion t,
     hR, Rotation.zRotation_val]
   apply WithLp.ofLp_injective
   ext i
@@ -180,7 +180,7 @@ theorem exp_zAxis_translation (v : Vec3) (t : ℝ) :
 /-- MLS Examples 2.2–2.3: constant relative motion about the line through
 `(0,l₁,0)`, multiplied by the initial pose. All real angles, including zero, occur. -/
 theorem exp_offset_z_mul_initial (l₁ l₂ t : ℝ) :
-    exp (WithLp.toLp 2 ![l₁, 0, 0], Rotation.zAxis) t *
+    exp ⟨WithLp.toLp 2 ![l₁, 0, 0], Rotation.zAxis⟩ t *
       (⟨1, WithLp.toLp 2 ![0, l₁ + l₂, 0]⟩ : RigidTransform) =
       ⟨Rotation.zRotation t,
         WithLp.toLp 2 ![-l₂ * Real.sin t, l₁ + l₂ * Real.cos t, 0]⟩ := by
@@ -201,8 +201,8 @@ theorem exp_offset_z_mul_initial (l₁ l₂ t : ℝ) :
 /-- MLS Example 2.2's absolute-pose exponential coordinates. The actual
 restriction is `cos t ≠ 1`, excluding every full turn, not merely `t = 0`. -/
 theorem exp_absolute_z_pose (l₁ l₂ t : ℝ) (ht : Real.cos t ≠ 1) :
-    exp (WithLp.toLp 2 ![(l₁ - l₂) / 2,
-      (l₁ + l₂) * Real.sin t / (2 * (1 - Real.cos t)), 0], Rotation.zAxis) t =
+    exp ⟨WithLp.toLp 2 ![(l₁ - l₂) / 2,
+      (l₁ + l₂) * Real.sin t / (2 * (1 - Real.cos t)), 0], Rotation.zAxis⟩ t =
       ⟨Rotation.zRotation t,
         WithLp.toLp 2 ![-l₂ * Real.sin t, l₁ + l₂ * Real.cos t, 0]⟩ := by
   have hden : 1 - Real.cos t ≠ 0 := sub_ne_zero.mpr (Ne.symm ht)

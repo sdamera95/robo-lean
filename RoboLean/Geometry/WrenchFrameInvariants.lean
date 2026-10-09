@@ -25,7 +25,7 @@ namespace Wrench
 (MLS printed p. 62, equation (2.66), and the swap of printed pp. 64 and 67). -/
 theorem toTwist_transform (g : RigidTransform) (F : Wrench) :
     toTwist (transform g F) = Twist.adjoint g (toTwist F) := by
-  apply Prod.ext
+  apply Twist.ext
   · change Vec3.cross g.translation (g.rotation.act F.force) + g.rotation.act F.torque =
       g.rotation.act F.torque + Vec3.cross g.translation (g.rotation.act F.force)
     exact add_comm _ _

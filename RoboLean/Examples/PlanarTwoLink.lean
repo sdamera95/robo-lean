@@ -75,8 +75,8 @@ def planarTwoLink (a b : ℝ) : SerialChain 2 where
 /-- The second joint twist is the printed `ξ₂ = (l₁, 0, 0, 0, 0, 1)` of MLS p. 88, in the
 order `(v, ω)` with `l₁ = a`. -/
 theorem planarTwoLink_twist_one (a b : ℝ) :
-    (planarTwoLink a b).twist 1 = (vec a 0 0, Rotation.zAxis) := by
-  apply Prod.ext
+    (planarTwoLink a b).twist 1 = ⟨vec a 0 0, Rotation.zAxis⟩ := by
+  apply Twist.ext
   · ext i
     fin_cases i <;>
       simp [planarTwoLink, Twist.revolute, Vec3.cross, cross_apply, Rotation.zAxis, vec]
@@ -244,9 +244,9 @@ theorem hasDerivAt_planarTwoLink_translation (a b : ℝ) {q : ℝ → Fin 2 → 
 `ξ₁ = (0, 0, 0, 0, 0, 1)`, the first printed column of `Jˢ` in MLS Example 3.8, p. 118
 (eq. (3.54), p. 116). Twist order `(v, ω)`. -/
 theorem planarTwoLink_spatialJacobian_zero (a b : ℝ) (q : Fin 2 → ℝ) :
-    (planarTwoLink a b).spatialJacobian q 0 = (vec 0 0 0, vec 0 0 1) := by
+    (planarTwoLink a b).spatialJacobian q 0 = ⟨vec 0 0 0, vec 0 0 1⟩ := by
   rw [SerialChain.spatialJacobian_zero]
-  apply Prod.ext <;> ext i <;> fin_cases i <;>
+  apply Twist.ext <;> ext i <;> fin_cases i <;>
     simp [planarTwoLink, Twist.revolute, Vec3.cross, cross_apply, Rotation.zAxis, vec]
 
 /-- The second column of the spatial Jacobian of `planarTwoLink`,
@@ -256,7 +256,7 @@ the definition, the adjoint of the first joint exponential applied to `ξ₂`. T
 `(v, ω)`. -/
 theorem planarTwoLink_spatialJacobian_one (a b : ℝ) (q : Fin 2 → ℝ) :
     (planarTwoLink a b).spatialJacobian q 1 =
-      (vec (a * Real.cos (q 0)) (a * Real.sin (q 0)) 0, vec 0 0 1) := by
+      ⟨vec (a * Real.cos (q 0)) (a * Real.sin (q 0)) 0, vec 0 0 1⟩ := by
   have hg : ((planarTwoLink a b).jointMotions q).take 1 =
       [Twist.exp (Twist.revolute Rotation.zAxis (vec 0 0 0)) (q 0)] := by
     simp [SerialChain.jointMotions, List.ofFn_succ, planarTwoLink]
@@ -265,8 +265,8 @@ theorem planarTwoLink_spatialJacobian_one (a b : ℝ) (q : Fin 2 → ℝ) :
       ((planarTwoLink a b).twist 1) = _
   rw [hg, List.prod_singleton, Twist.exp_revolute _ _ norm_zAxis, planarTwoLink_twist_one, hz,
     vec_zero, map_zero, sub_zero]
-  apply Prod.ext <;> ext i <;> fin_cases i <;>
-    simp [Twist.adjoint, Twist.linear, Twist.angular, Rotation.act_apply,
+  apply Twist.ext <;> ext i <;> fin_cases i <;>
+    simp [Twist.adjoint, Rotation.act_apply,
       Rotation.zRotation_val, Matrix.mulVec, dotProduct, Fin.sum_univ_succ, Vec3.cross,
       Rotation.zAxis, vec, mul_comm]
 
@@ -280,8 +280,8 @@ theorem planarTwoLink_spatialVelocity (a b : ℝ) {q : ℝ → Fin 2 → ℝ} {q
     (hq : ∀ i, HasDerivAt (fun s => q s i) (q' i) t) {D : HomogeneousMatrix}
     (hD : HasDerivAt (fun s => ((planarTwoLink a b).fk (q s)).toHomogeneous) D t) :
     RigidTransform.spatialVelocity (fun s => (planarTwoLink a b).fk (q s)) D t hD =
-      q' 0 • ((vec 0 0 0, vec 0 0 1) : Twist) +
-        q' 1 • ((vec (a * Real.cos (q t 0)) (a * Real.sin (q t 0)) 0, vec 0 0 1) : Twist) := by
+      q' 0 • (⟨vec 0 0 0, vec 0 0 1⟩ : Twist) +
+        q' 1 • (⟨vec (a * Real.cos (q t 0)) (a * Real.sin (q t 0)) 0, vec 0 0 1⟩ : Twist) := by
   rw [SerialChain.spatialVelocity_fk _ hq hD, Fin.sum_univ_two,
     planarTwoLink_spatialJacobian_zero, planarTwoLink_spatialJacobian_one]
 
@@ -318,7 +318,7 @@ theorem planarTwoLink_point_velocity (a b : ℝ) (q q' : Fin 2 → ℝ) :
     planarTwoLink_fk_translation]
   ext i
   fin_cases i <;>
-    simp [Twist.linear, Twist.angular, Vec3.cross, cross_apply, vec] <;> ring
+    simp [Vec3.cross, cross_apply, vec] <;> ring
 
 /-- **K12, the check of MLS Example 3.8, p. 118.** The derivative of the tool position of
 `planarTwoLink` along a joint trajectory, obtained from the general Jacobian result

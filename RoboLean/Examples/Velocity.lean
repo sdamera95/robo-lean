@@ -27,9 +27,9 @@ open scoped Matrix.Norms.Operator
 /-- An offset fixed-axis motion, with constant translations on either side. -/
 def offsetVelocityPose (t : ℝ) : RigidTransform :=
   (⟨1, vec 0 3 0⟩ : RigidTransform) *
-    Twist.exp (0, vec 0 0 1) (2 * t) * ⟨1, vec 0 5 0⟩
+    Twist.exp ⟨0, vec 0 0 1⟩ (2 * t) * ⟨1, vec 0 5 0⟩
 
-private theorem offsetAngularNorm : ‖Twist.angular (0, vec 0 0 1)‖ = 1 := by
+private theorem offsetAngularNorm : ‖Twist.angular ⟨0, vec 0 0 1⟩‖ = 1 := by
   rw [EuclideanSpace.norm_eq]
   norm_num [Twist.angular, vec, Fin.sum_univ_succ]
 
@@ -37,12 +37,12 @@ private theorem offsetAngularNorm : ‖Twist.angular (0, vec 0 0 1)‖ = 1 := by
 theorem offsetVelocityPose_pureRotation (t : ℝ) :
     offsetVelocityPose t = (⟨1, vec 0 3 0⟩ : RigidTransform) *
       ⟨Rotation.exp (vec 0 0 1) (2 * t), 0⟩ * ⟨1, vec 0 5 0⟩ := by
-  have he : Twist.exp (0, vec 0 0 1) (2 * t) =
+  have he : Twist.exp ⟨0, vec 0 0 1⟩ (2 * t) =
       (⟨Rotation.exp (vec 0 0 1) (2 * t), 0⟩ : RigidTransform) := by
     apply RigidTransform.ext
     · exact Twist.exp_rotation _ _
     · rw [Twist.exp_translation_of_angular_norm_eq_one _ offsetAngularNorm]
-      simp [Twist.linear]
+      simp
   simp only [offsetVelocityPose, he]
 
 /-- The initial pose has no rotation and its two offsets add to eight along +y. -/
@@ -68,25 +68,25 @@ theorem hasDerivAt_offsetVelocityPose_zero :
   have hθ : HasDerivAt (fun t : ℝ => 2 * t) 2 0 := by
     simpa using (hasDerivAt_id (0 : ℝ)).const_mul 2
   have he : HasDerivAt
-      (fun t : ℝ => (Twist.exp (0, vec 0 0 1) (2 * t)).toHomogeneous)
-      ((2 : ℝ) • Twist.hat (0, vec 0 0 1)) 0 := by
+      (fun t : ℝ => (Twist.exp ⟨0, vec 0 0 1⟩ (2 * t)).toHomogeneous)
+      ((2 : ℝ) • Twist.hat ⟨0, vec 0 0 1⟩) 0 := by
     have he' : HasDerivAt
-        (fun t : ℝ => (Twist.exp (0, vec 0 0 1) (2 * t)).toHomogeneous)
-        ((2 : ℝ) • (Twist.hat (0, vec 0 0 1) *
-          (Twist.exp (0, vec 0 0 1) (2 * 0)).toHomogeneous)) 0 :=
-      (Twist.hasDerivAt_exp_toHomogeneous (0, vec 0 0 1) (2 * 0)).scomp 0 hθ
+        (fun t : ℝ => (Twist.exp ⟨0, vec 0 0 1⟩ (2 * t)).toHomogeneous)
+        ((2 : ℝ) • (Twist.hat ⟨0, vec 0 0 1⟩ *
+          (Twist.exp ⟨0, vec 0 0 1⟩ (2 * 0)).toHomogeneous)) 0 :=
+      (Twist.hasDerivAt_exp_toHomogeneous ⟨0, vec 0 0 1⟩ (2 * 0)).scomp 0 hθ
     simpa only [mul_zero, Twist.exp_zero, RigidTransform.toHomogeneous_one, mul_one] using he'
   have h : HasDerivAt
       (fun t : ℝ => (⟨1, vec 0 3 0⟩ : RigidTransform).toHomogeneous *
-        (Twist.exp (0, vec 0 0 1) (2 * t)).toHomogeneous *
+        (Twist.exp ⟨0, vec 0 0 1⟩ (2 * t)).toHomogeneous *
         (⟨1, vec 0 5 0⟩ : RigidTransform).toHomogeneous)
       ((⟨1, vec 0 3 0⟩ : RigidTransform).toHomogeneous *
-        ((2 : ℝ) • Twist.hat (0, vec 0 0 1)) *
+        ((2 : ℝ) • Twist.hat ⟨0, vec 0 0 1⟩) *
         (⟨1, vec 0 5 0⟩ : RigidTransform).toHomogeneous) 0 :=
     (he.const_mul (⟨1, vec 0 3 0⟩ : RigidTransform).toHomogeneous).mul_const
       (⟨1, vec 0 5 0⟩ : RigidTransform).toHomogeneous
   have hD : (⟨1, vec 0 3 0⟩ : RigidTransform).toHomogeneous *
-      ((2 : ℝ) • Twist.hat (0, vec 0 0 1)) *
+      ((2 : ℝ) • Twist.hat ⟨0, vec 0 0 1⟩) *
       (⟨1, vec 0 5 0⟩ : RigidTransform).toHomogeneous = offsetVelocityDerivative := by
     simp only [RigidTransform.toHomogeneous, Twist.hat, Matrix.fromBlocks_smul,
       Matrix.fromBlocks_multiply]
@@ -105,7 +105,7 @@ theorem hasDerivAt_offsetVelocityPose_translation_zero :
 /-- The spatial linear part subtracts `ω×p`, giving six rather than minus ten. -/
 theorem offsetVelocityPose_spatial_zero :
     RigidTransform.spatialVelocity offsetVelocityPose offsetVelocityDerivative 0
-      hasDerivAt_offsetVelocityPose_zero = (vec 6 0 0, vec 0 0 2) := by
+      hasDerivAt_offsetVelocityPose_zero = ⟨vec 6 0 0, vec 0 0 2⟩ := by
   apply Twist.hat_injective
   rw [RigidTransform.hat_spatialVelocity, offsetVelocityPose_zero,
     ← RigidTransform.toHomogeneous_inv]
@@ -120,7 +120,7 @@ theorem offsetVelocityPose_spatial_zero :
 /-- At this pose the body linear part is the rotated origin velocity, minus ten. -/
 theorem offsetVelocityPose_body_zero :
     RigidTransform.bodyVelocity offsetVelocityPose offsetVelocityDerivative 0
-      hasDerivAt_offsetVelocityPose_zero = (vec (-10) 0 0, vec 0 0 2) := by
+      hasDerivAt_offsetVelocityPose_zero = ⟨vec (-10) 0 0, vec 0 0 2⟩ := by
   apply Twist.hat_injective
   rw [RigidTransform.hat_bodyVelocity, offsetVelocityPose_zero,
     ← RigidTransform.toHomogeneous_inv]

@@ -35,7 +35,7 @@ equation (2.68), and the twist about it (displayed together on printed p. 67)
 have the same components in swapped order. This is a named linear map between
 two distinct types, not a type identity. -/
 def toTwist : Wrench ≃ₗ[ℝ] Twist where
-  toFun F := (F.torque, F.force)
+  toFun F := ⟨F.torque, F.force⟩
   invFun ξ := ⟨ξ.angular, ξ.linear⟩
   map_add' _ _ := rfl
   map_smul' _ _ := rfl

@@ -25,17 +25,17 @@ theorem exists_twist_exp (g : RigidTransform) :
   by_cases hz : t = 0
   · subst t
     have hg : g.rotation = 1 := by simpa using hR.symm
-    refine ⟨(g.translation, 0), 1, ?_⟩
+    refine ⟨⟨g.translation, 0⟩, 1, ?_⟩
     rw [Twist.exp_pure_translation, one_smul]
     exact RigidTransform.ext hg.symm rfl
   · have htpos : 0 < t := lt_of_le_of_ne ht0 (Ne.symm hz)
     have ht2π : t < 2 * Real.pi := by linarith [Real.pi_pos]
     let A := Twist.translationJacobian ω t
     let v : Vec3 := WithLp.toLp 2 (A⁻¹ *ᵥ WithLp.ofLp g.translation)
-    refine ⟨(v, ω), t, ?_⟩
+    refine ⟨⟨v, ω⟩, t, ?_⟩
     apply RigidTransform.ext
-    · exact (Twist.exp_rotation (v, ω) t).trans hR
-    · rw [Twist.exp_translation_of_angular_norm_eq_one (v, ω) hω t]
+    · exact (Twist.exp_rotation ⟨v, ω⟩ t).trans hR
+    · rw [Twist.exp_translation_of_angular_norm_eq_one ⟨v, ω⟩ hω t]
       apply WithLp.ofLp_injective
       exact Twist.translationJacobian_mulVec_inv_mulVec ω hω t htpos ht2π
         (WithLp.ofLp g.translation)

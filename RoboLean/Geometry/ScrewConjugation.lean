@@ -33,7 +33,7 @@ theorem generator_conjugate (g : RigidTransform) (S : ScrewMotion) :
   cases S with
   | finite ω q pitch t hω => exact (Twist.adjoint_fromScrew g ω q pitch).symm
   | translation v t hv =>
-      simp [conjugate, generator, Twist.adjoint, Twist.angular, Twist.linear,
+      simp [conjugate, generator, Twist.adjoint,
         RigidTransform.applyVector]
   | stationary => simp [conjugate, generator]
 
@@ -90,7 +90,7 @@ theorem generator_reverseAxis (S : ScrewMotion) :
   | finite ω q pitch t hω =>
       simpa only [reverseAxis, generator, neg_one_smul] using
         (Twist.fromScrew_smul ω q pitch (-1)).symm
-  | translation v t hv => simp [reverseAxis, generator]
+  | translation v t hv => apply Twist.ext <;> simp [reverseAxis, generator]
   | stationary => simp [reverseAxis, generator]
 
 /-- The combined sign reversal preserves the independently defined rigid displacement. -/

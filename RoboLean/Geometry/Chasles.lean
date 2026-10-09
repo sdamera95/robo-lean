@@ -25,15 +25,15 @@ theorem exists_screw_motion (g : RigidTransform) :
     · subst v
       refine ⟨.stationary, ?_⟩
       change (⟨1, 0⟩ : RigidTransform) = g
-      simpa using hExp
+      simpa only [Twist.exp_pure_translation, smul_zero] using hExp
     · have hd : ‖‖v‖⁻¹ • v‖ = 1 := by
         simpa only [NormedSpace.normalize] using NormedSpace.norm_normalize hv
       refine ⟨.translation (‖v‖⁻¹ • v) ‖v‖ hd, ?_⟩
       change (⟨1, ‖v‖ • (‖v‖⁻¹ • v)⟩ : RigidTransform) = g
       rw [smul_smul, mul_inv_cancel₀ (norm_ne_zero_iff.mpr hv), one_smul]
       simpa only [Twist.exp_pure_translation, one_smul] using hExp
-  · let η : Twist := ‖ω‖⁻¹ • (v, ω)
-    have hη : ‖η.angular‖ = 1 := Twist.angular_norm_normalize (v, ω) hω
+  · let η : Twist := ‖ω‖⁻¹ • (⟨v, ω⟩ : Twist)
+    have hη : ‖η.angular‖ = 1 := Twist.angular_norm_normalize ⟨v, ω⟩ hω
     have hη0 : η.angular ≠ 0 := by
       intro h
       simp [h] at hη
@@ -43,7 +43,7 @@ theorem exists_screw_motion (g : RigidTransform) :
     change Twist.exp (Twist.fromScrew η.angular (Twist.axisPoint η hη0)
       (Twist.finitePitch η hη0)) ‖ω‖ = g
     rw [Twist.fromScrew_reconstruction η hη0]
-    have hn := Twist.exp_normalize_angular (v, ω) hω 1
+    have hn := Twist.exp_normalize_angular ⟨v, ω⟩ hω 1
     simpa only [mul_one] using hn.symm.trans hExp
 
 /-- Independent geometric meaning of a screw displacement: either pure

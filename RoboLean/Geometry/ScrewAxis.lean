@@ -151,7 +151,7 @@ theorem pureTranslationAxis_finrank (v : Vec3) (hv : v ≠ 0) :
 
 /-- The actual translation carries every parallel axis into itself, independently of its point. -/
 theorem pure_translation_axis_motion (v q : Vec3) (t r : ℝ) :
-    (exp (v, 0) t).applyPoint (q + r • v) = q + (r + t) • v := by
+    (exp ⟨v, 0⟩ t).applyPoint (q + r • v) = q + (r + t) • v := by
   rw [exp_pure_translation]
   simp [RigidTransform.applyPoint, Rotation.act_one, add_smul, add_assoc]
 
@@ -181,17 +181,17 @@ def screwAxis (ξ : Twist) : Option (AffineSubspace ℝ Vec3) := by
   simp [screwAxis, hω]
 
 @[simp] theorem screwAxis_pure_translation (v : Vec3) (hv : v ≠ 0) :
-    screwAxis (v, 0) = some (pureTranslationAxis v hv) := by
-  simp [screwAxis, linear, angular, hv]
+    screwAxis ⟨v, 0⟩ = some (pureTranslationAxis v hv) := by
+  simp [screwAxis, hv]
 
 @[simp] theorem screwAxis_zero : screwAxis (0 : Twist) = none := by
-  simp [screwAxis, linear, angular]
+  simp [screwAxis]
 
 theorem screwAxis_eq_none_iff (ξ : Twist) : screwAxis ξ = none ↔ ξ = 0 := by
   classical
   rcases ξ with ⟨v, ω⟩
   by_cases hω : ω = 0 <;> by_cases hv : v = 0 <;>
-    simp [screwAxis, linear, angular, hω, hv]
+    simp [screwAxis, hω, hv]
 
 /-- All parallel affine axes compatible with a nonzero pure translation. -/
 def translationAxes (v : Vec3) (_hv : v ≠ 0) : Set (AffineSubspace ℝ Vec3) :=

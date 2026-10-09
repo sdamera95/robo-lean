@@ -103,8 +103,7 @@ coordinate expression, with its common-frame offset sign fixed (MLS printed p. 6
 theorem pair_eq_coordinateProduct (S T : FiniteScrew) :
     Wrench.pair T.toWrench S.toTwist = S.magnitude * T.magnitude * S.coordinateProduct T := by
   simp [toWrench, toTwist, coordinateProduct, Wrench.fromScrew, Twist.fromScrew,
-    Wrench.pair, Twist.linear, Twist.angular,
-    EuclideanSpace.inner_eq_star_dotProduct, star_trivial, Vec3.cross, cross_apply,
+    Wrench.pair, EuclideanSpace.inner_eq_star_dotProduct, star_trivial, Vec3.cross, cross_apply,
     dotProduct, Fin.sum_univ_succ, Matrix.vecHead, Matrix.vecTail, Pi.smul_apply]
   ring
 
@@ -199,7 +198,7 @@ def axis : GeometricScrew → AffineSubspace ℝ Vec3
 (MLS printed pp. 66–67). -/
 def toTwist : GeometricScrew → Twist
   | .finite S => S.toTwist
-  | .infinite ω _ M _ _ => (M • ω, 0)
+  | .infinite ω _ M _ _ => ⟨M • ω, 0⟩
 
 /-- Wrench along the represented screw, including the pure-couple branch
 (MLS printed p. 64, equation (2.68)). -/

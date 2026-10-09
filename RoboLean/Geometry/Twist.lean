@@ -8,6 +8,12 @@ MLS §2.3.2, printed pp. 40–41, equations (2.29)–(2.31), distinguishes
 twist coordinates `(v, ω)` from the matrix `[hat ω, v; 0, 0]`. The matrix
 carrier below is defined independently by skew symmetry and a zero bottom row.
 No normalization or nonzero assumption is imposed on either component.
+
+`Twist` is a structure with fields `linear` and `angular`, so it is a type
+distinct from `Vec3 × Vec3` and from `Wrench`: a pair of vectors is rejected
+where a twist is expected. Its additive group and real vector space structures
+are componentwise, transported from `Vec3 × Vec3` along a private component map.
+No coercion to or from `Vec3 × Vec3` and no norm or topology are declared.
 -/
 
 noncomputable section
@@ -16,9 +22,138 @@ namespace RoboLean
 
 open Matrix
 
-/-- Twist coordinates, with the linear component before the angular component.
-The product module is algebraic; its norm is not a physical twist magnitude. -/
-abbrev Twist := Vec3 × Vec3
+/-- Twist coordinates `ξ = (v, ω) ∈ ℝ⁶`, MLS printed p. 41, equation (2.30): the
+linear component `v` followed by the angular component `ω`. This is a structure,
+hence a type distinct from `Vec3 × Vec3` and from `Wrench`; frames and units are
+conventions not enforced by this type, and no norm is declared on it. -/
+@[ext]
+structure Twist where
+  /-- Build a twist from its linear and angular coordinates `(v, ω)`, MLS printed
+  p. 41, equation (2.30). -/
+  mk ::
+  /-- Linear coordinates `v` in the ordering `(v, ω)`, MLS printed p. 41,
+  equation (2.30). -/
+  linear : Vec3
+  /-- Angular coordinates `ω` in the ordering `(v, ω)`, MLS printed p. 41,
+  equation (2.30). -/
+  angular : Vec3
+
+/-- Two twists are equal when their linear and angular coordinates are equal
+(MLS printed p. 41, twist coordinates `(v, ω)`). -/
+add_decl_doc Twist.ext
+
+/-- Twists are equal exactly when their linear and angular coordinates are equal
+(MLS printed p. 41, twist coordinates `(v, ω)`). -/
+add_decl_doc Twist.ext_iff
+
+namespace Twist
+
+/-- The zero twist, with zero linear and angular coordinates (MLS printed p. 41,
+twist coordinates). -/
+instance instZero : Zero Twist := ⟨⟨0, 0⟩⟩
+
+/-- Componentwise sum of twist coordinates (MLS printed p. 41, twist coordinates). -/
+instance instAdd : Add Twist := ⟨fun ξ η => ⟨ξ.linear + η.linear, ξ.angular + η.angular⟩⟩
+
+/-- Componentwise negation of twist coordinates (MLS printed p. 41, twist coordinates). -/
+instance instNeg : Neg Twist := ⟨fun ξ => ⟨-ξ.linear, -ξ.angular⟩⟩
+
+/-- Componentwise difference of twist coordinates (MLS printed p. 41, twist coordinates). -/
+instance instSub : Sub Twist := ⟨fun ξ η => ⟨ξ.linear - η.linear, ξ.angular - η.angular⟩⟩
+
+/-- Componentwise scalar action on both twist components, for every scalar type
+acting on `Vec3` (MLS printed p. 41, twist coordinates). -/
+instance instSMul {R : Type*} [SMul R Vec3] : SMul R Twist :=
+  ⟨fun c ξ => ⟨c • ξ.linear, c • ξ.angular⟩⟩
+
+/-- The zero twist has zero linear part (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem zero_linear : (0 : Twist).linear = 0 := rfl
+
+/-- The zero twist has zero angular part (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem zero_angular : (0 : Twist).angular = 0 := rfl
+
+/-- Linear parts add under the componentwise sum (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem add_linear (ξ η : Twist) : (ξ + η).linear = ξ.linear + η.linear := rfl
+
+/-- Angular parts add under the componentwise sum (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem add_angular (ξ η : Twist) : (ξ + η).angular = ξ.angular + η.angular := rfl
+
+/-- Negation negates the linear part (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem neg_linear (ξ : Twist) : (-ξ).linear = -ξ.linear := rfl
+
+/-- Negation negates the angular part (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem neg_angular (ξ : Twist) : (-ξ).angular = -ξ.angular := rfl
+
+/-- Linear parts subtract under the componentwise difference (MLS printed p. 41,
+twist coordinates). -/
+@[simp] theorem sub_linear (ξ η : Twist) : (ξ - η).linear = ξ.linear - η.linear := rfl
+
+/-- Angular parts subtract under the componentwise difference (MLS printed p. 41,
+twist coordinates). -/
+@[simp] theorem sub_angular (ξ η : Twist) : (ξ - η).angular = ξ.angular - η.angular := rfl
+
+/-- A scalar scales the linear part (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem smul_linear {R : Type*} [SMul R Vec3] (c : R) (ξ : Twist) :
+    (c • ξ).linear = c • ξ.linear := rfl
+
+/-- A scalar scales the angular part (MLS printed p. 41, twist coordinates). -/
+@[simp] theorem smul_angular {R : Type*} [SMul R Vec3] (c : R) (ξ : Twist) :
+    (c • ξ).angular = c • ξ.angular := rfl
+
+/-- A twist built from zero components is the zero twist (MLS printed p. 41,
+twist coordinates). -/
+@[simp] theorem mk_zero_zero : (⟨0, 0⟩ : Twist) = 0 := rfl
+
+/-- A twist built from components is zero exactly when both components are zero
+(MLS printed p. 41, twist coordinates). -/
+@[simp] theorem mk_eq_zero (v ω : Vec3) : (⟨v, ω⟩ : Twist) = 0 ↔ v = 0 ∧ ω = 0 :=
+  Twist.mk.injEq v ω 0 0 ▸ Iff.rfl
+
+/-- Component pair, used only to transport algebraic structure. It is not a
+public identification of twists with pairs. -/
+private def toProd (ξ : Twist) : Vec3 × Vec3 := (ξ.linear, ξ.angular)
+
+private theorem toProd_injective : Function.Injective toProd := fun _ _ h =>
+  Twist.ext (congrArg Prod.fst h) (congrArg Prod.snd h)
+
+/-- The componentwise additive group of twists, transported from `Vec3 × Vec3`
+(MLS printed p. 41, `ξ ∈ ℝ⁶`). -/
+instance instAddCommGroup : AddCommGroup Twist :=
+  toProd_injective.addCommGroup toProd rfl (fun _ _ => rfl) (fun _ => rfl)
+    (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl)
+
+/-- The componentwise real vector space of twists, transported from `Vec3 × Vec3`
+(MLS printed p. 41, `ξ ∈ ℝ⁶`). -/
+instance instModule : Module ℝ Twist :=
+  Function.Injective.module ℝ (AddMonoidHom.mk' toProd fun _ _ => rfl) toProd_injective
+    fun _ _ => rfl
+
+/-- Linear version of the component pair, used only for finite-dimensionality. -/
+private def toProdLinearEquiv : Twist ≃ₗ[ℝ] Vec3 × Vec3 where
+  toFun := toProd
+  invFun p := ⟨p.1, p.2⟩
+  map_add' _ _ := rfl
+  map_smul' _ _ := rfl
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+/-- Twists form a finite-dimensional real vector space (MLS printed p. 41, `ξ ∈ ℝ⁶`). -/
+instance instFiniteDimensional : FiniteDimensional ℝ Twist :=
+  Module.Finite.equiv toProdLinearEquiv.symm
+
+/-- The linear part of a finite sum of twists is the sum of the linear parts
+(MLS printed p. 41, twist coordinates). -/
+theorem sum_linear {ι : Type*} (s : Finset ι) (f : ι → Twist) :
+    (∑ i ∈ s, f i).linear = ∑ i ∈ s, (f i).linear :=
+  map_sum (AddMonoidHom.mk' linear fun _ _ => rfl) f s
+
+/-- The angular part of a finite sum of twists is the sum of the angular parts
+(MLS printed p. 41, twist coordinates). -/
+theorem sum_angular {ι : Type*} (s : Finset ι) (f : ι → Twist) :
+    (∑ i ∈ s, f i).angular = ∑ i ∈ s, (f i).angular :=
+  map_sum (AddMonoidHom.mk' angular fun _ _ => rfl) f s
+
+end Twist
 
 /-- The independent real matrix submodule `se(3)`: upper-left skew block,
 unrestricted translation column, and both lower blocks zero. -/
@@ -57,12 +192,6 @@ theorem mem_se3Submodule_iff (M : HomogeneousMatrix) :
 
 namespace Twist
 
-/-- Linear coordinates `v` in the ordering `(v, ω)`. -/
-abbrev linear (ξ : Twist) : Vec3 := ξ.1
-
-/-- Angular coordinates `ω` in the ordering `(v, ω)`. -/
-abbrev angular (ξ : Twist) : Vec3 := ξ.2
-
 /-- Homogeneous twist matrix, MLS equation (2.31). Its last entry is zero. -/
 def hat (ξ : Twist) : HomogeneousMatrix :=
   fromBlocks (Vec3.hat ξ.angular) (Matrix.of fun i _ => ξ.linear i) 0 0
@@ -70,7 +199,7 @@ def hat (ξ : Twist) : HomogeneousMatrix :=
 /-- Extract linear and axial coordinates, MLS equation (2.30).
 The reverse inverse law requires the `se(3)` block conditions. -/
 def vee (M : HomogeneousMatrix) : Twist :=
-  (WithLp.toLp 2 (fun i => M (Sum.inl i) (Sum.inr 0)), Vec3.vee M.toBlocks₁₁)
+  ⟨WithLp.toLp 2 (fun i => M (Sum.inl i) (Sum.inr 0)), Vec3.vee M.toBlocks₁₁⟩
 
 @[simp]
 theorem hat_angular (ξ : Twist) : ξ.hat.toBlocks₁₁ = Vec3.hat ξ.angular := rfl
@@ -90,7 +219,7 @@ theorem hat_mem_se3Submodule (ξ : Twist) : ξ.hat ∈ se3Submodule :=
 
 @[simp]
 theorem vee_hat (ξ : Twist) : vee ξ.hat = ξ := by
-  apply Prod.ext
+  apply Twist.ext
   · rfl
   · exact Vec3.vee_hat ξ.angular
 

@@ -9,7 +9,7 @@ MLS printed pp. 61–64, §2.5.1, uses wrench order `(f, τ)` and twist order
 at A's origin, expressed in A: `(Rf, p × Rf + Rτ)`.
 
 `Wrench` is a structure with fields `force` and `torque`, so it is a type
-distinct from `Twist` (an abbreviation of `Vec3 × Vec3`): a twist is rejected
+distinct from `Twist` (itself a two-field structure): a twist is rejected
 where a wrench is expected, and conversely. Its additive group and real vector
 space structures are componentwise, transported from `Vec3 × Vec3` along the
 private component map. No coercion between twists and wrenches is declared;
@@ -142,7 +142,7 @@ def pair (F : Wrench) (ξ : Twist) : ℝ :=
 
 /-- Every wrench pairs to zero with the zero twist (MLS printed p. 61 pairing). -/
 @[simp] theorem pair_zero_right (F : Wrench) : pair F 0 = 0 := by
-  simp [pair, Twist.linear, Twist.angular]
+  simp [pair]
 
 /-- The pairing is additive in the wrench (MLS printed p. 61 pairing). -/
 theorem pair_add_left (F G : Wrench) (ξ : Twist) :
@@ -153,7 +153,7 @@ theorem pair_add_left (F G : Wrench) (ξ : Twist) :
 /-- The pairing is additive in the twist (MLS printed p. 61 pairing). -/
 theorem pair_add_right (F : Wrench) (ξ η : Twist) :
     pair F (ξ + η) = pair F ξ + pair F η := by
-  simp [pair, Twist.linear, Twist.angular, inner_add_right]
+  simp [pair, inner_add_right]
   ring
 
 /-- The pairing is homogeneous in the wrench (MLS printed p. 61 pairing). -/
@@ -164,7 +164,7 @@ theorem pair_smul_left (c : ℝ) (F : Wrench) (ξ : Twist) :
 /-- The pairing is homogeneous in the twist (MLS printed p. 61 pairing). -/
 theorem pair_smul_right (F : Wrench) (c : ℝ) (ξ : Twist) :
     pair F (c • ξ) = c * pair F ξ := by
-  simp [pair, Twist.linear, Twist.angular, inner_smul_right, mul_add]
+  simp [pair, inner_smul_right, mul_add]
 
 /-- The pairing as a real bilinear map into the algebraic dual of twists
 (MLS printed p. 61). -/
@@ -185,10 +185,10 @@ theorem ext_pair {F G : Wrench} (h : ∀ ξ : Twist, pair F ξ = pair G ξ) : F 
   apply Wrench.ext
   · apply ext_inner_right ℝ
     intro v
-    simpa [pair, Twist.linear, Twist.angular] using h (v, 0)
+    simpa [pair, Twist.linear, Twist.angular] using h ⟨v, 0⟩
   · apply ext_inner_right ℝ
     intro ω
-    simpa [pair, Twist.linear, Twist.angular] using h (0, ω)
+    simpa [pair, Twist.linear, Twist.angular] using h ⟨0, ω⟩
 
 /-- Equality of pairing against all instantaneous motions in one frame, MLS
 printed p. 62 (equivalent wrenches). This is pointwise equivalence, not a

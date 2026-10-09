@@ -236,7 +236,7 @@ theorem spatialJacobianMatrix_mulVec (c : SerialChain n) (θ θ' : Fin n → ℝ
   funext r
   rcases r with k | k <;>
     simp [spatialJacobianMatrix, Matrix.mulVec, dotProduct, Twist.coordinates,
-      Prod.fst_sum, Prod.snd_sum, mul_comm]
+      Twist.sum_linear, Twist.sum_angular, mul_comm]
 
 end SerialChain
 end RoboLean

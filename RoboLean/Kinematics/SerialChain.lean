@@ -38,7 +38,7 @@ namespace Twist
 `ξ = (-ω × q, ω)` in the order `(v, ω)`: MLS p. 87 (Chapter 3, §2.2). The book takes
 `ω` to be a unit vector; the definition is algebraic, and the unit premise is carried by
 `Twist.IsRevoluteJoint`. -/
-def revolute (ω q : Vec3) : Twist := (-Vec3.cross ω q, ω)
+def revolute (ω q : Vec3) : Twist := ⟨-Vec3.cross ω q, ω⟩
 
 /-- The revolute joint twist of MLS p. 87 is the zero-pitch case of the screw generator
 `Twist.fromScrew` (MLS p. 47, eq. (2.43), with `h = 0`). -/
@@ -55,7 +55,7 @@ theorem revolute_axis_point (ω q q' : Vec3) (hq : q' ∈ axisLine q ω) :
 /-- The twist `(v, 0)` of a prismatic joint translating along `v`: MLS p. 87. The book
 takes `v` to be a unit vector; the unit premise is carried by
 `Twist.IsPrismaticJoint`. -/
-def prismatic (v : Vec3) : Twist := (v, 0)
+def prismatic (v : Vec3) : Twist := ⟨v, 0⟩
 
 /-- A twist is a revolute joint twist when it has the form `(-ω × q, ω)` of MLS p. 87
 with a unit axis direction `ω`. -/
@@ -107,9 +107,9 @@ theorem adjoint_revolute (g : RigidTransform) (ω q : Vec3) :
 along the rotated direction `g_* v`; translation of the frame does not enter. -/
 theorem adjoint_prismatic (g : RigidTransform) (v : Vec3) :
     adjoint g (prismatic v) = prismatic (g.applyVector v) := by
-  apply Prod.ext
-  · simp [adjoint, prismatic, Twist.linear, Twist.angular, RigidTransform.applyVector]
-  · simp [adjoint, prismatic, Twist.angular]
+  apply Twist.ext
+  · simp [adjoint, prismatic, RigidTransform.applyVector]
+  · simp [adjoint, prismatic]
 
 /-- Transporting a revolute joint twist by a rigid transform gives a revolute joint
 twist (unit axis preserved); supports MLS p. 116 and eq. (2.58). -/

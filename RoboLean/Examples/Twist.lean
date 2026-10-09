@@ -26,7 +26,7 @@ open Matrix
 open scoped Matrix.Norms.Operator
 
 /-- Distinct nonzero components make angular/linear swaps observable. -/
-def mixedTwist : Twist := (vec 1 2 3, vec 4 5 6)
+def mixedTwist : Twist := ⟨vec 1 2 3, vec 4 5 6⟩
 
 /-- The linear column is `(1,2,3)`, while the skew block uses `(4,5,6)`. -/
 theorem mixedTwist_hat :
@@ -52,7 +52,7 @@ theorem mixedTwist_hat_point :
     norm_num [mixedTwist, Twist.linear, Twist.angular, Vec3.cross, cross_apply, vec]
 
 /-- Rotation about the positive z-axis through `(1,2,0)` has `v = (2,-1,0)`. -/
-def offsetAxisTwist : Twist := (vec 2 (-1) 0, vec 0 0 1)
+def offsetAxisTwist : Twist := ⟨vec 2 (-1) 0, vec 0 0 1⟩
 
 /-- The point on the offset axis has zero instantaneous velocity. -/
 theorem offsetAxisTwist_axis_point :
@@ -76,8 +76,8 @@ theorem offsetAxisTwist_off_axis_point :
 
 /-- Here `Rv=(-2,1,3)`, `Rω=(-5,4,6)`, and `p×Rω=(0,-21,14)`. -/
 theorem adjoint_g_mixedTwist :
-    Twist.adjoint g mixedTwist = (vec (-2) (-20) 17, vec (-5) 4 6) := by
-  apply Prod.ext
+    Twist.adjoint g mixedTwist = ⟨vec (-2) (-20) 17, vec (-5) 4 6⟩ := by
+  apply Twist.ext
   · change quarterTurn.act (vec 1 2 3) +
       Vec3.cross (vec 1 2 3) (quarterTurn.act (vec 4 5 6)) = _
     rw [quarterTurn_act, quarterTurn_act]
@@ -87,8 +87,8 @@ theorem adjoint_g_mixedTwist :
 
 /-- Applying `h` before `g` gives translation `(1,4,3)` and this adjoint. -/
 theorem adjoint_g_mul_h_mixedTwist :
-    Twist.adjoint (g * h) mixedTwist = (vec 10 (-20) 27, vec (-5) 4 6) := by
-  apply Prod.ext
+    Twist.adjoint (g * h) mixedTwist = ⟨vec 10 (-20) 27, vec (-5) 4 6⟩ := by
+  apply Twist.ext
   · change (g * h).rotation.act (vec 1 2 3) +
       Vec3.cross (g * h).translation ((g * h).rotation.act (vec 4 5 6)) = _
     rw [g_mul_h_translation]
@@ -102,8 +102,8 @@ theorem adjoint_g_mul_h_mixedTwist :
 
 /-- Reversing the active transforms gives translation `(3,2,3)` and a different result. -/
 theorem adjoint_h_mul_g_mixedTwist :
-    Twist.adjoint (h * g) mixedTwist = (vec (-2) (-32) 25, vec (-5) 4 6) := by
-  apply Prod.ext
+    Twist.adjoint (h * g) mixedTwist = ⟨vec (-2) (-32) 25, vec (-5) 4 6⟩ := by
+  apply Twist.ext
   · change (h * g).rotation.act (vec 1 2 3) +
       Vec3.cross (h * g).translation ((h * g).rotation.act (vec 4 5 6)) = _
     rw [h_mul_g_translation]
@@ -117,7 +117,7 @@ theorem adjoint_h_mul_g_mixedTwist :
 
 /-- The actual exponential of an unnormalized pure translation has displacement `t v`. -/
 theorem pure_translation_exp_two :
-    Twist.exp (vec 2 (-1) 3, 0) 2 = ⟨1, vec 4 (-2) 6⟩ := by
+    Twist.exp ⟨vec 2 (-1) 3, 0⟩ 2 = ⟨1, vec 4 (-2) 6⟩ := by
   have hv : (2 : ℝ) • vec 2 (-1) 3 = vec 4 (-2) 6 := by
     ext i
     fin_cases i <;> norm_num [vec]
@@ -130,7 +130,7 @@ theorem zero_twist_exp_homogeneous (t : ℝ) :
   rw [Twist.exp_zero_twist, RigidTransform.toHomogeneous_one]
 
 /-- Nonzero linear motion together with unit angular motion about +z. -/
-def helicalTwist : Twist := (vec 1 2 3, vec 0 0 1)
+def helicalTwist : Twist := ⟨vec 1 2 3, vec 0 0 1⟩
 
 private theorem helicalTwist_angular_norm : ‖helicalTwist.angular‖ = 1 := by
   rw [EuclideanSpace.norm_eq]
@@ -157,10 +157,10 @@ theorem helicalTwist_exp_pi_div_two :
 
 /-- Doubling both components at `π/4` gives the same pose as the full twist at `π/2`. -/
 theorem scaled_helicalTwist_exp_pi_div_four :
-    Twist.exp (vec 2 4 6, vec 0 0 2) (Real.pi / 4) =
+    Twist.exp ⟨vec 2 4 6, vec 0 0 2⟩ (Real.pi / 4) =
       ⟨quarterTurn, vec (-1) 3 (3 * Real.pi / 2)⟩ := by
-  have hscale : (vec 2 4 6, vec 0 0 2) = (2 : ℝ) • helicalTwist := by
-    apply Prod.ext <;> ext i <;> fin_cases i <;> norm_num [helicalTwist, vec]
+  have hscale : (⟨vec 2 4 6, vec 0 0 2⟩ : Twist) = (2 : ℝ) • helicalTwist := by
+    apply Twist.ext <;> ext i <;> fin_cases i <;> norm_num [helicalTwist, vec]
   rw [hscale, Twist.exp_smul,
     show Real.pi / 4 * 2 = Real.pi / 2 by ring, helicalTwist_exp_pi_div_two]
 

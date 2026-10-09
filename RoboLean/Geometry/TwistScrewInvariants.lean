@@ -83,10 +83,10 @@ theorem screwPitch_adjoint (g : RigidTransform) (ξ : Twist) :
   by_cases hω : ξ.angular = 0
   · by_cases hξ : ξ = 0
     · simp [hξ]
-    have hv : ξ.linear ≠ 0 := fun h ↦ hξ (Prod.ext h hω)
+    have hv : ξ.linear ≠ 0 := fun h ↦ hξ (Twist.ext h hω)
     have hω' := (adjoint_angular_eq_zero_iff g ξ).mpr hω
     have hξ' : adjoint g ξ ≠ 0 := fun h ↦ hξ ((adjoint_eq_zero_iff g ξ).mp h)
-    have hv' : (adjoint g ξ).linear ≠ 0 := fun h ↦ hξ' (Prod.ext h hω')
+    have hv' : (adjoint g ξ).linear ≠ 0 := fun h ↦ hξ' (Twist.ext h hω')
     rw [(screwPitch_eq_infinite_iff _).mpr ⟨hω', hv'⟩,
       (screwPitch_eq_infinite_iff _).mpr ⟨hω, hv⟩]
   · rw [screwPitch_of_angular_ne_zero _ (adjoint_angular_ne_zero g ξ hω),
@@ -110,7 +110,7 @@ theorem normalized_adjoint (g : RigidTransform) (ξ : Twist) :
 theorem adjoint_fromScrew (g : RigidTransform) (ω q : Vec3) (pitch : ℝ) :
     adjoint g (fromScrew ω q pitch) =
       fromScrew (g.applyVector ω) (g.applyPoint q) pitch := by
-  apply Prod.ext
+  apply Twist.ext
   · change g.rotation.act (-Vec3.cross ω q + pitch • ω) +
       Vec3.cross g.translation (g.rotation.act ω) =
       -Vec3.cross (g.rotation.act ω) (g.rotation.act q + g.translation) +
@@ -160,13 +160,13 @@ theorem finiteAxis_adjoint (g : RigidTransform) (ξ : Twist) (hω : ξ.angular �
 /-- The conventional origin axis of pure translation rotates; it is not generally the
 full affine image of the old origin axis. -/
 theorem screwAxis_adjoint_pure_translation (g : RigidTransform) (v : Vec3) (hv : v ≠ 0) :
-    screwAxis (adjoint g (v, 0)) = some (axisLine 0 (g.applyVector v)) := by
+    screwAxis (adjoint g ⟨v, 0⟩) = some (axisLine 0 (g.applyVector v)) := by
   have hgv : g.applyVector v ≠ 0 := by
     intro h
     have hi := congrArg g.rotation⁻¹.act h
     exact hv (by simpa only [RigidTransform.applyVector, Rotation.inv_act_act, map_zero] using hi)
-  have he : adjoint g (v, 0) = (g.applyVector v, 0) := by
-    simp [adjoint, linear, angular, RigidTransform.applyVector]
+  have he : adjoint g ⟨v, 0⟩ = ⟨g.applyVector v, 0⟩ := by
+    simp [adjoint, RigidTransform.applyVector]
   rw [he, screwAxis_pure_translation _ hgv]
   rfl
 
@@ -174,7 +174,7 @@ theorem screwAxis_adjoint_pure_translation (g : RigidTransform) (v : Vec3) (hv :
 theorem axisDirection_smul (ξ : Twist) (c : ℝ) : axisDirection (c • ξ) = c • axisDirection ξ := by
   classical
   by_cases hc : c = 0
-  · simp [hc, axisDirection, linear, angular]
+  · simp [hc, axisDirection]
   by_cases hω : ξ.angular = 0
   · have hωc : (c • ξ).angular = 0 := by
       change c • ξ.angular = 0
