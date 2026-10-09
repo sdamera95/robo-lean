@@ -1,0 +1,29 @@
+# Lake build outputs and fetched packages
+/.lake/
+
+# Internal development artifacts: records, gates, session logs, agent and editor configuration
+/docs/
+/.claude/
+/.codex/
+/.agents/
+/.githooks/
+/AGENTS.md
+/CLAUDE.md
+/.vscode/
+/analysis-scratch/
+
+# Quarantined, retracted work: never staged
+garbage_*
+**/garbage_*/
+
+# The MLS textbook is copyrighted and stays local
+/references/*.pdf
+
+# Python and OS leftovers
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+.DS_Store
+*~
+*.swp
