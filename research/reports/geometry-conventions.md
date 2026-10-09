@@ -533,3 +533,61 @@ shadow-tree checks and axiom audit recorded in the
 root import list is root's landing check and is recorded separately. K13 (force
 pullback) is not covered. K13 and the planar workspace rows are covered by the [E011 gate](../../docs/implogs/gates/E011/20261009T093129Z/) and the
 integrated [E010/E011 gate](../../docs/implogs/gates/E010/20261009T100204Z/), which built them against the `Twist` structure.
+
+## Dynamics conventions
+
+
+Recorded 2026-10-09 10:11:43 UTC for increment E012 (root applied the lead's proposal). Source: MLS Chapter 4, printed pp. 161–178, read this
+session as text and, for pp. 162, 168, 176–177, as rendered images. These are conventions of the
+Lean model; they do not certify a physical robot or its inertial parameters.
+
+**Generalized inertia and block order.** A generalized inertia is a real matrix indexed by
+`Fin 3 ⊕ Fin 3`, the index type of `Twist.coordinates` and `Twist.adjointMatrix`: `Sum.inl` is
+the linear block, `Sum.inr` the angular block. MLS eq. (4.9), p. 162, prints
+\(\mathcal M=\begin{bmatrix} mI&0\\0&\mathcal I\end{bmatrix}\) acting on \(V^b=(v^b,\omega^b)\), linear first;
+this is the library's twist order, so no transposition is needed.
+`RigidBody.generalizedInertia m 𝓘 = fromBlocks (m • 1) 0 0 𝓘`.
+
+**Frame of the inertia.** A generalized inertia refers to a body-fixed frame, and the kinetic
+energy `RigidBody.kineticEnergy 𝓜 V = ½ V·𝓜V` pairs it with the body velocity of that same frame;
+the types do not enforce the match. The block-diagonal form is the generalized inertia in a
+frame at the mass center (MLS pp. 161–163). In another body-fixed frame `C` with constant pose
+`g = g_BC` relative to `B`, the generalized inertia is `transformInertia g 𝓜 = Ad_gᵀ 𝓜 Ad_g`,
+because \(V^b_C=\operatorname{Ad}_{g^{-1}}V^b_B\) (MLS Proposition 2.15, p. 59); MLS eq. (4.28) is
+the case `g = g_{sl_i}(0)⁻¹`. For a pure translation `g = (I, p)` the result is
+\(\begin{bmatrix} mI& m\widehat p\\ -m\widehat p& \mathcal I-m\widehat p^{\,2}\end{bmatrix}\)
+(`RigidBody.transformInertia_translation`).
+
+**Link frames of an open chain.** `InertialChain n` holds a `SerialChain n`, the reference poses
+\(g_{sl_k}(0)\) and the generalized inertias \(\mathcal M_k\), each in its own link frame. Lean link
+`k : Fin n` is the link distal to Lean joint `k` (the book's link `k + 1`) and is moved by Lean
+joints `0..k`: \(g_{sl_k}(\theta)=e^{\widehat\xi_0\theta_0}\cdots e^{\widehat\xi_k\theta_k}g_{sl_k}(0)\)
+(p. 168). This is the forward kinematics of `linkChain k`, the chain whose later joints have twist
+`0`; its E009 body Jacobian is the book's \(J^b_{sl_k}=[\xi^\dagger_0\cdots\xi^\dagger_k\;0\cdots0]\). The
+6×n matrix `linkJacobianMatrix` has rows `Twist.coordinates`, like `spatialJacobianMatrix`.
+
+**Mass matrix and kinetic energy.** \(M(\theta)=\sum_kJ_k^{\mathsf T}\mathcal M_kJ_k\) (eq. (4.19)) and
+\(T=\tfrac12\dot\theta^{\mathsf T}M(\theta)\dot\theta\) (eq. (4.18)). Joint rates are real vectors `Fin n → ℝ`.
+
+**What positivity is assumed and what is proved.** Assumed, as explicit hypotheses: symmetry of
+`𝓘` or `𝓜_k`; `0 ≤ m` or `0 < m`; positive (semi)definiteness of `𝓘` or `𝓜_k`; and, for strict
+positivity of `M(θ)`, either injectivity of the stacked Jacobian or nonzero joint twists (for
+example `IsRevoluteJoint`/`IsPrismaticJoint`). Proved: symmetry, semidefiniteness and
+definiteness of `𝓜`, of `Ad_gᵀ𝓜Ad_g` and of `M(θ)` from those hypotheses, and the converse that
+with PD link inertias `M(θ)` is PD only if the stacked Jacobian is injective. Not addressed:
+derivation of `𝓘` from a mass density, physical realizability of inertial parameters, and any
+numerical conditioning.
+
+**Units.** Masses, lengths, times and inertias are real numbers; units (for example kg, m, s,
+kg·m²) are a convention of the user and are not tracked by types. The linear and angular blocks
+of a twist carry different units, so `𝓜` is the only metric used here on twists; the product norm
+on twists is not used by the dynamics.
+
+**Christoffel symbols and the Coriolis matrix.** For partial derivatives `dM k = ∂M/∂θₖ`,
+`Christoffel.symbol dM i j k = (dM k i j + dM j i k − dM i k j)/2` (eq. (4.22)),
+`coriolisMatrix dM θ̇ i j = Σₖ Γᵢⱼₖ θ̇ₖ` (eq. (4.23)), and `rate dM θ̇ = Σₖ θ̇ₖ • dM k` (`Ṁ` by the
+chain rule). Derivative data are inputs: either the family `dM`, or Fréchet derivatives
+`M' i j : (Fin n → ℝ) →L[ℝ] ℝ` of the entries at a configuration, read as
+`partials M' k i j = M' i j eₖ`. The skew symmetry of `Ṁ − 2C` (Lemma 4.2(2)) depends on this
+choice of `C` (as MLS notes on p. 171) and on symmetric partials, which follow from `M` symmetric at
+every configuration.

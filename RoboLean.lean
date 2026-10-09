@@ -58,3 +58,7 @@ import RoboLean.Kinematics.Workspace
 import RoboLean.Examples.PlanarTwoLink
 import RoboLean.Kinematics.ForcePullback
 import RoboLean.Examples.PlanarTwoLinkWorkspace
+import RoboLean.Dynamics.RigidBodyInertia
+import RoboLean.Dynamics.MassMatrix
+import RoboLean.Dynamics.Christoffel
+import RoboLean.Examples.PlanarTwoLinkDynamics
