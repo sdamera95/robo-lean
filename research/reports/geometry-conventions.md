@@ -235,16 +235,18 @@ or uniqueness guarantee and is not a numerical logarithm implementation.
 ## Twist, adjoint, and wrench conventions
 
 Use twist order `(v, ω)` and wrench order `(f, τ)`, with linear coordinates
-first. Twists are pairs of Euclidean `Vec3` coordinates (`Twist` abbreviates
-`Vec3 × Vec3`). Wrenches are a distinct two-field structure `Wrench` with fields `force`
-and `torque` and the same componentwise real vector-space structure, so a twist is
+first. Twists are a two-field structure `Twist` with fields `linear` and `angular`,
+the twist coordinates `(v, ω)` of MLS printed p. 41, eq. (2.30), with the componentwise
+real vector-space structure; a `Vec3 × Vec3` value is rejected where a twist is expected
+([E010](../../docs/implogs/E010-twist-structure.md)). Wrenches are a distinct two-field
+structure `Wrench` with fields `force` and `torque` on the same pattern, so a twist is
 rejected where a wrench is expected and conversely
-([E008](../../docs/implogs/E008-wrench-carrier-and-library-hygiene.md)). The two
-carriers are related only through named maps: the power pairing `Wrench.pair`, the
-coordinate swaps `Twist.swapWrench` and `Wrench.toTwist`, and the dual equivalences
-`Wrench.pairingEquiv` and `Twist.pairingEquiv`. The product norm that `Twist` inherits
-from `Vec3 × Vec3` is not declared to be a canonical physical magnitude; `Wrench` has no
-norm. The [ledger](mls-coverage-ledger.md)
+([E008](../../docs/implogs/E008-wrench-carrier-and-library-hygiene.md)). The two carriers
+are related only through named maps: the power pairing `Wrench.pair`, the coordinate swaps
+`Twist.swapWrench` and `Wrench.toTwist`, and the dual equivalences `Wrench.pairingEquiv`
+and `Twist.pairingEquiv`. Neither carrier has a norm, metric or topology; a six-coordinate
+norm, if one is ever needed, must be chosen with its metric and length scale and declared
+deliberately. The [ledger](mls-coverage-ledger.md)
 distinguishes the checked algebra and derivative statements below from remaining
 and partial source obligations. For a differentiable pose trajectory `g(t)`,
 
@@ -463,7 +465,7 @@ it agrees with the positive quarter turn about `+z` above.
 and `SerialChain.toolRef` is `g_st(0)`. Reference joint twists are base-frame
 twists at `θ = 0` ([p. 87](../../references/MLS.pdf#page=105)), in the order
 `(v, ω)`: revolute `Twist.revolute ω q = (-ω × q, ω)` and prismatic
-`Twist.prismatic v = (v, 0)`. The unit-axis or unit-direction premise is the
+`Twist.prismatic v = (v, 0)` (in Lean, `⟨-ω × q, ω⟩` and `⟨v, 0⟩`). The unit-axis or unit-direction premise is the
 predicate `Twist.IsRevoluteJoint` or `Twist.IsPrismaticJoint`, not a field of the
 chain; the chain accepts any twist, and theorems state the joint type they need.
 Any point of the axis line gives the same revolute twist
@@ -506,8 +508,28 @@ quantifier order (eq. (3.13), [p. 95](../../references/MLS.pdf#page=113)), `R`
 ranging over all of `SO(3)`. These are pose-reachability sets; they say nothing
 about paths, continuity of an inverse, or dynamics.
 
+**Force pullback.** Joint torques equivalent to an end-effector wrench are the pairings
+`τᵢ = Wrench.pair F Jᵢ` of the wrench with the Jacobian columns, in matched frames: a
+spatial wrench (moment about the base origin, base coordinates) with the spatial Jacobian,
+`SerialChain.spatialWrenchTorques` (eq. (3.60), [p. 121](../../references/MLS.pdf#page=139)),
+and a body wrench (moment about the tool origin, tool coordinates) with the body Jacobian,
+`SerialChain.bodyWrenchTorques` (eq. (3.59)). The two correspond by
+`Fˢ = Wrench.transform (fk θ) Fᵇ`, the inverse of `Fᵇ = Ad_gᵀ Fˢ` (eq. (2.67),
+[p. 63](../../references/MLS.pdf#page=81)). The matrix forms use `spatialJacobianMatrix` and
+`bodyJacobianMatrix` with rows `Sum.inl` = `v`, `Sum.inr` = `ω`, against `Wrench.coordinates`
+with `Sum.inl` = `f`, `Sum.inr` = `τ`. The statements are the instantaneous algebraic
+identity; the book's frictionless work premise is not formalized
+([E011](../../docs/implogs/E011-planar-workspace-certificate-and-force-pullback.md)).
+
+**Planar two-link workspace.** The motion plane of `Examples.planarTwoLink` is the third
+coordinate zero, `x 2 = 0` (joint axes `+z`, zero configuration along `+y`), and distances
+are the Euclidean norm of `Vec3`. "Unrestricted joints" is `Q = Set.univ`. The annulus,
+certificate and radial-band statements are design statements from the assessment, not MLS
+results ([ledger C01–C07](mls-coverage-ledger.md#design-certificates-beyond-mls)).
+
 **Evidence scope.** The declarations named here were elaborated by the E009
 shadow-tree checks and axiom audit recorded in the
 [E009 gate](../../docs/implogs/gates/E009/); the integrated `lake build` of the
 root import list is root's landing check and is recorded separately. K13 (force
-pullback) is not covered.
+pullback) is not covered. K13 and the planar workspace rows are covered by the [E011 gate](../../docs/implogs/gates/E011/20261009T093129Z/) and the
+integrated [E010/E011 gate](../../docs/implogs/gates/E010/20261009T100204Z/), which built them against the `Twist` structure.

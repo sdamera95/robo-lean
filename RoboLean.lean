@@ -56,3 +56,5 @@ import RoboLean.Kinematics.SerialChain
 import RoboLean.Kinematics.Jacobian
 import RoboLean.Kinematics.Workspace
 import RoboLean.Examples.PlanarTwoLink
+import RoboLean.Kinematics.ForcePullback
+import RoboLean.Examples.PlanarTwoLinkWorkspace
