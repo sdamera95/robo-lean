@@ -18,13 +18,15 @@ namespace RoboLean.Examples
 
 open Matrix
 
-/-- A force and a nonzero moment, both initially expressed about B's origin. -/
-def mixedWrench : Wrench := (vec 1 2 3, vec 4 5 6)
+/-- A force and a nonzero moment, both initially expressed about B's origin
+(MLS printed p. 61 wrench coordinates). -/
+def mixedWrench : Wrench := ⟨vec 1 2 3, vec 4 5 6⟩
 
-/-- `Rf=(-2,1,3)`, `p×Rf=(3,-9,5)`, and `Rτ=(-5,4,6)`. -/
+/-- `Rf=(-2,1,3)`, `p×Rf=(3,-9,5)`, and `Rτ=(-5,4,6)`, checking MLS printed
+p. 62, equation (2.66), in the `g_AB` direction. -/
 theorem transform_g_mixedWrench :
-    Wrench.transform g mixedWrench = (vec (-2) 1 3, vec (-2) (-5) 11) := by
-  apply Prod.ext
+    Wrench.transform g mixedWrench = ⟨vec (-2) 1 3, vec (-2) (-5) 11⟩ := by
+  apply Wrench.ext
   · exact quarterTurn_act 1 2 3
   · change Vec3.cross (vec 1 2 3) (quarterTurn.act (vec 1 2 3)) +
       quarterTurn.act (vec 4 5 6) = _
@@ -32,26 +34,29 @@ theorem transform_g_mixedWrench :
     ext i
     fin_cases i <;> norm_num [Vec3.cross, cross_apply, vec]
 
-/-- In B coordinates the two dot products are `14` and `77`. -/
+/-- In B coordinates the two dot products are `14` and `77` (MLS printed p. 61
+pairing). -/
 theorem mixedWrench_pair_mixedTwist : Wrench.pair mixedWrench mixedTwist = 91 := by
-  simp only [Wrench.pair, Wrench.force, Wrench.torque, Twist.linear, Twist.angular,
+  simp only [Wrench.pair, Twist.linear, Twist.angular,
     mixedWrench, mixedTwist, EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 
-/-- In A coordinates the dot products are `35` and `56`, independently giving `91`. -/
+/-- In A coordinates the dot products are `35` and `56`, independently giving `91`
+(MLS printed p. 63, power preserved under compatible frame changes). -/
 theorem transformed_mixedWrench_pair_mixedTwist :
     Wrench.pair (Wrench.transform g mixedWrench) (Twist.adjoint g mixedTwist) = 91 := by
   rw [transform_g_mixedWrench, adjoint_g_mixedTwist]
-  simp only [Wrench.pair, Wrench.force, Wrench.torque, Twist.linear, Twist.angular,
+  simp only [Wrench.pair, Twist.linear, Twist.angular,
     EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 
-/-- Omitting the moment-origin shift changes this pairing to `112`, rather than `91`. -/
+/-- Omitting the moment-origin shift changes this pairing to `112`, rather than `91`
+(MLS printed pp. 62–63: the transfer is not a mere rotation of components). -/
 theorem rotated_only_mixedWrench_pair :
-    Wrench.pair (quarterTurn.act (vec 1 2 3), quarterTurn.act (vec 4 5 6))
+    Wrench.pair ⟨quarterTurn.act (vec 1 2 3), quarterTurn.act (vec 4 5 6)⟩
       (Twist.adjoint g mixedTwist) = 112 := by
   rw [quarterTurn_act, quarterTurn_act, adjoint_g_mixedTwist]
-  simp only [Wrench.pair, Wrench.force, Wrench.torque, Twist.linear, Twist.angular,
+  simp only [Wrench.pair, Twist.linear, Twist.angular,
     EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 

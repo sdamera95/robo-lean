@@ -19,33 +19,47 @@ namespace RoboLean.Examples
 
 open Matrix
 
-/-- The nonzero force and moment contributions cancel across the two components. -/
+/-- The nonzero force and moment contributions cancel across the two components
+(MLS printed p. 66, reciprocity as zero power). -/
 theorem reciprocal_pair_cancellation :
-    Wrench.pair (vec 1 0 0, vec 1 (-1) 0) (vec 1 2 3, vec 4 5 6) = 0 := by
-  simp only [Wrench.pair, Wrench.force, Wrench.torque, Twist.linear, Twist.angular,
+    Wrench.pair ⟨vec 1 0 0, vec 1 (-1) 0⟩ (vec 1 2 3, vec 4 5 6) = 0 := by
+  simp only [Wrench.pair, Twist.linear, Twist.angular,
     EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 
-/-- Adding one unit of z moment changes the pairing from zero to six. -/
+/-- Adding one unit of z moment changes the pairing from zero to six
+(MLS printed p. 66). -/
 theorem reciprocal_pair_perturbed :
-    Wrench.pair (vec 1 0 0, vec 1 (-1) 1) (vec 1 2 3, vec 4 5 6) = 6 := by
-  simp only [Wrench.pair, Wrench.force, Wrench.torque, Twist.linear, Twist.angular,
+    Wrench.pair ⟨vec 1 0 0, vec 1 (-1) 1⟩ (vec 1 2 3, vec 4 5 6) = 6 := by
+  simp only [Wrench.pair, Twist.linear, Twist.angular,
     EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 
-/-- The reciprocal product can be negative on a nonzero vector paired with itself. -/
+/-- The reciprocal product can be negative on a nonzero vector paired with itself
+(MLS printed p. 67). -/
 theorem reciprocal_product_negative_self :
     Twist.reciprocalProduct (vec 1 0 0, vec (-1) 0 0) (vec 1 0 0, vec (-1) 0 0) = -2 := by
   rw [Twist.reciprocalProduct_eq]
   simp only [Twist.linear, Twist.angular, EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   norm_num [dotProduct, Fin.sum_univ_succ, vec]
 
-/-- All pure translations as an actual range submodule, including zero. -/
+/-- All pure translations as an actual range submodule, including zero
+(MLS printed p. 68, a system of screws as a subspace of twists). -/
 def translationTwists : Submodule ℝ Twist := (LinearMap.inl ℝ Vec3 Vec3).range
 
-/-- All pure couples as an actual range submodule, including zero. -/
-def coupleWrenches : Submodule ℝ Wrench := (LinearMap.inr ℝ Vec3 Vec3).range
+/-- The pure-couple inclusion `τ ↦ (0, τ)` into wrenches (MLS printed p. 64, (2.68),
+infinite pitch). -/
+private def coupleInclusion : Vec3 →ₗ[ℝ] Wrench where
+  toFun τ := ⟨0, τ⟩
+  map_add' _ _ := Wrench.ext (by simp) rfl
+  map_smul' _ _ := Wrench.ext (by simp) rfl
 
+/-- All pure couples as an actual range submodule, including zero
+(MLS printed p. 68, a system of screws as a subspace of wrenches). -/
+def coupleWrenches : Submodule ℝ Wrench := coupleInclusion.range
+
+/-- A twist is a pure translation exactly when its angular part is zero
+(MLS printed p. 68). -/
 theorem mem_translationTwists (ξ : Twist) : ξ ∈ translationTwists ↔ ξ.angular = 0 := by
   change (∃ v : Vec3, (v, 0) = ξ) ↔ ξ.angular = 0
   constructor
@@ -54,15 +68,17 @@ theorem mem_translationTwists (ξ : Twist) : ξ ∈ translationTwists ↔ ξ.ang
   · intro h
     exact ⟨ξ.linear, Prod.ext rfl h.symm⟩
 
+/-- A wrench is a pure couple exactly when its force is zero (MLS printed p. 68). -/
 theorem mem_coupleWrenches (F : Wrench) : F ∈ coupleWrenches ↔ F.force = 0 := by
-  change (∃ τ : Vec3, (0, τ) = F) ↔ F.force = 0
+  change (∃ τ : Vec3, coupleInclusion τ = F) ↔ F.force = 0
   constructor
   · rintro ⟨τ, rfl⟩
     rfl
   · intro h
-    exact ⟨F.torque, Prod.ext h.symm rfl⟩
+    exact ⟨F.torque, Wrench.ext h.symm rfl⟩
 
-/-- A wrench pairs to zero with every pure translation exactly when its force is zero. -/
+/-- A wrench pairs to zero with every pure translation exactly when its force is zero
+(MLS printed pp. 68–69, reciprocal system). -/
 theorem reciprocal_translationTwists : Reciprocal.wrenches translationTwists = coupleWrenches := by
   ext F
   rw [Reciprocal.mem_wrenches, mem_coupleWrenches]
@@ -71,12 +87,13 @@ theorem reciprocal_translationTwists : Reciprocal.wrenches translationTwists = c
     apply ext_inner_right ℝ
     intro v
     have hv := h (v, 0) ((mem_translationTwists _).mpr rfl)
-    simpa [Wrench.pair, Wrench.force, Wrench.torque, Twist.linear, Twist.angular] using hv
+    simpa [Wrench.pair, Twist.linear, Twist.angular] using hv
   · intro hf ξ hξ
     have hω := (mem_translationTwists ξ).mp hξ
     simp [Wrench.pair, hf, hω]
 
-/-- A twist pairs to zero with every pure couple exactly when its angular part is zero. -/
+/-- A twist pairs to zero with every pure couple exactly when its angular part is zero
+(MLS printed pp. 68–69, reciprocal system). -/
 theorem reciprocal_coupleWrenches : Reciprocal.twists coupleWrenches = translationTwists := by
   ext ξ
   rw [Reciprocal.mem_twists, mem_translationTwists]
@@ -84,13 +101,14 @@ theorem reciprocal_coupleWrenches : Reciprocal.twists coupleWrenches = translati
   · intro h
     apply ext_inner_left ℝ
     intro ω
-    have hω := h (0, ω) ((mem_coupleWrenches _).mpr rfl)
-    simpa [Wrench.pair, Wrench.force, Wrench.torque, Twist.linear, Twist.angular] using hω
+    have hω := h ⟨0, ω⟩ ((mem_coupleWrenches _).mpr rfl)
+    simpa [Wrench.pair, Twist.linear, Twist.angular] using hω
   · intro hω F hF
     have hf := (mem_coupleWrenches F).mp hF
     simp [Wrench.pair, hf, hω]
 
-/-- The range of the injective translation-coordinate map has dimension three. -/
+/-- The range of the injective translation-coordinate map has dimension three
+(MLS printed p. 69, dimension of a screw system). -/
 theorem translationTwists_finrank : Module.finrank ℝ translationTwists = 3 := by
   have h : Function.Injective (LinearMap.inl ℝ Vec3 Vec3) := by
     intro v w hvw
@@ -99,21 +117,24 @@ theorem translationTwists_finrank : Module.finrank ℝ translationTwists = 3 := 
     _ = Module.finrank ℝ Vec3 := by exact LinearMap.finrank_range_of_inj h
     _ = 3 := by simp [Vec3]
 
-/-- The range of the injective moment-coordinate map independently has dimension three. -/
+/-- The range of the injective moment-coordinate map independently has dimension three
+(MLS printed p. 69, dimension of a screw system). -/
 theorem coupleWrenches_finrank : Module.finrank ℝ coupleWrenches = 3 := by
-  have h : Function.Injective (LinearMap.inr ℝ Vec3 Vec3) := by
+  have h : Function.Injective coupleInclusion := by
     intro v w hvw
-    exact congrArg Prod.snd hvw
+    exact congrArg Wrench.torque hvw
   calc
     _ = Module.finrank ℝ Vec3 := by exact LinearMap.finrank_range_of_inj h
     _ = 3 := by simp [Vec3]
 
-/-- The actual reciprocal wrench space has dimension three, agreeing with the dimension law. -/
+/-- The actual reciprocal wrench space has dimension three, agreeing with the dimension
+law (MLS printed p. 69, Proposition 2.19). -/
 theorem translation_reciprocal_finrank :
     Module.finrank ℝ (Reciprocal.wrenches translationTwists) = 3 := by
   rw [reciprocal_translationTwists, coupleWrenches_finrank]
 
-/-- The reverse reciprocal twist space also has dimension three. -/
+/-- The reverse reciprocal twist space also has dimension three (MLS printed p. 69,
+Proposition 2.19). -/
 theorem couple_reciprocal_finrank :
     Module.finrank ℝ (Reciprocal.twists coupleWrenches) = 3 := by
   rw [reciprocal_coupleWrenches, translationTwists_finrank]

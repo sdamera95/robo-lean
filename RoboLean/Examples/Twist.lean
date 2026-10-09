@@ -152,8 +152,8 @@ theorem helicalTwist_exp_pi_div_two :
   ext i j
   fin_cases i <;> fin_cases j <;>
     norm_num [RigidTransform.toHomogeneous, Matrix.mul_apply, Matrix.one_apply, Fin.sum_univ_succ,
-      helicalTwist, Twist.linear, Twist.angular, Vec3.hat, Vec3.outer, quarterTurn, vec] <;>
-    ring
+      helicalTwist, Twist.linear, Twist.angular, Vec3.hat, Vec3.outer, quarterTurn, vec]
+  ring
 
 /-- Doubling both components at `π/4` gives the same pose as the full twist at `π/2`. -/
 theorem scaled_helicalTwist_exp_pi_div_four :

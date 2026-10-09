@@ -175,7 +175,7 @@ theorem exp_zAxis_translation (v : Vec3) (t : ℝ) :
   ext i
   fin_cases i <;>
     simp [Vec3.hat, Vec3.outer, Rotation.zAxis, Matrix.vecMulVec, Matrix.one_apply,
-      Matrix.mulVec, Matrix.mul_apply, dotProduct, Fin.sum_univ_succ] <;> ring
+      Matrix.mulVec, Matrix.mul_apply, dotProduct, Fin.sum_univ_succ]
 
 /-- MLS Examples 2.2–2.3: constant relative motion about the line through
 `(0,l₁,0)`, multiplied by the initial pose. All real angles, including zero, occur. -/
@@ -196,7 +196,7 @@ theorem exp_offset_z_mul_initial (l₁ l₂ t : ℝ) :
       !![Real.cos t, -Real.sin t, 0; Real.sin t, Real.cos t, 0; 0, 0, 1]
       from Rotation.zRotation_val t]
     ext i
-    fin_cases i <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_succ] <;> ring
+    fin_cases i <;> simp <;> ring
 
 /-- MLS Example 2.2's absolute-pose exponential coordinates. The actual
 restriction is `cos t ≠ 1`, excluding every full turn, not merely `t = 0`. -/
@@ -216,9 +216,11 @@ theorem exp_absolute_z_pose (l₁ l₂ t : ℝ) (ht : Real.cos t ≠ 1) :
     ext i
     fin_cases i
     · dsimp
-      field_simp [hden] <;> ring
+      field_simp [hden]
+      ring
     · dsimp
-      field_simp [hden] <;> nlinarith [htrig]
+      field_simp [hden]
+      nlinarith [htrig]
     · simp
 
 end RoboLean.Twist

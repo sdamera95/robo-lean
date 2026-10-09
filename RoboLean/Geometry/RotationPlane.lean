@@ -7,6 +7,16 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 These Euclidean linear-algebra helpers support the planar reduction in the
 axis-angle proof. They do not assume a rotation representation theorem. The
 basis is ordered `![ω, u, ω × u]`, with both initial vectors unit and orthogonal.
+
+MLS context (printed pages): these lemmas support the library's proof of
+Proposition 2.5 (the exponential map is onto `SO(3)`, pp. 29–30) and Theorem 2.6
+(Euler's equivalent-axis theorem, p. 31) in `RoboLean.Geometry.RotationSurjectivity`.
+MLS proves Proposition 2.5 by equating matrix entries, not through an adapted
+basis, so none of these lemmas has a direct MLS counterpart. The cross product is
+the right-handed one of MLS p. 26, equations (2.4)–(2.5), and the third basis
+vector `ω × u` makes the frame right-handed in the sense of MLS pp. 23–24
+(`r₂ × r₃ = r₁`, equivalently `r₁ × r₂ = r₃`). Coordinates follow
+`research/reports/geometry-conventions.md`.
 -/
 
 noncomputable section
@@ -21,7 +31,7 @@ theorem exists_unit_orthogonal (ω : Vec3) (hω : ‖ω‖ = 1) :
   have hω0 : ω ≠ 0 := by
     intro h
     simp [h] at hω
-  letI : Fact (Module.finrank ℝ Vec3 = 2 + 1) := ⟨by simp [Vec3]⟩
+  let : Fact (Module.finrank ℝ Vec3 = 2 + 1) := ⟨by simp [Vec3]⟩
   let b := OrthonormalBasis.fromOrthogonalSpanSingleton (𝕜 := ℝ) (E := Vec3) 2 hω0
   refine ⟨(b 0 : Vec3), b.orthonormal.norm_eq_one 0, ?_⟩
   exact Submodule.mem_orthogonal_singleton_iff_inner_right.mp (b 0).property
@@ -70,23 +80,28 @@ def adaptedBasis (ω u : Vec3)
       simpa only [coe_basisOfOrthonormalOfCardEqFinrank] using
         orthonormal_adapted ω u hω hu hperp)
 
+/-- Supporting lemma; no direct MLS counterpart. The adapted basis is `![ω, u, ω × u]`. -/
 @[simp] theorem coe_adaptedBasis (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) :
     (adaptedBasis ω u hω hu hperp : Fin 3 → Vec3) = ![ω, u, cross ω u] := by
   simp [adaptedBasis]
 
+/-- Supporting lemma; no direct MLS counterpart. The first adapted basis vector is `ω`. -/
 @[simp] theorem adaptedBasis_zero (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) :
     adaptedBasis ω u hω hu hperp 0 = ω := by
   rw [coe_adaptedBasis]
   rfl
 
+/-- Supporting lemma; no direct MLS counterpart. The second adapted basis vector is `u`. -/
 @[simp] theorem adaptedBasis_one (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) :
     adaptedBasis ω u hω hu hperp 1 = u := by
   rw [coe_adaptedBasis]
   rfl
 
+/-- Supporting lemma; no direct MLS counterpart. The third adapted basis vector is
+`ω × u`. -/
 @[simp] theorem adaptedBasis_two (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) :
     adaptedBasis ω u hω hu hperp 2 = cross ω u := by
