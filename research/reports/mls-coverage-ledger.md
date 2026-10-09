@@ -30,8 +30,12 @@ justified. The [I1 gate](#implementation-evidence-i1) supports 21 obligations,
 [I5](#implementation-evidence-i5) adds 15, giving 84 through I5.
 [I6](#implementation-evidence-i6) adds 19 existing-row results and four new
 Appendix results: 107 selected obligations are Verified in full (30 definitions,
-three structures, 63 theorem obligations, and 11 bridges). The other 19 remain
-Unverified: R27-R28, X60 in full, and K01-K16. These are selected-item counts,
+three structures, 63 theorem obligations, and 11 bridges). At I6 the other 19 remained
+Unverified: R27-R28, X60 in full, and K01-K16. [I7](#implementation-evidence-i7)
+adds K01-K12 and K14-K16 (six definitions, eight theorem obligations, one
+specification), so 122 of the 126 selected obligations are Verified in full and four
+remain Unverified: R27-R28, X60 in full, and K13. [I8](#implementation-evidence-i8)
+records the distinct `Wrench` carrier and changes no row status. These are selected-item counts,
 not independent Lean theorem counts or a whole-book percentage.
 
 Pages are `printed / PDF`, with PDF pages one-based. All inspected main-text
@@ -63,7 +67,7 @@ are deferred; the named actions retain their distinct meanings.
 | SE | `RoboLean/Geometry/TwistExp.lean` | Actual rigid exponential; closed forms, normalization, and translation-coefficient invertibility in companion modules |
 | SV | `RoboLean/Geometry/RigidVelocity.lean` | Actual pose derivatives and spatial/body velocities; rotation and composition companion modules |
 | AD | `RoboLean/Geometry/TwistAdjoint.lean` | Coordinate adjoint, conjugation, inverse, and representation laws |
-| WR | `RoboLean/Geometry/Wrench.lean` | Independent power pairing, inverse-adjoint transpose, and common-frame wrench sums |
+| WR | `RoboLean/Geometry/Wrench.lean` | Distinct two-field wrench carrier, independent power pairing, inverse-adjoint transpose, and common-frame wrench sums |
 | E | `RoboLean/Geometry/RotationExp.lean` | Skew exponential SO(3) membership and fixed-axis trajectories; axis-angle surjectivity remains future |
 | C | `RoboLean/Geometry/ElementaryRotations.lean`, `EulerAngles.lean` | Elementary families and ordered ZYZ product/generic inverse |
 | Q | `RoboLean/Geometry/UnitQuaternion.lean` | Scalar/vector product and norm-one group; rotation bridges remain open |
@@ -232,7 +236,7 @@ is `Fin 3 ⊕ Fin 1`; twist order is `(v,ω)` and wrench order is `(f,τ)`.
 
 | ID / kind | Source printed / PDF | Intended statement/module | Assumptions/conventions | Dependencies or missing bridge | Formal status | Statement divergence |
 | --- | --- | --- | --- | --- | --- | --- |
-| X47 definition | p61 / 79, Section5.1 | WR: wrench coordinates `(f,τ)` relative to a stated frame origin | Linear force first, moment second; same rigid body | Product of real Euclidean spaces or dual space with coordinate bridge | Verified: [I4](#implementation-evidence-i4); `Wrench`, `Wrench.force`, `Wrench.torque` | Force components and moment reference point both matter |
+| X47 definition | p61 / 79, Section5.1 | WR: wrench coordinates `(f,τ)` relative to a stated frame origin | Linear force first, moment second; same rigid body | Two-field structure over `Vec3`, componentwise vector space; pairing duality as the bridge to twists | Verified: [I4](#implementation-evidence-i4); `Wrench`, `Wrench.force`, `Wrench.torque`; [I8](#implementation-evidence-i8): `Wrench` is a two-field structure distinct from `Twist`, `Wrench.mk`, `Wrench.ext`, componentwise `AddCommGroup`/`Module ℝ` instances, `Wrench.finrank_eq_six` | Force components and moment reference point both matter |
 | X48 definition | p61 / 79, work/pairing displays | WR: dual pairing `f·v+τ·ω`; work along a trajectory is its time integral | Compatible twist/wrench frames and units; integrability for work | Bilinear pairing and integration interface | Verified: [I6](#implementation-evidence-i6); `Wrench.intervalWork`, `Wrench.intervalWork_spatial_eq_body`, `Wrench.power_pointForce_eq_force_dot_deriv`, `Wrench.intervalWork_pointForce` | With velocities the pairing is instantaneous power; the book writes δW while integrating it against dt |
 | X49 definition | p62 / 80, equivalent-wrench paragraph | WR: wrench equivalence means equality of pairing against every compatible instantaneous motion | Quantification over all twists, not just one trajectory | Nondegenerate pairing; X48 | Verified: [I4](#implementation-evidence-i4); `Wrench.Equivalent`, `Wrench.ext_pair`, `Wrench.equivalent_iff_eq` | Universal work equivalence can be related to this pointwise formulation only with temporal regularity/quantifier premises |
 | X50 theorem | pp62-63 / 80-81, eqs2.65-2.67 | WR/AD: dual wrench transformation is transpose adjoint; equivalently `F_A=Ad_(g_AB⁻¹)ᵀF_B`, with force Rf and moment `p×Rf+Rτ` | Matching frame conversion and origin shift | X34-X36; dual map; CP signs | Verified: [I4](#implementation-evidence-i4); `Wrench.transform`, `Wrench.pair_transform`, `Wrench.transformMatrix_mulVec`, `Wrench.transformMatrix_eq_adjointMatrix_inv_transpose`, `Wrench.coordinates_transform` | Transformation includes shifting the moment origin, not merely rotating both vectors |
@@ -244,11 +248,11 @@ is `Fin 3 ⊕ Fin 1`; twist order is `(v,ω)` and wrench order is `(f,τ)`.
 | X56 definition | p65 / 83, eq2.70 | SC/WR: wrench axis through `(f×τ)/‖f‖²` along f; pure-torque axis through origin along τ | f≠0, or f=0 and τ≠0 | X53-X55; affine line | Verified: [I6](#implementation-evidence-i6); `Wrench.finiteAxis`, `Wrench.mem_finiteAxis`, `Wrench.finiteAxis_direction_finrank`, `Wrench.coupleAxis`, `Wrench.mem_coupleAxis`, `Wrench.coupleAxis_direction_finrank`, `Wrench.screwAxis_eq_none_iff` | Zero wrench has no directed axis; choices along the axis are equivalent |
 | X57 definition | p66 / 84, eq2.71 | SC/WR: magnitude is ‖f‖ when f≠0 and ‖τ‖ otherwise | Nonnegative magnitude with directional sign in axis | Euclidean norm; X47 | Verified: [I6](#implementation-evidence-i6); `Wrench.screwMagnitude`, `Wrench.screwMagnitude_of_force_eq_zero`, `Wrench.screwMagnitude_of_force_ne_zero`, `Wrench.screwMagnitude_nonneg`, `Wrench.screwMagnitude_smul` | This is not a common physical norm for mixed force/torque coordinates |
 | X58 definition | p66 / 84, Definition2.3 | SC/WR: a twist and wrench are reciprocal iff their power pairing vanishes; induced reciprocal screws | Same reference frame and nondegenerate screw data if using geometric screws | X48, X18/X53 | Verified: [I6](#implementation-evidence-i6); `FiniteScrew`, `GeometricScrew`, `GeometricScrew.axis_finrank`, `GeometricScrew.toTwist_ne_zero`, `GeometricScrew.toWrench_ne_zero`, `GeometricScrew.Reciprocal`, `GeometricScrew.reciprocal_iff_coordinateProduct_zero`, `GeometricScrew.reciprocal_symm` | Zero power at one instant does not by itself establish a feasible finite motion |
-| X59 definition | p67 / 85, unnumbered coordinate reciprocal product | SC: twist-coordinate reciprocal form `v₁·ω₂+v₂·ω₁` | Arbitrary real twists; symmetric bilinear form | X01; coordinate swap between twist and wrench roles | Verified: [I5](#implementation-evidence-i5); `Twist.swapWrench`, `Twist.reciprocalProduct_eq`, `Twist.reciprocalForm`, `Twist.reciprocalProduct_symm`, `Twist.reciprocalProduct_nondegenerate` | This form is nondegenerate but not a positive-definite Euclidean inner product |
+| X59 definition | p67 / 85, unnumbered coordinate reciprocal product | SC: twist-coordinate reciprocal form `v₁·ω₂+v₂·ω₁` | Arbitrary real twists; symmetric bilinear form | X01; coordinate swap between twist and wrench roles | Verified: [I5](#implementation-evidence-i5); `Twist.swapWrench`, `Twist.reciprocalProduct_eq`, `Twist.reciprocalForm`, `Twist.reciprocalProduct_symm`, `Twist.reciprocalProduct_nondegenerate`; [I8](#implementation-evidence-i8): `Twist.swapWrench_force`, `Twist.swapWrench_torque`, `Twist.swapWrench_symm_apply`, the swap being an explicit named map between distinct types rather than `LinearEquiv.prodComm` | This form is nondegenerate but not a positive-definite Euclidean inner product |
 | X60 theorem | pp66-67 / 84-85, eq2.72 and Proposition2.18 | SC: geometric reciprocal product equals the twist-wrench pairing, so reciprocity is its zero set | Finite pitches for printed proof; unit axes; signed-angle/common-normal convention | Scalar triple product; line geometry; X48/X53/X58 | Unverified (whole row); I6 checks `FiniteScrew.CommonNormal.isLeast_distance`, `pair_eq_reciprocalProduct`, and `GeometricScrew.reciprocal_finite_iff_geometricProduct_zero` only for a supplied positive-separation/nonparallel/signed-angle certificate; no certificate-existence or atan2 theorem | Printed d>0 and chosen common normal exclude intersecting/coincident cases; parallel cases and infinite pitches need separate definitions/proofs |
 | X61 definition | pp68-69 / 86-87, screw-system and reciprocal-system prose | SC: system as a linear span of coordinate screws; reciprocal system as its annihilator | Explicit choice of twist/wrench identification; real finite dimension 6 | X59; Submodule; dual pairing | Verified: [I5](#implementation-evidence-i5); `Wrench.pairingEquiv`, `Twist.pairingEquiv`, `Reciprocal.wrenches`, `Reciprocal.twists`, `Reciprocal.mem_wrenches`, `Reciprocal.mem_twists` | Use spans/subspaces, not only finite lists with an assumed rank; geometric screw representatives have degeneracies |
 | X62 theorem | p68 / 86, final linearity paragraph | SC: reciprocity against generators is equivalent to reciprocity against their span, and reciprocal systems are subspaces | Bilinear pairing; arbitrary finite generating set | X59/X61; linear algebra | Verified: [I5](#implementation-evidence-i5); `Reciprocal.mem_wrenches_span`, `Reciprocal.mem_twists_span` | No positive-definite metric is required; use the actual reciprocal bilinear form |
-| X63 theorem | p69 / 87, Proposition2.19 | SC: dimension(system)+dimension(reciprocal system)=6 | Nondegenerate twist-wrench or reciprocal pairing; actual rank r | X59-X62; finite-dimensional annihilator/rank theorem | Verified: [I5](#implementation-evidence-i5); `Twist.finrank_eq_six`, `Reciprocal.wrenchesAnnihilatorEquiv`, `Reciprocal.twistsAnnihilatorEquiv`, `Reciprocal.finrank_add_finrank_wrenches`, `Reciprocal.finrank_add_finrank_twists` | Frame-independent zero-power constraints are algebraic; interpreting the annihilator as physically feasible motion needs additional contact/dynamic premises |
+| X63 theorem | p69 / 87, Proposition2.19 | SC: dimension(system)+dimension(reciprocal system)=6 | Nondegenerate twist-wrench or reciprocal pairing; actual rank r | X59-X62; finite-dimensional annihilator/rank theorem | Verified: [I5](#implementation-evidence-i5); `Twist.finrank_eq_six`, `Reciprocal.wrenchesAnnihilatorEquiv`, `Reciprocal.twistsAnnihilatorEquiv`, `Reciprocal.finrank_add_finrank_wrenches`, `Reciprocal.finrank_add_finrank_twists`; [I8](#implementation-evidence-i8): `Wrench.finrank_eq_six`, now used by `Reciprocal.finrank_add_finrank_twists` | Frame-independent zero-power constraints are algebraic; interpreting the annihilator as physically feasible motion needs additional contact/dynamic premises |
 
 ### Gaps retained after this inventory
 
@@ -302,22 +306,22 @@ must be established before identifying configurations with a torus.
 
 | ID / kind | Source printed / PDF | Intended statement/module | Assumptions/conventions | Dependencies or missing bridge | Formal status | Statement divergence |
 | --- | --- | --- | --- | --- | --- | --- |
-| K01 definition | pp83-84 / 101-102, joint-space discussion | K/P: configuration domain and admissible subset | Revolute periodicity; optional explicit limits | Angle quotient or real-lift periodicity | Unverified | `ℝ²` coordinates are not a torus equivalence by definition |
-| K02 definition | p85 / 103, eq3.1, Fig3.2 | K/P: FK by adjacent-frame composition | Serial chain, base-to-tip order, tool offset | RT group/action, independently specified frames | Unverified | First instance has two revolute joints; general chains later |
-| K03 theorem | p87 / 105, revolute twist | K/P: reference joint twist `(-ω×q,ω)` | Unit axis, point on axis, base coordinates | P2 twist/exponential and axis semantics | Unverified | Generalization needs independence of chosen point along axis |
-| K04 definition | p87 / 105, prismatic twist | K: reference prismatic twist `(v,0)` | Unit direction; displacement coordinate | Pure-translation exponential | Unverified | Reusable target, not needed by two-revolute instance |
-| K05 theorem | pp86-87 / 104-105, eqs3.2-3.3 | K/P: joint semantics equals ordered exponentials times reference pose | Constant reference twists; admissible angles | K02-K03, exponential conjugation/adjoint | Unverified | Defining FK as POE and unfolding it is insufficient |
-| K06 specification | pp87-89 / 105-107, Example 3.1 eq3.4, specialization | P: position as sum of rotated link displacements | Positive physical lengths, axes `+z`, zero links `+y` | R22, independent link/vector geometry | Unverified | New explicit geometric specification; positivity may be unused by algebra |
-| K07 theorem | p89 / 107, eq3.4, specialization | P: composed transform equals stated position and `Rz(q₁+q₂)` | `l₀=θ₃=θ₄=0`, `l₁=a`, `l₂=b` | K02, K06, angle addition | Unverified | Specialized SCARA, not full four-joint example |
-| K08 theorem | p84 / 102, revolute identification | P: FK is `2π`-periodic in each angle | Unrestricted ideal joints, real lift | K07, trigonometric periodicity | Unverified | Explicit bridge to periodic configuration semantics |
-| K09 theorem | p115 / 133, differentiation; p118 / 136, final check | P/J: position derivative equals stated linear map on joint rates | Differentiable trajectory or Fréchet derivative | K07, derivative/trigonometric APIs | Unverified | Position Jacobian is not spatial twist Jacobian |
-| K10 theorem | pp115-116 / 133-134, eqs3.51-3.54; p118 / 136, Example 3.8 | P/J: spatial Jacobian realizes `dot(g)g⁻¹` | `(v,ω)` order, same specialization | K05, adjoint, exponential/product derivative | Unverified | Columns `(0,0,0,0,0,1)` and `(a cos q₁,a sin q₁,0,0,0,1)` need derivative proof |
-| K11 theorem | p117 / 135, eq3.56 | J/P: `Jˢ=Ad_g Jᵇ` | Compatible spatial/body conventions | Velocity/adjoint relations, K10 | Unverified | No arbitrary 6D Euclidean norm invariance follows |
-| K12 theorem | p117 / 135, point velocity; p118 / 136, final check | P/J: twist velocity at tool origin equals position derivative | Spatial point is `p(q)`, body origin is zero | K09-K10, twist action | Unverified | Must include `ω×p`; translational twist part alone is not `dot(p)` |
-| K13 theorem | p121 / 139, eqs3.59-3.60 | J/P: force pullback preserves instantaneous power | Matched wrench/Jacobian frames, arbitrary joint rates | Dual pairing, transpose identity, K10/K11 | Unverified | Algebraic identity separate from frictionless physical-work premise |
-| K14 definition | p95 / 113, eq3.11 | W: complete workspace is FK image | Explicit admissible domain `Q` | FK, set image | Unverified | Pose reachability, not path or dynamic feasibility |
-| K15 definition | p95 / 113, eq3.12 | W/P: reachable workspace is position image | Same domain `Q` | Position projection, set image | Unverified | Does not quantify over all orientations |
-| K16 definition | p95 / 113, eq3.13 | W: dextrous workspace uses `∀R,∃q` realizing `(p,R)` | Orientations range over `SO(3)` | Pose FK, explicit quantifier order | Unverified | Planar pilot cannot realize arbitrary 3D orientations; name any planar variant separately |
+| K01 definition | pp83-84 / 101-102, joint-space discussion | K/P: configuration domain and admissible subset | Revolute periodicity; optional explicit limits | Angle quotient or real-lift periodicity | Verified: [I7](#implementation-evidence-i7); `SerialChain` (fields `twist`, `toolRef`, `admissible`), `SerialChain.fk_add_int_mul_two_pi`, `SerialChain.fk_update_add_two_pi`, `Twist.IsRevoluteJoint.exp_add_int_mul_two_pi` | `ℝ²` coordinates are not a torus equivalence by definition. I7: real lift `Fin n → ℝ` with a periodicity theorem for revolute joints; no quotient or torus type; `admissible` is an explicit set (default all of `Fin n → ℝ`); joint type is a hypothesis predicate, not a field |
+| K02 definition | p85 / 103, eq3.1, Fig3.2 | K/P: FK by adjacent-frame composition | Serial chain, base-to-tip order, tool offset | RT group/action, independently specified frames | Verified: [I7](#implementation-evidence-i7); `LinkFrameChain`, `LinkFrameChain.relative`, `LinkFrameChain.fk`; instance `Examples.planarTwoLinkFrames`, `Examples.planarTwoLinkFrames_fk` | First instance has two revolute joints; general chains later. I7: general `n`; the relative transform has the p85 form `exp(ζθ) g(0)` with `ζ` in the proximal link frame; the POE definition (eq3.3) is `SerialChain.fk` |
+| K03 theorem | p87 / 105, revolute twist | K/P: reference joint twist `(-ω×q,ω)` | Unit axis, point on axis, base coordinates | P2 twist/exponential and axis semantics | Verified: [I7](#implementation-evidence-i7); `Twist.revolute`, `Twist.revolute_eq_fromScrew`, `Twist.revolute_axis_point`, `Twist.exp_revolute`, `Twist.exp_revolute_applyPoint`, `Twist.adjoint_revolute`, `Twist.IsRevoluteJoint` | Generalization needs independence of chosen point along axis. I7: definition is algebraic; the unit-axis premise is the explicit hypothesis of the exponential theorems; any point of `axisLine q ω` gives the same twist |
+| K04 definition | p87 / 105, prismatic twist | K: reference prismatic twist `(v,0)` | Unit direction; displacement coordinate | Pure-translation exponential | Verified: [I7](#implementation-evidence-i7); `Twist.prismatic`, `Twist.IsPrismaticJoint`, `Twist.exp_prismatic`, `Twist.adjoint_prismatic` | Reusable target, not needed by two-revolute instance. I7: unit direction is the predicate `IsPrismaticJoint`; the exponential holds for every direction |
+| K05 theorem | pp86-87 / 104-105, eqs3.2-3.3 | K/P: joint semantics equals ordered exponentials times reference pose | Constant reference twists; admissible angles | K02-K03, exponential conjugation/adjoint | Verified: [I7](#implementation-evidence-i7); sequential motion `SerialChain.moveJoint`, `runMoves`, `toolPose`, `moveJoint_linkPOE`, `toolPose_runMoves`, `toolPose_runMoves_perm`, `fk_single`; adjacent frames `LinkFrameChain.fk_eq_toSerialChain_fk`; instance `Examples.planarTwoLink_fk_eq_twoLinkPose` | Defining FK as POE and unfolding it is insufficient. I7: two independent semantics proved equal to POE (moves about current axes in any order; adjacent frames); arbitrary twists allowed; coordinate model only |
+| K06 specification | pp87-89 / 105-107, Example 3.1 eq3.4, specialization | P: position as sum of rotated link displacements | Positive physical lengths, axes `+z`, zero links `+y` | R22, independent link/vector geometry | Verified: [I7](#implementation-evidence-i7); `Examples.planarTwoLinkPosition`, `Examples.planarTwoLinkPosition_eq` | New explicit geometric specification; positivity may be unused by algebra. I7: specification is the sum of the two `Rz`-rotated link vectors; `a, b` arbitrary reals, positivity unused |
+| K07 theorem | p89 / 107, eq3.4, specialization | P: composed transform equals stated position and `Rz(q₁+q₂)` | `l₀=θ₃=θ₄=0`, `l₁=a`, `l₂=b` | K02, K06, angle addition | Verified: [I7](#implementation-evidence-i7); `Examples.planarTwoLink`, `Examples.planarTwoLink_fk`, `Examples.planarTwoLink_fk_rotation`, `Examples.planarTwoLink_fk_translation` | Specialized SCARA, not full four-joint example. I7: derived from the actual exponentials of the two revolute twists |
+| K08 theorem | p84 / 102, revolute identification | P: FK is `2π`-periodic in each angle | Unrestricted ideal joints, real lift | K07, trigonometric periodicity | Verified: [I7](#implementation-evidence-i7); `Examples.planarTwoLink_fk_add_int_mul_two_pi` (from `SerialChain.fk_add_int_mul_two_pi`) | Explicit bridge to periodic configuration semantics. I7: integer multiples of `2π` in each angle; no torus equivalence type |
+| K09 theorem | p115 / 133, differentiation; p118 / 136, final check | P/J: position derivative equals stated linear map on joint rates | Differentiable trajectory or Fréchet derivative | K07, derivative/trigonometric APIs | Verified: [I7](#implementation-evidence-i7); `Examples.hasDerivAt_planarTwoLink_translation` | Position Jacobian is not spatial twist Jacobian. I7: actual `HasDerivAt` along a joint trajectory with per-joint derivatives, not a Fréchet derivative in `θ` |
+| K10 theorem | pp115-116 / 133-134, eqs3.51-3.54; p118 / 136, Example 3.8 | P/J: spatial Jacobian realizes `dot(g)g⁻¹` | `(v,ω)` order, same specialization | K05, adjoint, exponential/product derivative | Verified: [I7](#implementation-evidence-i7); `SerialChain.spatialJacobian`, `hasDerivAt_fk_toHomogeneous`, `spatialVelocity_fk`, `spatialJacobian_congr`, `spatialJacobianMatrix_mulVec`; instance `Examples.planarTwoLink_spatialJacobian_zero`, `Examples.planarTwoLink_spatialJacobian_one`, `Examples.planarTwoLink_spatialVelocity`, `Examples.planarTwoLink_spatialVelocity_eq_twoLinkPose` | Columns `(0,0,0,0,0,1)` and `(a cos q₁,a sin q₁,0,0,0,1)` need derivative proof. I7: general `n`, arbitrary (not only unit) twists; columns as `Fin n → Twist`, matrix view through `Twist.coordinates` |
+| K11 theorem | p117 / 135, eq3.56 | J/P: `Jˢ=Ad_g Jᵇ` | Compatible spatial/body conventions | Velocity/adjoint relations, K10 | Verified: [I7](#implementation-evidence-i7); `SerialChain.bodyJacobian`, `spatialJacobian_eq_adjoint_bodyJacobian`, `bodyJacobian_eq_adjoint_inv_spatialJacobian`, `bodyVelocity_fk` | No arbitrary 6D Euclidean norm invariance follows. I7: column-wise identity for every real joint vector |
+| K12 theorem | p117 / 135, point velocity; p118 / 136, final check | P/J: twist velocity at tool origin equals position derivative | Spatial point is `p(q)`, body origin is zero | K09-K10, twist action | Verified: [I7](#implementation-evidence-i7); `SerialChain.hasDerivAt_fk_translation`, `hasDerivAt_fk_translation_body`; planar check `Examples.planarTwoLink_point_velocity`, `Examples.hasDerivAt_planarTwoLink_translation_of_jacobian` | Must include `ω×p`; translational twist part alone is not `dot(p)`. I7: derivative is `ωˢ × p + vˢ` (spatial) and `R vᵇ` (body) |
+| K13 theorem | p121 / 139, eqs3.59-3.60 | J/P: force pullback preserves instantaneous power | Matched wrench/Jacobian frames, arbitrary joint rates | Dual pairing, transpose identity, K10/K11 | Unverified | Algebraic identity separate from frictionless physical-work premise. I7: deferred to a later brief (Wrench type change in progress); no Wrench module imported by I7 |
+| K14 definition | p95 / 113, eq3.11 | W: complete workspace is FK image | Explicit admissible domain `Q` | FK, set image | Verified: [I7](#implementation-evidence-i7); `SerialChain.completeWorkspace`, `toolRef_mem_completeWorkspace`, `completeWorkspace_mono` | Pose reachability, not path or dynamic feasibility. I7: `Q` is an explicit argument |
+| K15 definition | p95 / 113, eq3.12 | W/P: reachable workspace is position image | Same domain `Q` | Position projection, set image | Verified: [I7](#implementation-evidence-i7); `SerialChain.reachableWorkspace`, `reachableWorkspace_eq_image`, `reachableWorkspace_mono`, `toolRef_translation_mem_reachableWorkspace`, `reachableWorkspace_of_zero_joints` | Does not quantify over all orientations. I7: `Q` is an explicit argument |
+| K16 definition | p95 / 113, eq3.13 | W: dextrous workspace uses `∀R,∃q` realizing `(p,R)` | Orientations range over `SO(3)` | Pose FK, explicit quantifier order | Verified: [I7](#implementation-evidence-i7); `SerialChain.dextrousWorkspace`, `mem_dextrousWorkspace_iff`, `dextrousWorkspace_subset_reachableWorkspace`, `dextrousWorkspace_mono`, `dextrousWorkspace_of_zero_joints`; planar `Examples.planarTwoLink_dextrousWorkspace_eq_empty`, `Examples.planarTwoLink_reachableWorkspace_nonempty` | Planar pilot cannot realize arbitrary 3D orientations; name any planar variant separately. I7: `∀R,∃θ∈Q` as printed; the planar pilot's 3D dextrous workspace is proved empty; no planar-orientation variant is defined; no nonempty-dextrous instance is exhibited |
 
 An annulus theorem for positive lengths and unrestricted joints is a useful next
 derived target, not a quoted theorem from the inspected pages. Its eventual row
@@ -717,6 +721,71 @@ logarithm selection, global Euler coordinates, manifold-level identification,
 physical fidelity, numerical refinement, and user acceptance. No Chapter-3
 kinematics file was created; source preparation or Chapter-2 velocity examples
 do not close those obligations. The user-requested landing stops new research.
+
+## Implementation evidence I7
+
+Recorded 2026-10-09 UTC for [E009](../../docs/implogs/E009-serial-chain-kinematics.md),
+the first Chapter 3 tranche. New modules:
+[SerialChain](../../RoboLean/Kinematics/SerialChain.lean),
+[Jacobian](../../RoboLean/Kinematics/Jacobian.lean),
+[Workspace](../../RoboLean/Kinematics/Workspace.lean) and
+[PlanarTwoLink](../../RoboLean/Examples/PlanarTwoLink.lean). Sources were read this
+increment at printed pp. 83–89, 95 and 115–122
+([text extracts](../../docs/implogs/gates/E009/20261009T084633Z/source/)), with
+pp. 87, 88 and 116–118 also inspected as [rendered images](../../docs/implogs/gates/E009/20261009T091048Z/render/).
+
+**Verified - shadow-tree elaboration:** with the pinned Lean 4.34.1 binary and the
+built Mathlib v4.34.1 and library oleans on `LEAN_PATH`, each of the four files
+elaborated with exit 0 and no warning, in dependency order
+([checks](../../docs/implogs/gates/E009/20261009T091048Z/), e.g. [SerialChain](../../docs/implogs/gates/E009/20261009T091048Z/check-SerialChain.out),
+[PlanarTwoLink](../../docs/implogs/gates/E009/20261009T091048Z/check-PlanarTwoLink.out)). The
+[axiom audit](../../docs/implogs/gates/E009/20261009T091048Z/axioms.out) prints 101 ordered rows for the 101 public declarations
+listed in [public-decls](../../docs/implogs/gates/E009/20261009T091048Z/public-decls.txt) (79 in the three Kinematics modules,
+22 in the example, structures and their constructors included); every row has
+exactly `propext`, `Classical.choice` and `Quot.sound`
+([verifier output](../../docs/implogs/gates/E009/20261009T091048Z/axioms-verify.txt)). No `sorry`, `axiom` or `opaque` occurs
+([grep](../../docs/implogs/gates/E009/20261009T091048Z/forbidden-grep.txt)), and the project import closure contains no
+Wrench-family module ([closure](../../docs/implogs/gates/E009/20261009T091048Z/import-closure.txt)). Hypotheses whose
+satisfiability is not immediate are instantiated in
+[Instances.lean](../../docs/implogs/gates/E009/20261009T091048Z/Instances.lean) (exit 0, [output](../../docs/implogs/gates/E009/20261009T091048Z/instances.out)).
+Limits: this is not the integrated `lake build` of the root import list, which is
+root's landing check; the checks used the oleans built at the start of the
+increment, while three upstream sources in the import closure (Geometry/RigidTransform,
+RotationPlane, TwistScrewMotion) carried uncommitted docstring and tactic edits by
+another agent that were not rebuilt. Counts include definitions, structures and
+constructors; they are not independent theorem counts.
+
+I7 marks fifteen rows Verified in full: K01–K12 and K14–K16 (six definitions K01,
+K02, K04, K14, K15, K16; eight theorem obligations K03, K05, K07–K12; one
+specification K06). With the 107 rows of I6 this gives 122 of the 126 selected IDs
+Verified in full; the remaining four are R27, R28, X60 (partial) and K13. K13
+(force pullback, p121, eqs3.59–3.60) was excluded from this tranche because the
+wrench carrier is being changed concurrently. These are selected-item counts, not
+a whole-book percentage, and the "Scope and counting" section above still states
+the I6 counts.
+
+K05 is discharged by two semantics that do not use the product formula:
+`SerialChain.toolPose_runMoves_perm` (moving each joint once, in any order, about
+its current axis carried by the proximal link, pp86–87) and
+`LinkFrameChain.fk_eq_toSerialChain_fk` (adjacent link frames, eq3.1). Joint
+coordinates are a real lift with the periodicity theorem
+`SerialChain.fk_add_int_mul_two_pi`; there is no torus type. Jacobians are
+`Fin n → Twist` column functions with a derived `6 × n` matrix view; the velocity
+theorems hold for arbitrary, not only unit, joint twists. The
+[Kinematics conventions](geometry-conventions.md#kinematics-conventions) record the
+numbering, reference configuration and Jacobian ordering.
+
+**Unverified:** the integrated build with these modules in `RoboLean.lean`; K13; a
+nonempty dextrous-workspace instance (none is exhibited; the planar arm's is proved
+empty); link-level agreement of the two K05 semantics beyond the tool; inverse
+kinematics, singularities, closed chains and the planar annulus; numerical
+behaviour, physical fidelity and user acceptance.
+
+**Integrated gate (root, 2026-10-09 09:20:42 UTC):** the four I7 modules were added to `RoboLean.lean` and built with the whole library: [gate](../../docs/implogs/gates/E009/20261009T091745Z/) records `lake build` exit 0 in 9 s with no warning, and the whole-library audit ([output](../../docs/implogs/gates/E009/20261009T091745Z/axiom-audit.stdout)) lists 1602 constants across 58 modules (200 in the four new modules) with only `propext`, `Classical.choice` and `Quot.sound`, no `sorryAx`. Source hashes were unchanged during the gate. This supersedes the shadow-tree limit stated above for the I7 rows.
+
+## Implementation evidence I8
+
+E008, the `Wrench` carrier change and library hygiene ([entry](../../docs/implogs/E008-wrench-carrier-and-library-hygiene.md)), recorded by root at 2026-10-09 09:20:42 UTC. No row changes status. `Wrench` became an `@[ext]` two-field structure distinct from `Twist` (X47), `Twist.swapWrench` and `Wrench.toTwist` became explicit named identifications (X59), and `Wrench.finrank_eq_six` carries the dimension law (X63); the nine wrench-family modules and the hygiene edits (nine linter warnings cleared; MLS citations in `Geometry/RigidTransform`, `Geometry/RotationPlane`, `Examples/RigidTransform`) changed no library statement text ([statement diff](../../docs/implogs/gates/E008/20261009T084906Z/statement-diff.txt): 0 removed, 9 example literals rewritten). **Verified — integrated gate:** [gate](../../docs/implogs/gates/E008/20261009T091422Z/) records `lake build` exit 0 in 23 s with no warning on the 54 modules, and the whole-library audit lists 1402 constants with only the three standard axioms and no `sorryAx`. Type separation is Verified by the lead's [probe](../../docs/implogs/gates/E008/20261009T084906Z/TypeSeparation.lean) (14 `#check_failure` lines fail with type mismatches against the new carrier and succeed against the old). `Twist` remains `Vec3 × Vec3`; the lead's conversion recommendation is in the entry. Physical fidelity, numerics and user acceptance remain Unverified.
 
 ## Source evidence and cautions
 

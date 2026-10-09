@@ -52,3 +52,7 @@ import RoboLean.Examples.Screw
 import RoboLean.Examples.WrenchScrew
 import RoboLean.Examples.Reciprocal
 import RoboLean.Examples.RotationLog
+import RoboLean.Kinematics.SerialChain
+import RoboLean.Kinematics.Jacobian
+import RoboLean.Kinematics.Workspace
+import RoboLean.Examples.PlanarTwoLink

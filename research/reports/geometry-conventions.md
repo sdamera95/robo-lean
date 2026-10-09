@@ -235,8 +235,16 @@ or uniqueness guarantee and is not a numerical logarithm implementation.
 ## Twist, adjoint, and wrench conventions
 
 Use twist order `(v, ω)` and wrench order `(f, τ)`, with linear coordinates
-first. Both carriers use pairs of Euclidean `Vec3` coordinates; their product
-norm is not declared to be a canonical physical magnitude. The [ledger](mls-coverage-ledger.md)
+first. Twists are pairs of Euclidean `Vec3` coordinates (`Twist` abbreviates
+`Vec3 × Vec3`). Wrenches are a distinct two-field structure `Wrench` with fields `force`
+and `torque` and the same componentwise real vector-space structure, so a twist is
+rejected where a wrench is expected and conversely
+([E008](../../docs/implogs/E008-wrench-carrier-and-library-hygiene.md)). The two
+carriers are related only through named maps: the power pairing `Wrench.pair`, the
+coordinate swaps `Twist.swapWrench` and `Wrench.toTwist`, and the dual equivalences
+`Wrench.pairingEquiv` and `Twist.pairingEquiv`. The product norm that `Twist` inherits
+from `Vec3 × Vec3` is not declared to be a canonical physical magnitude; `Wrench` has no
+norm. The [ledger](mls-coverage-ledger.md)
 distinguishes the checked algebra and derivative statements below from remaining
 and partial source obligations. For a differentiable pose trajectory `g(t)`,
 
@@ -423,3 +431,83 @@ including the named domain restrictions and remaining partial obligations.
 robot, and user acceptance. Named formal-statement evidence is linked above and
 in the coverage ledger; this document does not establish full implementation
 conformance with the book.
+
+## Kinematics conventions
+
+Recorded 2026-10-09 UTC for increment E009 ([entry](../../docs/implogs/E009-serial-chain-kinematics.md)).
+Source: MLS Chapter 3, printed pp. 83–89, 95 and 115–118, extracted as text and,
+for pp. 87, 88 and 116–118, inspected as rendered images in this increment. These
+are coordinate conventions of the Lean model; they do not certify a physical robot.
+
+**Joint and link numbering.** Joints are numbered from the base to the tip
+([p. 83](../../references/MLS.pdf#page=101)). Lean indexes joints by `i : Fin n`,
+so Lean joint `i` is the book's joint `i + 1`. Links are indexed by `Fin (n + 1)`;
+link 0 is the base, and Lean joint `i` connects link `i` (`Fin.castSucc i`) to
+link `i + 1` (`Fin.succ i`), as in "joint i connects links i − 1 and i".
+
+**Joint coordinates and admissible domain.** Joint coordinates are real numbers,
+`θ : Fin n → ℝ`. The book's revolute coordinate lives on `S¹`, with `2π`
+identified with `0` ([p. 84](../../references/MLS.pdf#page=102)); Lean keeps the
+real lift and proves periodicity instead of forming a quotient
+(`SerialChain.fk_add_int_mul_two_pi`, for revolute joints with a unit axis). A
+real vector therefore names a configuration, but two vectors that differ by `2π`
+multiples in revolute coordinates give the same pose; no torus type is defined.
+The admissible set `Q` of p. 84 is an explicit `Set (Fin n → ℝ)`: the chain
+field `SerialChain.admissible` (default: all of `Fin n → ℝ`), and an explicit
+argument `Q` of every workspace definition. MLS p. 84 measures angles with a
+right-handed convention ("clockwise as viewed along the direction of the axis",
+which is the right-hand rule seen with the axis pointing away from the viewer);
+it agrees with the positive quarter turn about `+z` above.
+
+**Reference configuration and twists.** The reference configuration is `θ = 0`,
+and `SerialChain.toolRef` is `g_st(0)`. Reference joint twists are base-frame
+twists at `θ = 0` ([p. 87](../../references/MLS.pdf#page=105)), in the order
+`(v, ω)`: revolute `Twist.revolute ω q = (-ω × q, ω)` and prismatic
+`Twist.prismatic v = (v, 0)`. The unit-axis or unit-direction premise is the
+predicate `Twist.IsRevoluteJoint` or `Twist.IsPrismaticJoint`, not a field of the
+chain; the chain accepts any twist, and theorems state the joint type they need.
+Any point of the axis line gives the same revolute twist
+(`Twist.revolute_axis_point`).
+
+**Forward kinematics.** `SerialChain.fk c θ = exp(ξ₁θ₁) ⋯ exp(ξₙθₙ) g_st(0)`
+(eq. (3.3)) is the ordered product `List.prod (List.ofFn …)`, base joint on the
+left. Since `g * h` applies `h` first, the tip joint's motion acts first on the
+reference tool pose, and the result acts on `g_st(0)` by left multiplication, as
+in `g_ab(θ) = exp(ξ̂θ) g_ab(0)` ([p. 85](../../references/MLS.pdf#page=103)).
+The adjacent-frame form (eq. (3.1)) is `LinkFrameChain`: the joint twist `ζᵢ` is
+written in the proximal link frame `Lᵢ` (`L₀ = S`), the relative transform is
+`g_{Lᵢ Lᵢ₊₁}(θᵢ) = exp(ζ̂ᵢθᵢ) g_{Lᵢ Lᵢ₊₁}(0)`, and the base-frame twist is
+`ξᵢ = Ad_{g_{S Lᵢ}(0)} ζᵢ`.
+
+**Sequential joint motion.** `SerialChain.moveJoint` holds every link state as an
+active rigid displacement from the reference configuration, in base coordinates.
+Moving joint `i` by `t` leaves links `0..i` in place and left-multiplies every
+distal link by `exp(Ad_{G i} ξᵢ, t)`, the screw motion about the joint axis as
+currently carried by its proximal link (pp. 86–87). The tool pose of a state is
+`G n * g_st(0)`.
+
+**Jacobians.** A Jacobian is the function `Fin n → Twist` of its columns, and
+joint rates act by `∑ i, θ̇ i • J i`. Lean column `i` is the book's column
+`i + 1`. Spatial column `i` is `Ad` of the product of the first `i` joint
+exponentials applied to `ξᵢ` (eq. (3.54), [p. 116](../../references/MLS.pdf#page=134));
+body column `i` is `Ad` of the inverse of (joint exponentials `i..n−1`) `g_st(0)`
+applied to `ξᵢ` (eq. (3.55), [p. 117](../../references/MLS.pdf#page=135)).
+The `6 × n` matrix view `SerialChain.spatialJacobianMatrix` has rows indexed by
+`Fin 3 ⊕ Fin 3` through `Twist.coordinates`: `Sum.inl` rows are `v_x, v_y, v_z`,
+`Sum.inr` rows are `ω_x, ω_y, ω_z`, the row order printed on p. 118. The spatial
+velocity of the forward-kinematics curve is `RigidTransform.spatialVelocity`,
+computed from an actual `HasDerivAt` derivative of the homogeneous pose; the
+tool-origin velocity is `ωˢ × p + vˢ`, not `vˢ` alone (p. 117).
+
+**Workspaces.** `completeWorkspace c Q` is the pose image `fk '' Q` (eq. (3.11)),
+`reachableWorkspace c Q` the position image (eq. (3.12)), and
+`dextrousWorkspace c Q` is `{p | ∀ R, ∃ θ ∈ Q, fk θ = ⟨R, p⟩}` with the printed
+quantifier order (eq. (3.13), [p. 95](../../references/MLS.pdf#page=113)), `R`
+ranging over all of `SO(3)`. These are pose-reachability sets; they say nothing
+about paths, continuity of an inverse, or dynamics.
+
+**Evidence scope.** The declarations named here were elaborated by the E009
+shadow-tree checks and axiom audit recorded in the
+[E009 gate](../../docs/implogs/gates/E009/); the integrated `lake build` of the
+root import list is root's landing check and is recorded separately. K13 (force
+pullback) is not covered.
