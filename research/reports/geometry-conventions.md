@@ -736,6 +736,40 @@ real-valued entries and does not depend on that choice. Evidence: the
 [E013 gate](../../docs/implogs/gates/E013/20261010T002511Z/) and root's integrated gate
 [E013/20261010T005937Z](../../docs/implogs/gates/E013/20261010T005937Z/).
 
+**Mass distributions and the inertia tensor (pp. 161–163; [E021](../../docs/implogs/E021-dynamics-remainder-inertia-tensor-scara-and-bracket-formula.md)).** A mass distribution is a
+measure `μ` on `Vec3`, the body-frame coordinates `r` of body points (the book's `ρ(r) dV` on
+`V`); it is nonnegative by type, and a density `ρ ≥ 0` is the case `volume.withDensity ρ`. The
+mass is `μ(univ)` as a real number (`RigidBody.mass`, `0` for an infinite measure), the center of
+mass is `(1/m)∫ r dμ` (`RigidBody.centerOfMass`), and the inertia tensor is
+`𝓘 = −∫ r̂² dμ`, defined entrywise, `𝓘ᵢⱼ = −∫ (r̂r̂)ᵢⱼ dμ = ∫ (‖r‖²δᵢⱼ − rᵢrⱼ) dμ`
+(`RigidBody.inertiaTensor`), with Mathlib's Bochner integral; it is a real `3 × 3` matrix in the
+body frame, the `𝓘` argument of `generalizedInertia`. The origin of the body frame need not be
+the center of mass. Where integrals must exist, theorems assume `Integrable (‖r‖²) μ`. For such
+distributions the hypotheses that E012 places on `𝓘` mean: symmetric always; positive
+semidefinite always; positive definite exactly when `μ` is not concentrated on a line through
+the body-frame origin (`inertiaTensor_posDef_iff`). The homogeneous bar of Example 4.2 is
+`(m/(lwh))·volume` on the box `[−l/2, l/2] × [−w/2, w/2] × [−h/2, h/2]` (length along `x`).
+
+**The bracket formula (4.30) (pp. 176–177; [E021](../../docs/implogs/E021-dynamics-remainder-inertia-tensor-scara-and-bracket-formula.md)).** MLS's `A_{lj}` (4.27), including the printed
+case `A_{lj} = 0` for `l < j`, is `InertialChain.relativeAdjoint l j θ`: the adjoint of
+`relativeMotion l j θ` (the inverse of the product of the joint motions strictly after joint `j`
+up to joint `l`) for `j ≤ l`, and `0` otherwise. With the library bracket `Twist.bracket`, the vee
+of `ξ̂₁ξ̂₂ − ξ̂₂ξ̂₁` (the book's (4.26)), the printed formula holds as printed:
+`∂Mᵢⱼ/∂θₖ = ∑_{i ≤ l, j ≤ l} ((Aₗₖ[Aₖᵢξᵢ, ξₖ])ᵀ𝓜'ₗ(Aₗⱼξⱼ) + (Aₗᵢξᵢ)ᵀ𝓜'ₗ(Aₗₖ[Aₖⱼξⱼ, ξₖ]))`
+in Lean indices (book minus one), with pairings in six coordinates and `𝓜'ₗ =
+transformInertia (linkRef l)⁻¹ (linkInertia l)`. `∂/∂θₖ` is the derivative along the coordinate
+line `θ + s eₖ`, i.e. `massMatrixDeriv θ i j eₖ = Christoffel.partials (massMatrixDeriv θ) k i j`.
+The proof splits `relativeMotion l j` at joint `k` (`g_{lj}(θ + s eₖ) = g_{lk}(θ) exp(−sξ̂ₖ)
+g_{kj}(θ)` for `j < k ≤ l`) and uses `d/ds Ad_{exp(−sξ̂)} η |₀ = [η, ξ]`.
+
+**Frame freedom of the link frames (p. 168, eq. (4.28); [E021](../../docs/implogs/E021-dynamics-remainder-inertia-tensor-scara-and-bracket-formula.md)).** `InertialChain.reframe ch h`
+moves the frame of link `k` by the constant body-fixed transform `h k` (reference pose
+`g_{sl_k}(0) h_k`) and re-expresses its inertia as `transformInertia (h k)`, that is
+`Ad_{h_k}ᵀ 𝓜_k Ad_{h_k}`; the link body Jacobian becomes `Ad_{h_k⁻¹} J_k` and `M(θ)` is unchanged
+(`massMatrix_reframe`). So the choice of the link frames, in particular placing them at the mass
+centers, does not affect `M(θ)` once the inertias are moved with them. `linkJacobianMatrix k θ` is
+E011's `(linkChain k).bodyJacobianMatrix θ` by definition (`linkJacobianMatrix_eq_bodyJacobianMatrix`).
+
 ## Stability and control conventions
 
 Recorded 2026-10-10 02:08 UTC for increment E016 (root applied the lead's proposal; integrated gate [E016/20261010T020417Z](../../docs/implogs/gates/E016/20261010T020417Z/)). Source: MLS printed
