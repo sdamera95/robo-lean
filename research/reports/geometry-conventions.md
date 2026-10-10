@@ -580,8 +580,7 @@ numerical conditioning.
 
 **Units.** Masses, lengths, times and inertias are real numbers; units (for example kg, m, s,
 kg·m²) are a convention of the user and are not tracked by types. The linear and angular blocks
-of a twist carry different units, so `𝓜` is the only metric used here on twists; the product norm
-on twists is not used by the dynamics.
+of a twist carry different units, so `𝓜` is the only metric used here on twists; `Twist` carries no norm (E010).
 
 **Christoffel symbols and the Coriolis matrix.** For partial derivatives `dM k = ∂M/∂θₖ`,
 `Christoffel.symbol dM i j k = (dM k i j + dM j i k − dM i k j)/2` (eq. (4.22)),
