@@ -73,3 +73,11 @@ import RoboLean.Kinematics.PadenKahan
 import RoboLean.Kinematics.Singularity
 import RoboLean.Kinematics.ClosedChain
 import RoboLean.Examples.PlanarTwoLinkSingularity
+import RoboLean.Control.QuadraticBounds
+import RoboLean.Control.Stability
+import RoboLean.Control.ManipulatorSystem
+import RoboLean.Control.ErrorDynamics
+import RoboLean.Control.PDControl
+import RoboLean.Control.ComputedTorque
+import RoboLean.Examples.PlanarTwoLinkControl
+import RoboLean.Examples.ThreeLinkGravityPD
