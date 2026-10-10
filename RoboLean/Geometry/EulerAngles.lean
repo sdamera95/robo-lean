@@ -75,6 +75,38 @@ private theorem atan2_unit_trig (x y : ℝ) (h : x ^ 2 + y ^ 2 = 1) :
   rw [hn, div_one] at hc hs
   exact ⟨by simpa only [atan2, z] using hc, by simpa only [atan2, z] using hs⟩
 
+/-- Polar form of the first argument of `atan2` (MLS p. 100, Subproblem 1; MLS p. 98,
+eq. (3.16) and the formula for `θ₁`): `√(x² + y²) cos(atan2(y, x)) = x`, including the origin,
+where this `atan2` is `0`. -/
+theorem sqrt_mul_cos_atan2 (y x : ℝ) :
+    √(x ^ 2 + y ^ 2) * Real.cos (atan2 y x) = x := by
+  have hn : ‖(⟨x, y⟩ : ℂ)‖ = √(x ^ 2 + y ^ 2) := by
+    rw [Complex.norm_def, Complex.normSq_mk]
+    ring_nf
+  by_cases hz : (⟨x, y⟩ : ℂ) = 0
+  · have hx : x = 0 := congrArg Complex.re hz
+    have hy : y = 0 := congrArg Complex.im hz
+    simp [hx, hy]
+  · have hn0 : ‖(⟨x, y⟩ : ℂ)‖ ≠ 0 := norm_ne_zero_iff.mpr hz
+    rw [atan2, Complex.cos_arg hz, ← hn]
+    field_simp
+
+/-- Polar form of the second argument of `atan2` (MLS p. 100, Subproblem 1; MLS p. 98,
+eq. (3.16) and the formula for `θ₁`): `√(x² + y²) sin(atan2(y, x)) = y`, including the
+origin. -/
+theorem sqrt_mul_sin_atan2 (y x : ℝ) :
+    √(x ^ 2 + y ^ 2) * Real.sin (atan2 y x) = y := by
+  have hn : ‖(⟨x, y⟩ : ℂ)‖ = √(x ^ 2 + y ^ 2) := by
+    rw [Complex.norm_def, Complex.normSq_mk]
+    ring_nf
+  by_cases hz : (⟨x, y⟩ : ℂ) = 0
+  · have hx : x = 0 := congrArg Complex.re hz
+    have hy : y = 0 := congrArg Complex.im hz
+    simp [hx, hy]
+  · have hn0 : ‖(⟨x, y⟩ : ℂ)‖ ≠ 0 := norm_ne_zero_iff.mpr hz
+    rw [atan2, Complex.sin_arg, ← hn]
+    field_simp
+
 /-- The nonnegative radial quantity in the first line of MLS (2.20). -/
 def zyzRadial (R : Rotation) : ℝ := Real.sqrt (R.val 2 0 ^ 2 + R.val 2 1 ^ 2)
 

@@ -199,10 +199,36 @@ theorem coordinates_injective : Function.Injective coordinates := by
   · exact congrFun h (Sum.inl i)
   · exact congrFun h (Sum.inr i)
 
+/-- The six coordinates `Twist.coordinates` (linear first, MLS eq. (2.30), p. 41) as a real
+linear equivalence. Supporting lemma for reading Jacobian columns as columns of a real
+matrix (MLS p. 116). -/
+def coordinatesEquiv : Twist ≃ₗ[ℝ] (Fin 3 ⊕ Fin 3 → ℝ) where
+  toFun := coordinates
+  invFun x := ⟨WithLp.toLp 2 (fun i => x (Sum.inl i)), WithLp.toLp 2 (fun i => x (Sum.inr i))⟩
+  map_add' ξ η := by
+    funext r
+    rcases r with i | i <;> rfl
+  map_smul' c ξ := by
+    funext r
+    rcases r with i | i <;> rfl
+  left_inv ξ := rfl
+  right_inv x := by
+    funext r
+    rcases r with i | i <;> rfl
+
+/-- `coordinatesEquiv` applies `Twist.coordinates` (MLS eq. (2.30), p. 41). -/
+@[simp] theorem coordinatesEquiv_apply (ξ : Twist) : coordinatesEquiv ξ = ξ.coordinates := rfl
+
 /-- MLS equation (2.58), now as an explicit six-by-six block matrix. -/
 def adjointMatrix (g : RigidTransform) : Matrix (Fin 3 ⊕ Fin 3) (Fin 3 ⊕ Fin 3) ℝ :=
   Matrix.fromBlocks g.rotation.val (Vec3.hat g.translation * g.rotation.val)
     0 g.rotation.val
+
+/-- The adjoint matrix of MLS eq. (2.58), p. 55, has determinant `1`: it is block upper
+triangular with the rotation `R` twice on the diagonal, and `det R = 1`. Used for the frame
+independence of the Jacobian determinant (MLS p. 128). -/
+theorem det_adjointMatrix (g : RigidTransform) : (adjointMatrix g).det = 1 := by
+  rw [adjointMatrix, Matrix.det_fromBlocks_zero₂₁, RigidTransform.rotation_det, mul_one]
 
 /-- The block matrix acts by the separately defined twist-coordinate map. -/
 theorem adjointMatrix_mulVec (g : RigidTransform) (ξ : Twist) :

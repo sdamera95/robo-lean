@@ -16,7 +16,9 @@ product-of-exponentials forward kinematics `g_st : Q → SE(3)` (eq. (3.3), p. 8
 Conventions. Joint coordinates are the real lift `Fin n → ℝ` of `SerialChain`, and the
 configuration space `Q` of the book is passed as an explicit argument
 `Q : Set (Fin n → ℝ)`; the chain's own admissible set is `c.admissible`, which one passes
-as `Q` (MLS p. 84: `Q` may be a proper subset of joint space). A pose is a
+as `Q` (MLS p. 84: `Q` may be a proper subset of joint space). The variants
+`admissibleCompleteWorkspace`, `admissibleReachableWorkspace` and `admissibleDextrousWorkspace`
+fix `Q := c.admissible`. A pose is a
 `RigidTransform` with named fields `rotation` (in `SO(3)`) and `translation`; the
 book's pair `(p, R)` is written `⟨R, p⟩`. These sets describe pose reachability of the
 coordinate model only; they say nothing about path feasibility, dynamics or a physical
@@ -146,6 +148,53 @@ theorem dextrousWorkspace_of_zero_joints (c : SerialChain 0) :
   have h00 := congrArg (fun R : Rotation => R.val 0 0) hR
   simp only [Rotation.zRotation_val] at h00
   norm_num at h00
+
+/-! ### Workspaces over the chain's own joint space
+
+The definitions above take the joint space `Q` as an explicit argument. The variants below
+fix `Q` to the chain's own admissible set `SerialChain.admissible` (MLS p. 84: the joint
+space `Q` of the chain, possibly a proper subset of the unrestricted joint space). For a chain
+built with the default `admissible := Set.univ` they are the unrestricted workspaces. -/
+
+/-- The complete workspace `W = {g_st(θ) : θ ∈ Q} ⊂ SE(3)` of MLS eq. (3.11), p. 95, with `Q`
+the chain's own admissible joint set `c.admissible` (MLS p. 84). -/
+def admissibleCompleteWorkspace (c : SerialChain n) : Set RigidTransform :=
+  c.completeWorkspace c.admissible
+
+/-- The reachable workspace `W_R = {p(θ) : θ ∈ Q} ⊂ ℝ³` of MLS eq. (3.12), p. 95, with `Q` the
+chain's own admissible joint set `c.admissible` (MLS p. 84). -/
+def admissibleReachableWorkspace (c : SerialChain n) : Set Vec3 :=
+  c.reachableWorkspace c.admissible
+
+/-- The dextrous workspace `W_D` of MLS eq. (3.13), p. 95, with the quantifier order as printed
+and `θ` ranging over the chain's own admissible joint set `c.admissible` (MLS p. 84). -/
+def admissibleDextrousWorkspace (c : SerialChain n) : Set Vec3 :=
+  c.dextrousWorkspace c.admissible
+
+/-- The workspaces over the chain's admissible set (MLS eqs. (3.11)–(3.13), p. 95, with the
+joint space `Q` of p. 84) lie in the unrestricted ones. -/
+theorem admissibleCompleteWorkspace_subset :
+    c.admissibleCompleteWorkspace ⊆ c.completeWorkspace Set.univ :=
+  completeWorkspace_mono (Set.subset_univ _)
+
+/-- The reachable workspace over the chain's admissible set (MLS eq. (3.12), p. 95; `Q` of
+p. 84) lies in the unrestricted reachable workspace. -/
+theorem admissibleReachableWorkspace_subset :
+    c.admissibleReachableWorkspace ⊆ c.reachableWorkspace Set.univ :=
+  reachableWorkspace_mono (Set.subset_univ _)
+
+/-- The dextrous workspace over the chain's admissible set (MLS eq. (3.13), p. 95; `Q` of
+p. 84) lies in the unrestricted dextrous workspace. -/
+theorem admissibleDextrousWorkspace_subset :
+    c.admissibleDextrousWorkspace ⊆ c.dextrousWorkspace Set.univ :=
+  dextrousWorkspace_mono (Set.subset_univ _)
+
+/-- For a chain whose admissible set is unrestricted (the default of `SerialChain`, MLS p. 84),
+the reachable workspace over the admissible set is the unrestricted reachable workspace of
+MLS eq. (3.12), p. 95. -/
+theorem admissibleReachableWorkspace_of_admissible_eq_univ (h : c.admissible = Set.univ) :
+    c.admissibleReachableWorkspace = c.reachableWorkspace Set.univ := by
+  rw [admissibleReachableWorkspace, h]
 
 end SerialChain
 

@@ -25,82 +25,21 @@ Proved here:
 * the body Jacobian gives the same singular configurations (pp. 125 and 128: a change of
   frame multiplies the Jacobian by an invertible adjoint);
 * Example 3.11, p. 124: two collinear revolute axes give a singular configuration;
+* Example 3.12, pp. 125–126: three parallel coplanar revolute axes give a singular
+  configuration;
 * Example 3.13, p. 126: four revolute axes through one point give a singular configuration.
 
-Example 3.12 (three parallel coplanar revolute axes) is not formalized. The statements hold
-for `n ≤ 6` joints, which contains the book's six-joint case; they concern the coordinate
-model only, not the behaviour of a physical arm near a singularity.
+The supporting lemmas about revolute twists (`Twist.revoluteLinear`,
+`Twist.revolute_eq_of_cross_sub_eq_zero`, `Twist.revolute_eq_smul_of_collinear`) live next to
+`Twist.revolute` in `RoboLean.Kinematics.SerialChain`, and `Twist.coordinatesEquiv` next to
+`Twist.coordinates` in `RoboLean.Geometry.TwistAdjoint`. The statements hold for `n ≤ 6`
+joints, which contains the book's six-joint case; they concern the coordinate model only, not
+the behaviour of a physical arm near a singularity.
 -/
 
 noncomputable section
 
 namespace RoboLean
-
-namespace Twist
-
-/-! ### Supporting lemmas -/
-
-/-- The six coordinates `Twist.coordinates` (linear first, MLS eq. (2.30), p. 41) as a real
-linear equivalence. Supporting lemma for reading Jacobian columns as columns of a real
-matrix. -/
-def coordinatesEquiv : Twist ≃ₗ[ℝ] (Fin 3 ⊕ Fin 3 → ℝ) where
-  toFun := coordinates
-  invFun x := ⟨WithLp.toLp 2 (fun i => x (Sum.inl i)), WithLp.toLp 2 (fun i => x (Sum.inr i))⟩
-  map_add' ξ η := by
-    funext r
-    rcases r with i | i <;> rfl
-  map_smul' c ξ := by
-    funext r
-    rcases r with i | i <;> rfl
-  left_inv ξ := rfl
-  right_inv x := by
-    funext r
-    rcases r with i | i <;> rfl
-
-/-- `coordinatesEquiv` applies `Twist.coordinates` (MLS eq. (2.30), p. 41). -/
-@[simp] theorem coordinatesEquiv_apply (ξ : Twist) : coordinatesEquiv ξ = ξ.coordinates := rfl
-
-/-- The revolute joint twist `(-ω × q, ω)` of MLS p. 87 is linear in the axis direction `ω`
-for a fixed axis point `q`. Supporting lemma for Example 3.13, p. 126. -/
-def revoluteLinear (q : Vec3) : Vec3 →ₗ[ℝ] Twist where
-  toFun ω := revolute ω q
-  map_add' ω η := by
-    apply Twist.ext
-    · simp [revolute, add_comm]
-    · rfl
-  map_smul' c ω := by
-    apply Twist.ext
-    · simp [revolute]
-    · rfl
-
-/-- `revoluteLinear q ω` is the revolute twist `Twist.revolute ω q` of MLS p. 87. -/
-@[simp] theorem revoluteLinear_apply (q ω : Vec3) : revoluteLinear q ω = revolute ω q := rfl
-
-/-- The revolute twist depends on the axis point only through `ω × q`: if
-`ω × (q₁ - q₂) = 0`, both points give the same twist. This is condition 2 of MLS
-Example 3.11, p. 124, and the condition of Example 3.13, p. 126. -/
-theorem revolute_eq_of_cross_sub_eq_zero (ω q₁ q₂ : Vec3)
-    (h : Vec3.cross ω (q₁ - q₂) = 0) : revolute ω q₁ = revolute ω q₂ := by
-  have h' : Vec3.cross ω q₁ = Vec3.cross ω q₂ := by
-    have hs : Vec3.cross ω (q₁ - q₂) = Vec3.cross ω q₁ - Vec3.cross ω q₂ := by
-      rw [sub_eq_add_neg, Vec3.cross_add, Vec3.cross_neg, ← sub_eq_add_neg]
-    rw [hs] at h
-    exact sub_eq_zero.mp h
-  apply Twist.ext
-  · simp [revolute, h']
-  · rfl
-
-/-- Two revolute twists with parallel axes `ω₂ = ±ω₁` and collinear axis lines
-(`ω₁ × (q₁ - q₂) = 0`) are proportional, `ξ₂ = ±ξ₁`: the column computation in the proof of
-MLS Example 3.11, p. 124–125. The unit-magnitude premise of the book is not needed. -/
-theorem revolute_eq_smul_of_collinear (ω₁ ω₂ q₁ q₂ : Vec3) (s : ℝ) (hω : ω₂ = s • ω₁)
-    (hcol : Vec3.cross ω₁ (q₁ - q₂) = 0) : revolute ω₂ q₂ = s • revolute ω₁ q₁ := by
-  rw [revolute_eq_of_cross_sub_eq_zero ω₁ q₁ q₂ hcol, hω]
-  apply Twist.ext
-  · simp [revolute]
-  · rfl
-
-end Twist
 
 namespace SerialChain
 
@@ -227,6 +166,86 @@ theorem isSingular_of_four_concurrent_revolute (c : SerialChain n) (θ : Fin n �
     LinearIndependent.of_comp (Twist.revoluteLinear q) (hcomp ▸ hJ.comp f hf)
   have hcard := hω.fintype_card_le_finrank
   simp [Vec3] at hcard
+
+/-! ### Example 3.12: three parallel coplanar revolute axes -/
+
+private theorem inner_eq_dot (x y : Vec3) :
+    inner ℝ x y = WithLp.ofLp x ⬝ᵥ WithLp.ofLp y := by
+  simp [EuclideanSpace.inner_eq_star_dotProduct, dotProduct_comm]
+
+private theorem cross_cross_right (a b c : Vec3) :
+    Vec3.cross a (Vec3.cross b c) = inner ℝ a c • b - inner ℝ a b • c := by
+  apply WithLp.ofLp_injective
+  simp only [Vec3.cross_coordinates, WithLp.ofLp_sub, WithLp.ofLp_smul, inner_eq_dot]
+  rw [cross_cross_eq_smul_sub_smul', dotProduct_comm (WithLp.ofLp b)]
+
+/-- Two vectors perpendicular to a unit vector `ν` have their cross product along `ν`. -/
+private theorem cross_eq_inner_smul_of_perp {ν a b : Vec3} (hν : ‖ν‖ = 1)
+    (ha : inner ℝ ν a = 0) (hb : inner ℝ ν b = 0) :
+    Vec3.cross a b = inner ℝ ν (Vec3.cross a b) • ν := by
+  have h0 : Vec3.cross ν (Vec3.cross a b) = 0 := by
+    rw [cross_cross_right, ha, hb, zero_smul, zero_smul, sub_zero]
+  have h2 := cross_cross_right ν ν (Vec3.cross a b)
+  rw [h0, Vec3.cross_zero, real_inner_self_eq_norm_sq, hν] at h2
+  simp only [one_pow, one_smul] at h2
+  exact (sub_eq_zero.mp h2.symm).symm
+
+/-- **MLS Example 3.12, pp. 125–126: three parallel coplanar revolute joint axes.** If at the
+configuration `θ` three distinct columns `f 0, f 1, f 2` of the spatial Jacobian are revolute
+twists `(-ωₖ × qₖ, ωₖ)` whose axes are parallel (`ωᵢ = ±ωⱼ` for all `i, j`, condition 1) and
+coplanar (a plane with unit normal `ν`, the book's `n`, with `νᵀωᵢ = 0` and `νᵀ(qᵢ - qⱼ) = 0`
+for all `i, j`, condition 2), the configuration is singular, for every chain with `n ≤ 6`
+joints. The columns are the joint axes in the current configuration (p. 116). The proof is a
+dimension count: with `ω = ω₀`, each column is `±((-ω × q₀, ω) - c (ν, 0))` for a real `c`,
+because `ω × (qₖ - q₀)` is perpendicular to the plane, so the three columns lie in a
+two-dimensional space. The book changes coordinates by an adjoint and reads off three dependent
+columns; the dimension count is a different route to the same conclusion. -/
+theorem isSingular_of_three_parallel_coplanar_revolute (c : SerialChain n) (θ : Fin n → ℝ)
+    (hn : n ≤ 6) (f : Fin 3 → Fin n) (hf : Function.Injective f) (ω qs : Fin 3 → Vec3)
+    (hcol : ∀ k, c.spatialJacobian θ (f k) = Twist.revolute (ω k) (qs k))
+    (hpar : ∀ i j, ω i = ω j ∨ ω i = -ω j) (ν : Vec3) (hν : ‖ν‖ = 1)
+    (hνω : ∀ i, inner ℝ ν (ω i) = 0) (hνq : ∀ i j, inner ℝ ν (qs i - qs j) = 0) :
+    c.IsSingular θ := by
+  rw [c.isSingular_iff_not_linearIndependent θ hn]
+  intro hJ
+  have hs : ∀ k, ∃ s : ℝ, ω k = s • ω 0 := by
+    intro k
+    rcases hpar k 0 with h | h
+    · exact ⟨1, by simp [h]⟩
+    · exact ⟨-1, by simp [h]⟩
+  choose s hs using hs
+  set A : Twist := Twist.revolute (ω 0) (qs 0)
+  set N : Twist := ⟨ν, 0⟩
+  set coef : Fin 3 → ℝ := fun k => inner ℝ ν (Vec3.cross (ω 0) (qs k - qs 0))
+  have hcross : ∀ k, Vec3.cross (ω 0) (qs k - qs 0) = coef k • ν := fun k =>
+    cross_eq_inner_smul_of_perp hν (hνω 0) (hνq k 0)
+  let L : (Fin 2 → ℝ) →ₗ[ℝ] Twist :=
+    { toFun := fun x => x 0 • A + x 1 • N
+      map_add' := fun x y => by
+        simp only [Pi.add_apply, add_smul]
+        abel
+      map_smul' := fun r x => by
+        simp only [Pi.smul_apply, smul_eq_mul, mul_smul, RingHom.id_apply, smul_add] }
+  have hcomp : c.spatialJacobian θ ∘ f = L ∘ fun k => ![s k, -(s k * coef k)] := by
+    funext k
+    have hrev : Twist.revolute (ω 0) (qs k) = A + (-coef k) • N := by
+      apply Twist.ext
+      · have hq : Vec3.cross (ω 0) (qs k) =
+            Vec3.cross (ω 0) (qs 0) + Vec3.cross (ω 0) (qs k - qs 0) := by
+          rw [← Vec3.cross_add]
+          congr 1
+          abel
+        simp only [A, N, Twist.revolute, Twist.add_linear, Twist.smul_linear, hq, hcross k]
+        simp only [neg_add, neg_smul]
+      · simp [A, N, Twist.revolute]
+    simp only [Function.comp_apply, hcol k, hs k, L, LinearMap.coe_mk, AddHom.coe_mk,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
+    rw [← Twist.revoluteLinear_apply, map_smul, Twist.revoluteLinear_apply, hrev, smul_add,
+      smul_smul, neg_mul_eq_mul_neg]
+  have hg : LinearIndependent ℝ fun k : Fin 3 => ![s k, -(s k * coef k)] :=
+    LinearIndependent.of_comp L (hcomp ▸ hJ.comp f hf)
+  have hcard := hg.fintype_card_le_finrank
+  simp at hcard
 
 end SerialChain
 

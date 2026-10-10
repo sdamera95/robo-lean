@@ -139,7 +139,9 @@ inverse kinematics `θ₂ = π ± α`, `α = cos⁻¹((l₁² + l₂² - r²) / 
 `l₂ = b`, `r = ‖x‖`: the elbow angle here is the `π - α` branch, since
 `arccos(-y) = π - arccos y`; the relative elbow angle does not depend on the zero direction
 (`+x` in MLS Fig. 3.7, `+y` here). MLS determines `θ₁` by `atan2(y, x) ± β`; the complex
-argument above is a different construction of `θ₁`, not compared with that formula here. The
+argument above is a different construction of `θ₁`. For `‖x‖ > 0`, the module
+`RoboLean.Examples.PlanarTwoLinkInverseKinematics` (ledger K30) proves that every solution, this
+one included, is one of the two printed branches modulo `2π`. The
 annulus hypotheses come from `research/reports/mls-lean-assessment.md` ("Robot design and
 workspace coverage"); the workspace equality they feed is a design statement, not printed in
 MLS. The position is MLS eq. (3.4), p. 89, specialized. No uniqueness, continuity or branch
@@ -236,6 +238,14 @@ theorem planarTwoLink_reachableWorkspace_eq {a b : ℝ} (ha : 0 < a) (hb : 0 < b
       {x : Vec3 | x 2 = 0 ∧ |a - b| ≤ ‖x‖ ∧ ‖x‖ ≤ a + b} :=
   (planarTwoLink_reachableWorkspace_subset ha.le hb.le).antisymm
     (planarTwoLink_annulus_subset_reachableWorkspace ha hb)
+
+/-- The planar two-link arm has the unrestricted default joint space (`SerialChain.admissible`,
+MLS p. 84), so its reachable workspace over its own joint space (MLS eq. (3.12), p. 95) is the
+annulus of `planarTwoLink_reachableWorkspace_eq`, for positive link lengths. -/
+theorem planarTwoLink_admissibleReachableWorkspace_eq {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    (planarTwoLink a b).admissibleReachableWorkspace =
+      {x : Vec3 | x 2 = 0 ∧ |a - b| ≤ ‖x‖ ∧ ‖x‖ ≤ a + b} :=
+  planarTwoLink_reachableWorkspace_eq ha hb
 
 /-! ### Design certificates -/
 

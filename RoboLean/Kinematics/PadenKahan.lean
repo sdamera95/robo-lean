@@ -86,38 +86,8 @@ private theorem eq_inner_smul_of_cross_eq_zero {ω z : Vec3} (hω : ‖ω‖ = 1
 /-! ### The two-argument arctangent
 
 `Rotation.atan2 y x` (from `RoboLean.Geometry.EulerAngles`) is the argument of `x + i y`, in
-`(-π, π]`; at the origin it is `0`, where the book leaves `atan2(0, 0)` undefined. The two
-polar-form lemmas below are supporting lemmas about that existing definition. -/
-
-/-- Polar form of the first argument of `atan2` (MLS p. 100), for the library's
-`Rotation.atan2`: `√(x² + y²) cos(atan2(y, x)) = x`, including the origin. -/
-theorem sqrt_mul_cos_atan2 (y x : ℝ) :
-    √(x ^ 2 + y ^ 2) * Real.cos (Rotation.atan2 y x) = x := by
-  have hn : ‖(⟨x, y⟩ : ℂ)‖ = √(x ^ 2 + y ^ 2) := by
-    rw [Complex.norm_def, Complex.normSq_mk]
-    ring_nf
-  by_cases hz : (⟨x, y⟩ : ℂ) = 0
-  · have hx : x = 0 := congrArg Complex.re hz
-    have hy : y = 0 := congrArg Complex.im hz
-    simp [hx, hy]
-  · have hn0 : ‖(⟨x, y⟩ : ℂ)‖ ≠ 0 := norm_ne_zero_iff.mpr hz
-    rw [Rotation.atan2, Complex.cos_arg hz, ← hn]
-    field_simp
-
-/-- Polar form of the second argument of `atan2` (MLS p. 100), for the library's
-`Rotation.atan2`: `√(x² + y²) sin(atan2(y, x)) = y`, including the origin. -/
-theorem sqrt_mul_sin_atan2 (y x : ℝ) :
-    √(x ^ 2 + y ^ 2) * Real.sin (Rotation.atan2 y x) = y := by
-  have hn : ‖(⟨x, y⟩ : ℂ)‖ = √(x ^ 2 + y ^ 2) := by
-    rw [Complex.norm_def, Complex.normSq_mk]
-    ring_nf
-  by_cases hz : (⟨x, y⟩ : ℂ) = 0
-  · have hx : x = 0 := congrArg Complex.re hz
-    have hy : y = 0 := congrArg Complex.im hz
-    simp [hx, hy]
-  · have hn0 : ‖(⟨x, y⟩ : ℂ)‖ ≠ 0 := norm_ne_zero_iff.mpr hz
-    rw [Rotation.atan2, Complex.sin_arg, ← hn]
-    field_simp
+`(-π, π]`; at the origin it is `0`, where the book leaves `atan2(0, 0)` undefined. Its polar-form
+lemmas `Rotation.sqrt_mul_cos_atan2` and `Rotation.sqrt_mul_sin_atan2` live next to it. -/
 
 /-! ### Projection onto the plane perpendicular to an axis -/
 
@@ -191,8 +161,8 @@ theorem norm_sub_exp_act_sq {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) (θ : 
     linarith
   have hm : √(x ^ 2 + y ^ 2) = ‖perp ω u‖ * ‖perp ω v‖ := by
     rw [hxy, Real.sqrt_sq (by positivity)]
-  have hc := sqrt_mul_cos_atan2 y x
-  have hs := sqrt_mul_sin_atan2 y x
+  have hc := Rotation.sqrt_mul_cos_atan2 y x
+  have hs := Rotation.sqrt_mul_sin_atan2 y x
   rw [hm] at hc hs
   -- the inner product of `v` with the rotated `u`
   have hv : v = inner ℝ ω v • ω + perp ω v := by simp [perp]

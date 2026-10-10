@@ -82,3 +82,6 @@ import RoboLean.Control.ComputedTorque
 import RoboLean.Examples.PlanarTwoLinkControl
 import RoboLean.Examples.ThreeLinkGravityPD
 import RoboLean.Design.PlanarArmSupervisor
+import RoboLean.Kinematics.Manipulability
+import RoboLean.Examples.PlanarTwoLinkInverseKinematics
+import RoboLean.Examples.ElbowManipulator
