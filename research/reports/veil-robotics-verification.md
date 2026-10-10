@@ -42,9 +42,31 @@ Learned components fit when their relevant behavior can be enclosed by a justifi
 
 The pinned [Lean-SMT README](https://github.com/verse-lab/lean-smt/blob/922af463373ce3f74d7b1aee36c6391f867aaaa2/README.md) advertises uninterpreted functions and **linear** integer/real arithmetic with quantifiers; real arithmetic requires mathlib, while bitvectors are experimental. Veil's [locked dependencies](https://github.com/verse-lab/veil/blob/b05ef68eb9e29cff3168d1a2a34acd314e26a59e/lake-manifest.json) do not include mathlib, and the pinned fork's [build file](https://github.com/verse-lab/lean-smt/blob/922af463373ce3f74d7b1aee36c6391f867aaaa2/lakefile.lean) excludes its mathlib/Real tests. Consequently, linear real arithmetic support in the broader Lean-SMT project is not evidence that a stock Veil installation proves nonlinear robot dynamics. No native STL/MTL parser, ODE solver, or hybrid reachability workflow is evidenced by the reviewed Veil documentation.
 
-Veil currently pins [Lean v4.32.0](https://github.com/verse-lab/veil/blob/b05ef68eb9e29cff3168d1a2a34acd314e26a59e/lean-toolchain), while this project's newly established mathlib setup uses Lean v4.34.1. An isolated Veil evaluation project at its pinned version is the lowest-friction way to assess a small discrete model before attempting dependency integration; that evaluation has **not** been performed. A useful first model would be one supervisory or monitor automaton, accompanied by a non-vacuity trace, an intentional unsafe trace that the checker can find, a bounded exclusion query, and a small inductive invariant with reconstruction enabled. Inspect the resulting Lean theorem and assumptions, then compare the modeled transitions with the existing implementation or Z3 encoding. This would measure the actual value of Veil for the project without assuming its protocol-oriented examples transfer automatically to robotics.
+Veil currently pins [Lean v4.32.0](https://github.com/verse-lab/veil/blob/b05ef68eb9e29cff3168d1a2a34acd314e26a59e/lean-toolchain), while this project's newly established mathlib setup uses Lean v4.34.1. An isolated Veil evaluation project at its pinned version is the lowest-friction way to assess a small discrete model before attempting dependency integration; that evaluation had **not** been performed when this report was written; it was performed on 2026-10-10 (section below). A useful first model would be one supervisory or monitor automaton, accompanied by a non-vacuity trace, an intentional unsafe trace that the checker can find, a bounded exclusion query, and a small inductive invariant with reconstruction enabled. Inspect the resulting Lean theorem and assumptions, then compare the modeled transitions with the existing implementation or Z3 encoding. This would measure the actual value of Veil for the project without assuming its protocol-oriented examples transfer automatically to robotics.
 
 **Evidence status:** This report is a source-based assessment of current capabilities and limits. A formal robotics guarantee would require a stated model and discharged proof or model-checking obligations, with the trust boundary identified. Empirical validation would require traces, tests, or physical evidence about a particular implementation and environment. Neither has been established for the robotics system by this report.
+
+## First evaluation, 2026-10-10 (E018)
+
+The evaluation recommended above was run on Veil
+`main` at 0263f6c (Lean 4.32.0) with a five-target supervisor for the planar two-link arm ([entry E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md), [gate](../../docs/implogs/gates/E018/20261010T212023Z/)) whose
+guard the Robo Lean workspace certificate makes sound. All four kinds of check ran, each file in
+about 6 s: an exhaustive `#model_check` of one finite instance, `sat trace` non-vacuity queries,
+a bounded `unsat trace` over six actions and `#check_invariants`; a deliberately unsafe variant
+(the guard removed from `admit`) failed every check that should fail. With `veil.smt.trust
+false`, proof reconstruction succeeded for the five verification conditions that reached the
+solver, and `#print axioms` on the ten generated theorems shows only `propext`,
+`Classical.choice` and `Quot.sound`; with trust on, the same five theorems depend on `sorryAx`.
+Three qualifications follow from the run and the source. The generated theorems are
+per-condition statements over Veil's encodings (`meetsSpecificationIfSuccessfulAssuming` of an
+action against the assumptions and invariants); no generated theorem states that every
+reachable state of the module's transition system satisfies the invariant, so that composition
+rests on Veil's design and was supplied separately in Lean for the mirrored system. An `unsat
+trace` result carries no proof term even with trust off (the trace discharger records a proven
+result without a witness), so it is a solver verdict. The model is propositional, so the run
+says nothing about reconstruction for arithmetic, for larger models or for quantifier-heavy
+protocols. The link from Veil's uninterpreted guard to the continuous Lean theorem remains a
+recorded convention while the two projects use different Lean versions.
 
 ## Related Z3 work in this research program
 

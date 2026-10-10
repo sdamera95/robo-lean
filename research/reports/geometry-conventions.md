@@ -454,9 +454,7 @@ real lift and proves periodicity instead of forming a quotient
 (`SerialChain.fk_add_int_mul_two_pi`, for revolute joints with a unit axis). A
 real vector therefore names a configuration, but two vectors that differ by `2π`
 multiples in revolute coordinates give the same pose; no torus type is defined.
-The admissible set `Q` of p. 84 is an explicit `Set (Fin n → ℝ)`: the chain
-field `SerialChain.admissible` (default: all of `Fin n → ℝ`), and an explicit
-argument `Q` of every workspace definition. MLS p. 84 measures angles with a
+The admissible set `Q` of p. 84 is an explicit `Set (Fin n → ℝ)`: the chain field `SerialChain.admissible` (default: all of `Fin n → ℝ`), and an explicit argument `Q` of every workspace definition. The field is read by the variants `admissibleCompleteWorkspace`, `admissibleReachableWorkspace`, `admissibleDextrousWorkspace` and `admissibleAlternativeDextrousWorkspace`, which fix `Q := c.admissible`, and by the closed-chain joint space `ClosedChain.admissible`; the forward kinematics and the `Q`-parametrized definitions do not read it ([E020](../../docs/implogs/E020-chapter-3-remainder-inverse-kinematics-and-manipulability.md), resolving E009 review F4 by giving the field a use rather than removing it). MLS p. 84 measures angles with a
 right-handed convention ("clockwise as viewed along the direction of the axis",
 which is the right-hand rule seen with the axis pointing away from the viewer);
 it agrees with the positive quarter turn about `+z` above.
@@ -527,6 +525,36 @@ are the Euclidean norm of `Vec3`. "Unrestricted joints" is `Q = Set.univ`. The a
 certificate and radial-band statements are design statements from the assessment, not MLS
 results ([ledger C01–C07](mls-coverage-ledger.md#design-certificates-beyond-mls)).
 
+**Planar two-link inverse kinematics.** MLS [p. 98](../../references/MLS.pdf#page=116), eq. (3.16), is stated about the library arm
+`planarTwoLinkPosition a b`. The book's Fig. 3.7a puts the zero configuration along `+x`, the
+library's arm (Example 3.1 specialized) along `+y`; the book's point `(x, y)` is the library point
+`vec (−y) x 0`, a rotation by `Rz(π/2)` (`Examples.planarTwoLinkPosition_eq_vec_iff`), with
+`l₁ = a`, `l₂ = b`, `θ₁ = q 0`, `θ₂ = q 1`. `α = planarTwoLinkAlpha a b r` and
+`β = planarTwoLinkBeta a b r` are the printed `cos⁻¹` expressions with `Real.arccos` (total:
+`π` below `−1`, `0` above `1`), so every statement that uses them carries the annulus bounds that
+put the arguments in `[−1, 1]`; `atan2` is `Rotation.atan2`. Positive lengths and `r ≠ 0` are
+explicit hypotheses the book does not state; the branches are paired as printed (`+α` with `+β`,
+`−α` with `−β`) and solutions are modulo `2π` in each angle. The workspace row C02's elbow angle
+`arccos((r² − a² − b²)/(2ab))` is the `π − α` branch.
+
+**Supervisor models and the Veil correspondence.** A supervisor model in `RoboLean/Design/` ([E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md), 2026-10-10) is a
+transition system over an abstract target type: a `State` structure, an `init` state, an
+inductive `Step` relation with one constructor per action and the action's `require` clauses as
+hypotheses, and reachable states `Relation.ReflTransGen Step init`. It mirrors a Veil model in
+the sibling project `robo-lean-veil` declaration by declaration: a Veil relation
+`r : target → Bool` is a Lean `Set Target` with `t ∈ s.r` read as `r t = true`; a Veil
+`individual b : Bool` is a `Bool` field; Veil's immutable (theory) relation `reachable` is the
+Lean predicate parameter `reachable : Target → Prop` of `Step`; `after_init` is `init`; a
+`safety` clause is a `Prop`-valued predicate on states; the verification conditions
+`<action>_<clause>` are the cases of the step-preservation theorem, and Veil's `doesNotThrow`
+conditions have no counterpart because a Lean step cannot fail. For the planar two-link arm the
+guard is `planarGuard a b`, C04's condition verbatim. The two projects run on different Lean
+versions and cannot import each other, so the correspondence is a recorded convention, checked
+only by reading the two files side by side (the table in [E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md)), not by any kernel. The finite
+instance of a Veil model may carry a guard table computed from concrete targets; E018's table is
+`planarGuard 2 1` at five tool positions, checked on the Lean side. Veil action names must avoid
+the fields `distinct` and `complete` of Veil's generated action-tag class.
+
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
 [p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis
 `‖ω‖ = 1`, where `r` is a point on the axis; `e^{ξ̂θ} p` is
@@ -540,7 +568,16 @@ solutions are counted as intermediate points `c = e^{ξ̂₂θ₂} p` (eq. (3.21
 takes `δ ≥ 0` and the nondegeneracy `u′ ≠ 0`, `v′ ≠ 0`, which the book does not state
 ([E014](../../docs/implogs/E014-inverse-kinematics-subproblems-and-singularities.md)). MLS
 [p. 98](../../references/MLS.pdf#page=116), eq. (3.16), prints the closed-form planar two-link
-inverse kinematics; the existence half of the workspace row C02 is its `π − α` branch.
+inverse kinematics; the existence half of the workspace row C02 is its `π − α` branch. The polar-form lemmas of `Rotation.atan2` are `Rotation.sqrt_mul_cos_atan2` and `Rotation.sqrt_mul_sin_atan2` in `Geometry/EulerAngles.lean`; the axis-fixing fact of MLS p. 104 is `Twist.exp_revolute_applyPoint_of_mem_axisLine` ([E020](../../docs/implogs/E020-chapter-3-remainder-inverse-kinematics-and-manipulability.md)).
+
+**Elbow manipulator.** MLS Example 3.2 ([pp. 89–91](../../references/MLS.pdf#page=107)) is `Examples.elbowManipulator l₀ l₁ l₂`, the base
+frame with the first axis along `+z` and the arm along `+y` at height `l₀`; the twists are built
+with `Twist.revolute` from the axes and points of Fig. 3.4 and agree with the six printed
+six-vectors; `g_st(0) = (I, (0, l₁ + l₂, l₀))`. Example 3.5's points are the wrist centre
+`p_w = (0, l₁ + l₂, l₀)` and the shoulder point `p_b = (0, 0, l₀)`; `g₁ = g_d g_st(0)⁻¹`
+(eq. (3.30), `SerialChain.fk_eq_iff_poe_eq`) and `e^{−ξ̂θ}` is `Twist.exp ξ (−θ)`. Each step is
+stated in the form of the corresponding `PadenKahan` subproblem, so its solution theorems apply
+directly. The necessary conditions hold for every point of the sixth axis (Step 3) and every point (Step 4); the converse uses a point `p ≠ p_w` of the sixth axis and a point `p′` off it, the points the book prescribes, and characterizes all solutions; the eight-solution count is not formalized.
 
 **Singular configurations.** `SerialChain.IsSingular c θ` means that the `6 × n` spatial
 Jacobian matrix has rank less than `min 6 n` ([p. 123](../../references/MLS.pdf#page=141)).
@@ -549,7 +586,21 @@ Jacobian's columns; for `n > 6` it is the library's extension. For the planar tw
 arm, the p. 123 definition gives no singular configuration when the first link length is
 nonzero; the folded configurations `sin θ₂ = 0` are singular for the `2 × 2` position
 Jacobian `∂p/∂θ` (`Examples.planarTwoLinkPositionJacobian`, in the sense of eq. (3.64)),
-which is a different map.
+which is a different map. Example 3.12 (three parallel coplanar revolute axes) is `SerialChain.isSingular_of_three_parallel_coplanar_revolute`, for every `n ≤ 6`; the elbow manipulator's reference configuration is its printed instance ([E020](../../docs/implogs/E020-chapter-3-remainder-inverse-kinematics-and-manipulability.md)).
+
+**Manipulability.** The Jacobian of MLS §4.4 ([pp. 127–129](../../references/MLS.pdf#page=145)) is the body Jacobian matrix
+`SerialChain.bodyJacobianMatrix` (the book's preference, p. 128). Its singular values are Mathlib's
+`LinearMap.singularValues` of `Matrix.toEuclideanLin J`, which uses the standard inner products on
+joint rates and on the six coordinates `(v, ω)`: the square roots of the eigenvalues of `JᵀJ` in
+decreasing order, indexed from `0`, so `σ_max` is index `0` and `σ_min` (`μ₁`) index `n − 1`;
+`μ₂ = σ_min / σ_max` (Lean division, `0` when `σ_max = 0`). These values are not frame invariant:
+the spatial Jacobian `Ad_g Jᵇ` has other singular values in general; only the zero sets agree. The
+determinant `μ₃` is defined for six joints, on the `6 × 6` matrix with rows `(v, ω)` and columns
+joints `1 … 6` in order (columns reindexed by `finSumFinEquiv`), and is the same for the spatial
+and body Jacobians because `det Ad_g = 1`. The alternative dextrous workspace (eq. (3.61)) is
+`alternativeDextrousWorkspace c Q μ = fk '' {θ ∈ Q | μ θ ≠ 0}`, a set of poses, with the measure
+and `Q` explicit; for `0 < n ≤ 6` (six joints for `μ₃`) all three measures give the image of the
+nonsingular configurations in `Q`.
 
 **Closed chains.** `ClosedChain n₁ n₂` holds two serial chains in one base and one tool
 frame ([p. 133](../../references/MLS.pdf#page=151)). Its joint space `Q′` is the set of
@@ -563,7 +614,7 @@ is the dimension of the intersection of the two Jacobian ranges.
 shadow-tree checks and axiom audit recorded in the
 [E009 gate](../../docs/implogs/gates/E009/); the integrated `lake build` of the
 root import list is root's landing check and is recorded separately. K13 and the planar workspace rows are covered by the [E011 gate](../../docs/implogs/gates/E011/20261009T093129Z/) and the
-integrated [E010/E011 gate](../../docs/implogs/gates/E010/20261009T100204Z/), which built them against the `Twist` structure. The subproblem, singularity and closed-chain declarations are covered by the [E014 gate](../../docs/implogs/gates/E014/20261010T002522Z/) and root's integrated gate [E014/20261010T010046Z](../../docs/implogs/gates/E014/20261010T010046Z/).
+integrated [E010/E011 gate](../../docs/implogs/gates/E010/20261009T100204Z/), which built them against the `Twist` structure. The subproblem, singularity and closed-chain declarations are covered by the [E014 gate](../../docs/implogs/gates/E014/20261010T002522Z/) and root's integrated gate [E014/20261010T010046Z](../../docs/implogs/gates/E014/20261010T010046Z/). The E020 declarations are covered by the [E020 gate](../../docs/implogs/gates/E020/20261010T211850Z/) and root's integrated gate [E020/20261010T215401Z](../../docs/implogs/gates/E020/20261010T215401Z/).
 
 ## Dynamics conventions
 
