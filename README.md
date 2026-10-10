@@ -28,3 +28,5 @@ lake build
 Do not run `lake update`: the Mathlib revision is pinned in `lakefile.toml` and the resolved dependencies are checked in as `lake-manifest.json`. A pin change is a recorded decision, not a routine step.
 
 Open the folder in VS Code with the Lean 4 extension for interactive checking. Add future project modules under `RoboLean/` and import them from `RoboLean.lean` when they should be part of the default build. The Lean version is in `lean-toolchain`; Mathlib is pinned in `lakefile.toml` and resolved in the checked-in `lake-manifest.json`.
+
+License: [MIT](LICENSE). The textbook itself is not part of this repository; citations use its printed page numbers.
