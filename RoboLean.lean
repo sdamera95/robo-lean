@@ -81,3 +81,4 @@ import RoboLean.Control.PDControl
 import RoboLean.Control.ComputedTorque
 import RoboLean.Examples.PlanarTwoLinkControl
 import RoboLean.Examples.ThreeLinkGravityPD
+import RoboLean.Design.PlanarArmSupervisor
