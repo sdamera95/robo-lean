@@ -747,9 +747,42 @@ pp. 179–199, read by the E016 lead as text; pp. 182, 191, 193, 194 rendered.
 quadratic forms are compared with `‖x‖²` through compactness of the unit sphere
 (`QuadraticBounds`), not through eigenvalues. A solution from `t₀` (`Stability.IsSolution f t₀ x`)
 is continuous on `[t₀, ∞)` and has the actual derivative `f t (x t)` at every `t > t₀`. Initial
-times are `t₀ ≥ 0` (MLS's `ℝ₊`). Existence and uniqueness are not assumed or proved: every
-stability notion quantifies over all solutions, so a theorem says nothing about whether solutions
-exist; the constant solution at an equilibrium is the only solution exhibited.
+times are `t₀ ≥ 0` (MLS's `ℝ₊`). Every stability notion quantifies over all solutions, so a
+stability theorem by itself says nothing about whether solutions exist. An autonomous system
+`ẋ = f(x)` (eq. (4.46)) is written `fun _ => F`. ([E019](../../docs/implogs/E019-lasalle-solution-interface-and-pd-asymptotic-stability.md))
+
+**Solution flows (pp. 179, 188).** Where existence matters (Lasalle's principle and its
+applications), it is the hypothesis `Stability.HasFlow F φ` for an autonomous field `F`: `φ 0 x = x`;
+`t ↦ φ t x₀` solves the system from time `0`, so `t ↦ φ (t − t₀) x₀` (MLS's `s(t, x₀, t₀)`) solves
+it from every `t₀`; every solution from `t₀ ≥ 0` equals `t ↦ φ (t − t₀) (x t₀)` on `[t₀, ∞)`; each
+`φ t` with `t ≥ 0` is continuous. Only forward time is used; joint continuity in `(t, x)` and
+backward solutions are not required, so Mathlib's two-sided `Flow ℝ E` is not used. The interface
+presupposes solutions for all forward time. For a globally Lipschitz `F` uniqueness and
+continuous dependence are proved, so a flow is forward existence (`HasFlow.of_lipschitzWith`);
+linear fields have the flow `exp(t A)` (`hasFlow_linear`); shifting the state shifts the flow
+(`HasFlow.comp_sub_const`).
+
+**ω-limit and invariant sets (Definitions 4.7–4.8, p. 188).** The ω-limit set of the trajectory
+from `x₀` is Mathlib's `omegaLimit atTop φ {x₀}`, equal to MLS's set of limits along strictly
+increasing times `tₙ → ∞`; it does not depend on the initial time. "Invariant" means positively
+invariant, Mathlib's `IsForwardInvariant φ M` (`φ t` maps `M` into `M` for `t ≥ 0`). The largest
+invariant set inside `S` is `largestInvariantSubset φ S`, the union of the invariant subsets of
+`S`; under a flow it is the set of points whose forward trajectory stays in `S`. "The trajectory
+tends to `M`" is formalized as: it eventually enters every open set containing `M` (and its
+ω-limit set is nonempty and contained in `M`).
+
+**Lasalle's principle (Theorem 4.7, p. 188).** `V` is time-invariant and continuous, `V̇` is its
+derivative along solutions (E016's `HasDerivAlongSolutions` with `fun _ => V`), continuous on
+`Ω_c`, and `Ω_c = {V ≤ c}` is compact (`IsCompact`). The principle is proved for compact
+positively invariant sets and, in MLS's sublevel form, for trajectories starting in `{V < c}`:
+a trajectory starting on the level `{V = c}` may leave `Ω_c` when `V̇ ≤ 0` holds only on `Ω_c`.
+
+**Global notions and Theorem 4.4(4) (pp. 180, 183).** `GloballyAsymptoticallyStableAt f xe t₀`:
+stable at `t₀` and every solution from `t₀` converges to `xe`. `GloballyUniformlyAsymptoticallyStable`:
+uniformly stable, uniformly bounded and uniformly globally attractive (one time `T` for every
+`r, η > 0`, all `t₀ ≥ 0` and all solutions starting within `r`). The uniform global conclusion
+of Theorem 4.4(4) is proved with `V ≤ β(‖x‖)` for all `x`; with MLS's local decrescence the
+theorem gives uniform asymptotic stability and global asymptotic stability at every `t₀`.
 
 **Stability notions (Definitions 4.1–4.3).** `StableAt f xe t₀` and `AsymptoticallyStableAt` are
 pointwise in `t₀`; `UniformlyStable` and `UniformlyAsymptoticallyStable` take `δ` (and the
@@ -776,4 +809,8 @@ desired trajectory given by `θ_d` and actual derivatives `θ_d'`, `θ_d''` at e
 set-point law formalized is `τ = N(θ, θ̇) − K_v θ̇ − K_p(θ − θ_d)` (compensation of `N`, (4.53) with
 `θ̇_d ≡ 0`); the bare law (4.51) is defined and shown to have `θ_d` as a rest point only where
 `N(θ_d, 0) = 0`. Exact cancellation of the model is assumed throughout; sampled implementation,
-actuator limits and model error are outside these statements.
+actuator limits and model error are outside these statements. For the asymptotic stability of the compensated PD law (Proposition 4.9 as formalized), `M` is
+uniformly positive definite, `λ‖v‖² ≤ vᵀ M(q) v` for one `λ > 0` and all `q, v` (MLS p. 191's
+phrase; it makes the sublevel sets of `½ θ̇ᵀ M θ̇ + ½ eᵀ K_p e` compact), `K_v` is positive
+definite, and the closed loop `ManipulatorModel.pdClosedLoop` has a solution flow; for constant
+inertia the closed loop is linear and its flow is constructed.
