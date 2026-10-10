@@ -248,7 +248,7 @@ and `Twist.pairingEquiv`. Neither carrier has a norm, metric or topology; a six-
 norm, if one is ever needed, must be chosen with its metric and length scale and declared
 deliberately. The [ledger](mls-coverage-ledger.md)
 distinguishes the checked algebra and derivative statements below from remaining
-and partial source obligations. For a differentiable pose trajectory `g(t)`,
+and partial source obligations. For a differentiable pose trajectory `g(t)`, The separation is between the typed values `Twist` and `Wrench`, not between their literals: an anonymous constructor `⟨a, b⟩` elaborates as whichever of the two the slot expects, so the component order inside a literal is a convention the types do not check (E010 review, 2026-10-10).
 
 \[
 \widehat\xi=\begin{bmatrix}\widehat\omega&v\\0&0\end{bmatrix},\qquad
