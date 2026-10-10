@@ -22,6 +22,14 @@ noncomputable def cross (u v : Vec3) : Vec3 :=
 theorem cross_coordinates (u v : Vec3) :
     WithLp.ofLp (cross u v) = crossProduct (WithLp.ofLp u) (WithLp.ofLp v) := rfl
 
+/-- The cross product distributes over finite sums in its first argument: MLS p. 26,
+eqs. (2.4)–(2.5), `a × b = â b` with the hat map `a ↦ â` linear. Used for the velocity of a
+point of a link along a joint motion (MLS p. 169 with p. 117). -/
+theorem sum_cross {ι : Type*} (s : Finset ι) (f : ι → Vec3) (p : Vec3) :
+    cross (∑ i ∈ s, f i) p = ∑ i ∈ s, cross (f i) p := by
+  apply WithLp.ofLp_injective
+  simp only [cross_coordinates, WithLp.ofLp_sum, map_sum, LinearMap.sum_apply]
+
 end Vec3
 
 namespace Rotation

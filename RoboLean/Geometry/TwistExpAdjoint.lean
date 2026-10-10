@@ -64,6 +64,18 @@ theorem exp_adjoint_applyPoint (g : RigidTransform) (ξ : Twist) (t : ℝ) (q : 
   rw [exp_adjoint]
   simp
 
+/-- A constant-twist motion fixes its own twist under the adjoint, `Ad_{exp(ξ̂t)} ξ = ξ`, for every
+real twist and parameter: `ξ̂` commutes with `exp(tξ̂)`, so the conjugation of MLS eq. (2.35),
+p. 42, leaves `ξ̂` unchanged. This is the step behind MLS eq. (4.27), p. 176, where
+`A_{lj}` may start at joint `j + 1` because the factor `exp(ξ̂ⱼθⱼ)` does not move `ξⱼ`. -/
+theorem adjoint_exp_self (ξ : Twist) (t : ℝ) : adjoint (exp ξ t) ξ = ξ := by
+  apply hat_injective
+  rw [hat_adjoint, ← RigidTransform.toHomogeneous_inv]
+  have hc : Commute (exp ξ t).toHomogeneous ξ.hat := by
+    rw [toHomogeneous_exp]
+    exact (((Commute.refl ξ.hat).smul_right t).exp_right).symm
+  rw [hc.eq, mul_assoc, RigidTransform.toHomogeneous_mul_inv, mul_one]
+
 end Twist
 
 end RoboLean

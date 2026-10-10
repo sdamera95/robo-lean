@@ -44,46 +44,6 @@ open Matrix Filter Topology
 
 namespace RoboLean
 
-/-! ### Supporting lemma: the rearrangement of p. 170 -/
-
-namespace Christoffel
-
-variable {n : ℕ}
-
-/-- **The rearrangement leading to MLS eq. (4.21), p. 170.** For any partial derivatives
-`dM k = ∂M/∂θₖ` and joint rates `θ̇`,
-`(C θ̇)ᵢ = (Ṁ θ̇)ᵢ − ½ ∑ⱼ,ₖ ∂Mⱼₖ/∂θᵢ θ̇ⱼ θ̇ₖ`, with `Ṁ = ∑ₖ θ̇ₖ ∂M/∂θₖ` and `C` the Coriolis
-matrix of eq. (4.23). Only re-indexing of the double sum is used; no symmetry. -/
-theorem coriolisMatrix_mulVec_eq_rate_mulVec_sub (dM : Fin n → Matrix (Fin n) (Fin n) ℝ)
-    (θ' : Fin n → ℝ) (i : Fin n) :
-    (coriolisMatrix dM θ' *ᵥ θ') i =
-      (rate dM θ' *ᵥ θ') i - (1 / 2 : ℝ) * ∑ j, ∑ k, dM i j k * θ' j * θ' k := by
-  rw [coriolisMatrix_mulVec]
-  have hrate : (rate dM θ' *ᵥ θ') i = ∑ j, ∑ k, dM k i j * θ' j * θ' k := by
-    simp only [Matrix.mulVec, dotProduct, rate_apply, Finset.sum_mul]
-    refine Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun k _ => ?_
-    ring
-  have hswap : ∑ j, ∑ k, dM j i k * θ' j * θ' k = ∑ j, ∑ k, dM k i j * θ' j * θ' k := by
-    rw [Finset.sum_comm]
-    refine Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun k _ => ?_
-    ring
-  have hswap' : ∑ j, ∑ k, dM i k j * θ' j * θ' k = ∑ j, ∑ k, dM i j k * θ' j * θ' k := by
-    rw [Finset.sum_comm]
-    refine Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun k _ => ?_
-    ring
-  have hsplit : ∑ j, ∑ k, symbol dM i j k * θ' j * θ' k =
-      (1 / 2 : ℝ) * (∑ j, ∑ k, dM k i j * θ' j * θ' k) +
-        (1 / 2 : ℝ) * (∑ j, ∑ k, dM j i k * θ' j * θ' k) -
-          (1 / 2 : ℝ) * (∑ j, ∑ k, dM i k j * θ' j * θ' k) := by
-    simp only [Finset.mul_sum, ← Finset.sum_add_distrib, ← Finset.sum_sub_distrib]
-    refine Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun k _ => ?_
-    rw [symbol]
-    ring
-  rw [hsplit, hswap, hswap', hrate]
-  ring
-
-end Christoffel
-
 namespace Lagrangian
 
 variable {n : ℕ}

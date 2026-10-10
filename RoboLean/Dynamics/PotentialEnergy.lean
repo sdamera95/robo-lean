@@ -43,10 +43,6 @@ namespace InertialChain
 
 variable {n : ℕ} (ch : InertialChain n)
 
-private theorem sum_cross {ι : Type*} (s : Finset ι) (f : ι → Vec3) (p : Vec3) :
-    Vec3.cross (∑ i ∈ s, f i) p = ∑ i ∈ s, Vec3.cross (f i) p :=
-  map_sum (AddMonoidHom.mk' (fun u => Vec3.cross u p) fun u v => Vec3.add_cross u v p) f s
-
 /-- **MLS p. 169: the height `h_k(θ)` of the mass center of link `k`**, the component of its
 position along `up` (the direction opposite gravity), `h_k(θ) = ⟪up, p_k(θ)⟫`, where `p_k(θ)` is
 the origin of the link frame `g_{sl_k}(θ)` (MLS p. 168: the link frame is at the mass center). -/
@@ -95,7 +91,7 @@ theorem hasDerivAt_linkHeight (up : Vec3) (k : Fin n) {θ : ℝ → Fin n → �
   have h := (ch.linkChain k).hasDerivAt_fk_translation hθ
   have hi := (innerSL ℝ up).hasFDerivAt.comp_hasDerivAt t h
   refine hi.congr_deriv ?_
-  rw [innerSL_apply_apply, Twist.sum_angular, Twist.sum_linear, sum_cross,
+  rw [innerSL_apply_apply, Twist.sum_angular, Twist.sum_linear, Vec3.sum_cross,
     ← Finset.sum_add_distrib, inner_sum]
   refine Finset.sum_congr rfl fun i _ => ?_
   rw [Twist.smul_angular, Twist.smul_linear, Vec3.smul_cross, ← smul_add, inner_smul_right]

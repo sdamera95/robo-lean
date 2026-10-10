@@ -1,5 +1,6 @@
 import RoboLean.Dynamics.RigidBodyInertia
 import RoboLean.Kinematics.Jacobian
+import RoboLean.Kinematics.ForcePullback
 
 /-!
 # Link Jacobians, the manipulator mass matrix and the kinetic energy of an open chain
@@ -176,6 +177,13 @@ theorem linkJacobianMatrix_mulVec (k : Fin n) (θ θ' : Fin n → ℝ) :
   funext r
   simp only [linkJacobianMatrix, Matrix.mulVec, dotProduct, Matrix.of_apply,
     RigidBody.coordinates_smul, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, mul_comm]
+
+/-- The link Jacobian matrix of MLS p. 168 is the E011 body Jacobian matrix (MLS p. 117,
+eq. (3.55)) of the chain `linkChain k` that carries the frame of link `k`; the two definitions
+agree by unfolding. -/
+theorem linkJacobianMatrix_eq_bodyJacobianMatrix (k : Fin n) (θ : Fin n → ℝ) :
+    ch.linkJacobianMatrix k θ = (ch.linkChain k).bodyJacobianMatrix θ :=
+  rfl
 
 /-! ### The manipulator inertia matrix and the kinetic energy (MLS eqs. (4.17)–(4.19)) -/
 
@@ -377,6 +385,69 @@ theorem kineticEnergy_eq_zero_iff {θ : Fin n → ℝ} (hM : (ch.massMatrix θ).
     linarith
   · rintro rfl
     simp [kineticEnergy]
+
+/-! ### Frame freedom of the link inertias (MLS p. 168, eq. (4.28), p. 176) -/
+
+/-- **The same chain with moved link frames (MLS p. 168 and eq. (4.28), p. 176).** The frame of
+link `k` is moved by the constant body-fixed transform `h k`, so its reference pose becomes
+`g_{sl_k}(0) h_k`, and its generalized inertia is re-expressed in the moved frame,
+`Ad_{h_k}ᵀ 𝓜_k Ad_{h_k}` (`RigidBody.transformInertia`, with `h_k = g_{L_k L'_k}`). The joints
+are unchanged. MLS places `L_k` at the mass center; `massMatrix_reframe` shows that the inertia
+matrix does not depend on that choice. -/
+def reframe (h : Fin n → RigidTransform) : InertialChain n where
+  chain := ch.chain
+  linkRef k := ch.linkRef k * h k
+  linkInertia k := RigidBody.transformInertia (h k) (ch.linkInertia k)
+
+/-- Moving the frame of link `k` by `h k` changes its body Jacobian columns by `Ad_{h_k⁻¹}`
+(MLS p. 168: `ξⱼ† = Ad⁻¹_{(⋯ g_{sl_k}(0))} ξⱼ`, with `g_{sl_k}(0)` replaced by
+`g_{sl_k}(0) h_k`). -/
+theorem linkBodyJacobian_reframe (h : Fin n → RigidTransform) (k : Fin n) (θ : Fin n → ℝ)
+    (j : Fin n) :
+    (ch.reframe h).linkBodyJacobian k θ j = Twist.adjoint (h k)⁻¹ (ch.linkBodyJacobian k θ j) := by
+  simp only [linkBodyJacobian, SerialChain.bodyJacobian, linkChain, reframe,
+    SerialChain.jointMotions]
+  rw [← mul_assoc, _root_.mul_inv_rev, Twist.adjoint_mul]
+
+/-- Moving the frame of link `k` by `h k` multiplies its `6 × n` link Jacobian matrix by
+`Ad_{h_k⁻¹}` on the left (MLS p. 168). -/
+theorem linkJacobianMatrix_reframe (h : Fin n → RigidTransform) (k : Fin n) (θ : Fin n → ℝ) :
+    (ch.reframe h).linkJacobianMatrix k θ =
+      Twist.adjointMatrix (h k)⁻¹ * ch.linkJacobianMatrix k θ := by
+  ext r j
+  simp only [linkJacobianMatrix, Matrix.of_apply, linkBodyJacobian_reframe]
+  rw [← Twist.adjointMatrix_mulVec]
+  simp [Matrix.mulVec, Matrix.mul_apply, dotProduct]
+
+/-- **Frame freedom of the link inertias (MLS p. 168, eqs. (4.19) and (4.28)).** Moving every
+link frame by a constant body-fixed rigid transform `h k`, and re-expressing every link inertia
+in the moved frame by `transformInertia (h k)`, leaves the manipulator inertia matrix
+`M(θ) = ∑ₖ Jₖᵀ 𝓜ₖ Jₖ` unchanged at every configuration, for every chain and every choice of
+`h`: `Jₖ ↦ Ad_{h_k⁻¹} Jₖ` and `𝓜ₖ ↦ Ad_{h_k}ᵀ 𝓜ₖ Ad_{h_k}` cancel. (Statement and proof from
+the E012 review probe.) -/
+theorem massMatrix_reframe (h : Fin n → RigidTransform) (θ : Fin n → ℝ) :
+    (ch.reframe h).massMatrix θ = ch.massMatrix θ := by
+  unfold massMatrix
+  refine Finset.sum_congr rfl fun k _ => ?_
+  rw [linkJacobianMatrix_reframe]
+  have hl : (ch.reframe h).linkInertia k =
+      RigidBody.transformInertia (h k) (ch.linkInertia k) := rfl
+  have h1 : Twist.adjointMatrix (h k) * Twist.adjointMatrix (h k)⁻¹ = 1 := by
+    rw [← Twist.adjointMatrix_mul, mul_inv_cancel, Twist.adjointMatrix_one]
+  rw [hl, RigidBody.transformInertia, Matrix.transpose_mul]
+  set A := Twist.adjointMatrix (h k)⁻¹
+  set B := Twist.adjointMatrix (h k)
+  set J := ch.linkJacobianMatrix k θ
+  set M := ch.linkInertia k
+  calc Jᵀ * Aᵀ * (Bᵀ * M * B) * (A * J) = Jᵀ * (B * A)ᵀ * M * (B * A) * J := by
+        simp only [Matrix.transpose_mul, Matrix.mul_assoc]
+    _ = Jᵀ * M * J := by rw [h1]; simp
+
+/-- The manipulator kinetic energy `½ θ̇ᵀ M(θ) θ̇` (MLS eq. (4.18)) does not depend on the choice
+of link frames, when the link inertias are moved with them (`massMatrix_reframe`). -/
+theorem kineticEnergy_reframe (h : Fin n → RigidTransform) (θ θ' : Fin n → ℝ) :
+    (ch.reframe h).kineticEnergy θ θ' = ch.kineticEnergy θ θ' := by
+  rw [kineticEnergy, kineticEnergy, massMatrix_reframe]
 
 end InertialChain
 end RoboLean
