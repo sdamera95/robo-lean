@@ -85,3 +85,10 @@ import RoboLean.Design.PlanarArmSupervisor
 import RoboLean.Kinematics.Manipulability
 import RoboLean.Examples.PlanarTwoLinkInverseKinematics
 import RoboLean.Examples.ElbowManipulator
+import RoboLean.Control.MatrixAnalysis
+import RoboLean.Control.SolutionFlow
+import RoboLean.Control.LaSalle
+import RoboLean.Control.StabilityTheorems
+import RoboLean.Control.PDAsymptotic
+import RoboLean.Examples.HarmonicOscillator
+import RoboLean.Examples.OneLinkControl

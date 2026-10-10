@@ -1,5 +1,7 @@
 import RoboLean.Dynamics.MassMatrixDerivative
 import RoboLean.Control.Stability
+import RoboLean.Control.MatrixAnalysis
+import Mathlib.Topology.Instances.Matrix
 
 /-!
 # The manipulator as a first-order system (MLS §5.1, eq. (4.47), p. 190)
@@ -32,51 +34,6 @@ open Matrix Filter Topology Set
 
 namespace RoboLean
 
-/-! ### Supporting lemmas: derivatives of dot products along curves -/
-
-namespace Control
-
-variable {n : ℕ}
-
-/-- Product rule for the dot product of two curves in `ℝⁿ`. -/
-theorem hasDerivAt_dotProduct {a b : ℝ → Fin n → ℝ} {a' b' : Fin n → ℝ} {t : ℝ}
-    (ha : HasDerivAt a a' t) (hb : HasDerivAt b b' t) :
-    HasDerivAt (fun s => a s ⬝ᵥ b s) (a' ⬝ᵥ b t + a t ⬝ᵥ b') t := by
-  have ha' := hasDerivAt_pi.mp ha
-  have hb' := hasDerivAt_pi.mp hb
-  have h : HasDerivAt (fun s => ∑ i, a s i * b s i) (∑ i, (a' i * b t i + a t i * b' i)) t :=
-    HasDerivAt.fun_sum fun i _ => (ha' i).mul (hb' i)
-  convert h using 1
-  · funext s
-    simp only [dotProduct]
-  · simp only [dotProduct, Finset.sum_add_distrib]
-
-/-- A constant matrix applied to a differentiable curve in `ℝⁿ`. -/
-theorem hasDerivAt_mulVec_const (A : Matrix (Fin n) (Fin n) ℝ) {a : ℝ → Fin n → ℝ}
-    {a' : Fin n → ℝ} {t : ℝ} (ha : HasDerivAt a a' t) :
-    HasDerivAt (fun s => A *ᵥ a s) (A *ᵥ a') t := by
-  have ha' := hasDerivAt_pi.mp ha
-  refine hasDerivAt_pi.mpr fun i => ?_
-  have h : HasDerivAt (fun s => ∑ j, A i j * a s j) (∑ j, A i j * a' j) t :=
-    HasDerivAt.fun_sum fun j _ => (ha' j).const_mul (A i j)
-  simpa [Matrix.mulVec, dotProduct] using h
-
-/-- A positive definite matrix cancels against its inverse on vectors:
-`M (M⁻¹ w) = w`. -/
-theorem PosDef.mulVec_inv_mulVec {A : Matrix (Fin n) (Fin n) ℝ} (hA : A.PosDef)
-    (w : Fin n → ℝ) : A *ᵥ (A⁻¹ *ᵥ w) = w := by
-  rw [Matrix.mulVec_mulVec, Matrix.mul_nonsing_inv _ ((Matrix.isUnit_iff_isUnit_det _).mp
-    hA.isUnit), Matrix.one_mulVec]
-
-/-- A positive definite matrix cancels against its inverse on vectors:
-`M⁻¹ (M w) = w`. -/
-theorem PosDef.inv_mulVec_mulVec {A : Matrix (Fin n) (Fin n) ℝ} (hA : A.PosDef)
-    (w : Fin n → ℝ) : A⁻¹ *ᵥ (A *ᵥ w) = w := by
-  rw [Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ ((Matrix.isUnit_iff_isUnit_det _).mp
-    hA.isUnit), Matrix.one_mulVec]
-
-end Control
-
 /-! ### The model (MLS eq. (4.47), p. 190) -/
 
 /-- **The manipulator model of MLS eq. (4.47), p. 190:** an open chain with link inertias
@@ -103,6 +60,11 @@ variable {n : ℕ} (P : ManipulatorModel n)
 /-- The manipulator inertia matrix `M(θ)` of MLS eq. (4.19), p. 168. -/
 def M (q : Fin n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
   P.chain.massMatrix q
+
+/-- **The manipulator inertia matrix depends continuously on the configuration** (its entries are
+differentiable, MLS Proposition 4.3, p. 176, E013). -/
+theorem continuous_M : Continuous P.M :=
+  continuous_matrix fun i j => (P.chain.differentiable_massMatrix i j).continuous
 
 /-- The Coriolis matrix `C(θ, θ̇)` of MLS eq. (4.23), p. 170, from the actual partial derivatives
 of `M` (E013 `InertialChain.massMatrixDeriv`). -/

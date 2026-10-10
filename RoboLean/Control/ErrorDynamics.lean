@@ -85,11 +85,6 @@ theorem hasDerivAlongSolutions_skewedEnergy (Kp Kv : Matrix (Fin n) (Fin n) ℝ)
     rw [dotProduct_comm (-(Kv *ᵥ (z t).2) - Kp *ᵥ (z t).1) (z t).2]
     ring
 
-/-- Over `ℝ` the quadratic form of a symmetric matrix is symmetric in its two arguments. -/
-private lemma dotProduct_mulVec_comm_of_isSymm {A : Matrix (Fin n) (Fin n) ℝ} (hA : A.IsSymm)
-    (x y : Fin n → ℝ) : x ⬝ᵥ (A *ᵥ y) = y ⬝ᵥ (A *ᵥ x) := by
-  rw [Matrix.dotProduct_mulVec, ← Matrix.mulVec_transpose, hA.eq, dotProduct_comm]
-
 private lemma dotProduct_self_nonneg' (v : Fin n → ℝ) : 0 ≤ v ⬝ᵥ v :=
   Finset.sum_nonneg fun i _ => mul_self_nonneg (v i)
 
@@ -166,7 +161,7 @@ theorem exists_skewedEnergy_bounds {Kp Kv : Matrix (Fin n) (Fin n) ℝ} (hKp : K
     have h := posDef_quad_nonneg hKv (b • e + w)
     simp only [Matrix.mulVec_add, Matrix.mulVec_smul, add_dotProduct, dotProduct_add,
       smul_dotProduct, dotProduct_smul, smul_eq_mul] at h
-    rw [dotProduct_mulVec_comm_of_isSymm sKv w e] at h
+    rw [dotProduct_mulVec_comm sKv w e] at h
     linarith
   have hP : 0 ≤ e ⬝ᵥ e + 2 * (e ⬝ᵥ w) + w ⬝ᵥ w := by
     have h := dotProduct_self_nonneg' (e + w)
@@ -175,7 +170,7 @@ theorem exists_skewedEnergy_bounds {Kp Kv : Matrix (Fin n) (Fin n) ℝ} (hKp : K
   have hrate : -skewedEnergyRate Kp Kv ε (e, w) =
       w ⬝ᵥ (Kv *ᵥ w) - ε * (w ⬝ᵥ w) + ε * (e ⬝ᵥ (Kv *ᵥ w)) + ε * (e ⬝ᵥ (Kp *ᵥ e)) := by
     simp only [skewedEnergyRate, dotProduct_sub, dotProduct_neg]
-    rw [dotProduct_mulVec_comm_of_isSymm sKp w e]
+    rw [dotProduct_mulVec_comm sKp w e]
     ring
   refine ⟨?_, ?_⟩
   · exact energy_scalar hε.le hε1 hεc hS hX hSY hP

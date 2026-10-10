@@ -31,8 +31,9 @@ for `θ̇_d ≡ 0` "the control law (4.53) simplifies to the original PD control
   (`isEquilibrium_pdCompensatedTorque`), and it is stable in the sense of Lyapunov
   (`stableAt_pdCompensatedTorque`, Theorem 4.4(1)).
 
-**Not formalized:** asymptotic stability (the printed conclusion), which needs Lasalle's principle
-(Theorem 4.7, p. 188), and global statements. Gain hypotheses: `K_p` symmetric positive definite
+**Asymptotic stability** (the printed conclusion) is proved in `PDAsymptotic` (E019) by Lasalle's
+principle (Theorem 4.7, p. 188), under a solution-flow hypothesis and a uniform bound on `M`.
+Gain hypotheses: `K_p` symmetric positive definite
 (Mathlib's `PosDef` includes symmetry; MLS writes `K_p > 0`); for stability `K_v` positive
 semidefinite suffices (MLS: `K_v > 0`). `M(q)` positive definite for every `q` is a hypothesis
 (MLS Lemma 4.2(1); `InertialChain.massMatrix_posDef_of_joints` discharges it for revolute and
@@ -45,47 +46,9 @@ open Matrix Filter Topology Set
 
 namespace RoboLean
 
-/-! ### Supporting lemmas -/
-
-namespace Stability
-
-/-- The quadratic comparison function `r ↦ c r²` is a comparison function in the sense of MLS
-Definition 4.4 (p. 182) for `c > 0` (`IsClassK`). -/
-theorem isClassK_mul_sq {c : ℝ} (hc : 0 < c) : IsClassK (fun r => c * r ^ 2) := by
-  refine ⟨(continuous_const.mul (continuous_pow 2)).continuousOn, ?_, by simp⟩
-  intro r hr s _ hrs
-  have hr' : (0 : ℝ) ≤ r := hr
-  exact mul_lt_mul_of_pos_left (pow_lt_pow_left₀ hrs hr' two_ne_zero) hc
-
-end Stability
-
-namespace Control
-
-variable {n : ℕ}
-
-/-- For a symmetric real matrix, `x ⬝ A y = y ⬝ A x`. -/
-theorem dotProduct_mulVec_comm {A : Matrix (Fin n) (Fin n) ℝ} (hA : A.IsSymm)
-    (x y : Fin n → ℝ) : x ⬝ᵥ (A *ᵥ y) = y ⬝ᵥ (A *ᵥ x) := by
-  rw [Matrix.dotProduct_mulVec, ← Matrix.mulVec_transpose, hA.eq, dotProduct_comm]
-
-/-- The square of the norm of a pair is at most the sum of the squares of the norms of its
-components (the norm of a product is the maximum, `Prod.norm_def`). -/
-theorem sq_norm_prod_le {E F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F] (z : E × F) :
-    ‖z‖ ^ 2 ≤ ‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 := by
-  rw [Prod.norm_def]
-  rcases max_choice ‖z.1‖ ‖z.2‖ with h | h <;> rw [h] <;> nlinarith [sq_nonneg ‖z.1‖,
-    sq_nonneg ‖z.2‖]
-
-end Control
-
 namespace ManipulatorModel
 
 variable {n : ℕ} (P : ManipulatorModel n)
-
-/-- The manipulator inertia matrix depends continuously on the configuration (its entries are
-differentiable, MLS Proposition 4.3, E013). -/
-theorem continuous_M : Continuous P.M :=
-  continuous_matrix fun i j => (P.chain.differentiable_massMatrix i j).continuous
 
 /-! ### The control laws -/
 
@@ -178,7 +141,8 @@ definite and `K_v` positive semidefinite, the set point `(θ_d, 0)` of the close
 (the system (4.47) under `τ = N(θ, θ̇) − K_v θ̇ − K_p (θ − θ_d)`) is stable in the sense of
 Lyapunov (Definition 4.1) at every initial time `t₀ ≥ 0`. Proof: Theorem 4.4(1) with
 `V = ½ θ̇ᵀ M(θ) θ̇ + ½ eᵀ K_p e`, which is locally positive definite by compactness, and
-`V̇ = −θ̇ᵀ K_v θ̇ ≤ 0`. Asymptotic stability (the printed conclusion) is not proved here. -/
+`V̇ = −θ̇ᵀ K_v θ̇ ≤ 0`. Asymptotic stability (the printed conclusion) is
+`asymptoticallyStableAt_pdCompensatedTorque` in `PDAsymptotic`. -/
 theorem stableAt_pdCompensatedTorque (h : ∀ k, (P.chain.linkInertia k).IsSymm)
     (hM : ∀ q, (P.M q).PosDef) {Kp Kv : Matrix (Fin n) (Fin n) ℝ} (hKp : Kp.PosDef)
     (hKv : Kv.PosSemidef) (θd : Fin n → ℝ) {t₀ : ℝ} (ht₀ : 0 ≤ t₀) :
