@@ -51,8 +51,10 @@ def bodyJacobian (c : SerialChain n) (θ : Fin n → ℝ) : Fin n → Twist :=
 
 /-- MLS p. 116: column `i` of the spatial Jacobian is the joint twist moved by the
 displacement of the link that carries the joint axis, i.e. the joint twist "transformed to
-the current manipulator configuration". `linkPOE` is the link displacement of the
-sequential-motion semantics in `SerialChain`. -/
+the current manipulator configuration". `linkPOE` is the displacement of link `i` predicted
+by the product of exponentials; it equals the sequential-motion state by
+`SerialChain.runMoves_linkPOE`. This lemma is the definitional unfolding of
+`spatialJacobian`. -/
 theorem spatialJacobian_eq_adjoint_linkPOE (c : SerialChain n) (θ : Fin n → ℝ) (i : Fin n) :
     c.spatialJacobian θ i = Twist.adjoint (c.linkPOE θ i.castSucc) (c.twist i) := rfl
 

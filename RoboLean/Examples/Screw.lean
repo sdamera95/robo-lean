@@ -25,11 +25,11 @@ def screwTwist : Twist := ⟨vec 4 (-2) 6, vec 0 0 2⟩
 private theorem screwTwist_angular_ne_zero : Twist.angular screwTwist ≠ 0 := by
   intro h
   have h₂ := congrArg (fun v : Vec3 => v 2) h
-  norm_num [screwTwist, Twist.angular, vec] at h₂
+  norm_num [screwTwist, vec] at h₂
 
 /-- Independently computed pitch `12/4 = 3`. -/
 theorem screwTwist_finitePitch : Twist.finitePitch screwTwist screwTwist_angular_ne_zero = 3 := by
-  norm_num [Twist.finitePitch, screwTwist, Twist.angular, Twist.linear,
+  norm_num [Twist.finitePitch, screwTwist,
     EuclideanSpace.inner_eq_star_dotProduct, EuclideanSpace.real_norm_sq_eq,
     dotProduct, Fin.sum_univ_succ, vec]
 
@@ -42,7 +42,7 @@ theorem screwTwist_axisPoint :
     Twist.axisPoint screwTwist screwTwist_angular_ne_zero = vec 1 2 0 := by
   ext i
   fin_cases i <;>
-    norm_num [Twist.axisPoint, screwTwist, Twist.angular, Twist.linear,
+    norm_num [Twist.axisPoint, screwTwist,
       EuclideanSpace.real_norm_sq_eq, Vec3.cross, cross_apply, Fin.sum_univ_succ, vec]
 
 /-- The displayed axis/pitch reconstruct the literal twist via the origin-sensitive cross sign. -/
@@ -54,7 +54,7 @@ theorem screwTwist_fromScrew :
 /-- The magnitude is angular norm two, even with a larger nonzero linear component. -/
 theorem screwTwist_magnitude : Twist.screwMagnitude screwTwist = 2 := by
   rw [Twist.screwMagnitude_of_angular_ne_zero _ screwTwist_angular_ne_zero]
-  norm_num [screwTwist, Twist.angular, EuclideanSpace.norm_eq, Fin.sum_univ_succ, vec]
+  norm_num [screwTwist, EuclideanSpace.norm_eq, Fin.sum_univ_succ, vec]
   exact (Real.sqrt_eq_iff_eq_sq (by norm_num) (by norm_num)).2 (by norm_num)
 
 /-- A negative scalar changes both coordinate components and reverses the angular sign. -/
@@ -71,7 +71,7 @@ theorem screwTwist_negative_finitePitch :
     Twist.finitePitch ((-3 : ℝ) • screwTwist) negative_screwTwist_angular_ne_zero = 3 := by
   unfold Twist.finitePitch
   rw [screwTwist_negative_components]
-  norm_num [Twist.angular, Twist.linear, EuclideanSpace.inner_eq_star_dotProduct,
+  norm_num [EuclideanSpace.inner_eq_star_dotProduct,
     EuclideanSpace.real_norm_sq_eq, dotProduct, Fin.sum_univ_succ, vec]
 
 /-- The scaled cross product `(36,72,0)` divided by `36` keeps the same axis point. -/
@@ -81,14 +81,14 @@ theorem screwTwist_negative_axisPoint :
   rw [screwTwist_negative_components]
   ext i
   fin_cases i <;>
-    norm_num [Twist.angular, Twist.linear, EuclideanSpace.real_norm_sq_eq,
+    norm_num [EuclideanSpace.real_norm_sq_eq,
       Vec3.cross, cross_apply, Fin.sum_univ_succ, vec]
 
 /-- The reversed angular vector has magnitude six, not minus six. -/
 theorem screwTwist_negative_magnitude : Twist.screwMagnitude ((-3 : ℝ) • screwTwist) = 6 := by
   rw [Twist.screwMagnitude_of_angular_ne_zero _ negative_screwTwist_angular_ne_zero,
     screwTwist_negative_components]
-  norm_num [Twist.angular, EuclideanSpace.norm_eq, Fin.sum_univ_succ, vec]
+  norm_num [EuclideanSpace.norm_eq, Fin.sum_univ_succ, vec]
   exact (Real.sqrt_eq_iff_eq_sq (by norm_num) (by norm_num)).2 (by norm_num)
 
 /-- A 3–4–5 pure translation receives infinite pitch and linear magnitude five. -/
@@ -102,7 +102,7 @@ theorem translation_screw_parameters :
   constructor
   · exact Twist.screwPitch_pure_translation _ hv
   · rw [Twist.screwMagnitude_of_angular_eq_zero _ rfl]
-    norm_num [Twist.linear, EuclideanSpace.norm_eq, Fin.sum_univ_succ, vec]
+    norm_num [EuclideanSpace.norm_eq, Fin.sum_univ_succ, vec]
     exact (Real.sqrt_eq_iff_eq_sq (by norm_num) (by norm_num)).2 (by norm_num)
 
 /-- Zero is stationary with zero magnitude, separately from nonzero pure translation. -/

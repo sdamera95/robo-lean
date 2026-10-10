@@ -41,7 +41,8 @@ namespace Twist
 def revolute (ω q : Vec3) : Twist := ⟨-Vec3.cross ω q, ω⟩
 
 /-- The revolute joint twist of MLS p. 87 is the zero-pitch case of the screw generator
-`Twist.fromScrew` (MLS p. 47, eq. (2.43), with `h = 0`). -/
+`Twist.fromScrew` (MLS p. 47, the screw generator `v = −ω × q + hω` in the text after
+eq. (2.40), with `h = 0`; Proposition 2.10, p. 48). -/
 theorem revolute_eq_fromScrew (ω q : Vec3) : revolute ω q = fromScrew ω q 0 := by
   simp [revolute, fromScrew]
 
@@ -403,10 +404,13 @@ theorem fk_single (c : SerialChain n) (i : Fin n) (t : ℝ) :
 
 end SerialChain
 
-/-! ### Adjacent link frames (MLS eq. (3.1), p. 85) -/
+/-! ### Adjacent link frames (MLS eq. (3.1), p. 85; MLS p. 94, eqs. (3.7), (3.8), (3.10)) -/
 
 /-- An open chain described by adjacent link frames, MLS p. 85 and eq. (3.1). Lean joint
-`i` connects link frame `Lᵢ` to `Lᵢ₊₁`, with `L₀ = S` the base frame.
+`i` connects link frame `Lᵢ` to `Lᵢ₊₁`, with `L₀ = S` the base frame. MLS p. 94,
+eqs. (3.7), (3.8), (3.10): the relative transform of adjacent frames is
+`exp(ζ̂θ) g(0)` (3.7), the forward kinematics is their chained product (3.8), and the
+base-frame joint twists follow from the adjacent-frame twists by an adjoint (3.10).
 
 * `jointTwist i` is the joint twist `ζᵢ` written in the proximal link frame `Lᵢ`, where
   the joint axis is fixed.
@@ -444,7 +448,9 @@ def refLinkPose (c : LinkFrameChain n) (k : ℕ) : RigidTransform :=
 /-- The base-frame serial chain of an adjacent-frame description: the joint twist of joint
 `i` moved to the base frame, `ξᵢ = Ad_{g_{S Lᵢ}(0)} ζᵢ` (MLS eq. (2.58), p. 55, and
 p. 87, "all vectors and points are specified relative to the base coordinate frame"),
-and `g_st(0) = g_{S Lₙ}(0) g_{Lₙ T}`. -/
+and `g_st(0) = g_{S Lₙ}(0) g_{Lₙ T}`. This is MLS p. 94, eqs. (3.7), (3.8), (3.10), where
+(3.10) is `ξᵢ = Ad_{g_{l₀ lᵢ₋₁}(0)} ξ_{i−1,i}`; Lean joint `i` is the book's joint `i + 1`
+and Lean `Lᵢ` is the book's `lᵢ`. -/
 def toSerialChain (c : LinkFrameChain n) : SerialChain n where
   twist i := Twist.adjoint (c.refLinkPose i) (c.jointTwist i)
   toolRef := (List.ofFn c.linkRef).prod * c.toolOffset
@@ -497,7 +503,8 @@ private theorem prefix_mul_fk (c : LinkFrameChain n) (θ : Fin n → ℝ) (P : R
 /-- **K05, adjacent-frame form (MLS eqs. (3.1) and (3.3), pp. 85–87).** Composing the
 adjacent link transforms gives the product-of-exponentials forward kinematics of the
 base-frame chain with twists `ξᵢ = Ad_{g_{S Lᵢ}(0)} ζᵢ` and `g_st(0) = g_{S Lₙ}(0) g_{Lₙ T}`,
-for every real joint vector. -/
+for every real joint vector. This is the book's step from the adjacent-frame product (3.8)
+to the product of exponentials with the twists (3.10): MLS p. 94, eqs. (3.7), (3.8), (3.10). -/
 theorem fk_eq_toSerialChain_fk (c : LinkFrameChain n) (θ : Fin n → ℝ) :
     c.fk θ = c.toSerialChain.fk θ := by
   have h := c.prefix_mul_fk θ 1

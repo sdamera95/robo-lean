@@ -27,7 +27,8 @@ def normalized (ξ : Twist) : Twist := (screwMagnitude ξ)⁻¹ • ξ
 @[simp] theorem normalized_angular (ξ : Twist) :
     (normalized ξ).angular = (screwMagnitude ξ)⁻¹ • ξ.angular := rfl
 
-/-- On the rotating branch this is the existing full-pair angular normalization. -/
+/-- On the rotating branch this is the existing full-twist angular normalization: both
+components of the twist are scaled by the inverse angular norm. -/
 theorem normalized_of_angular_ne_zero (ξ : Twist) (hω : ξ.angular ≠ 0) :
     normalized ξ = ‖ξ.angular‖⁻¹ • ξ := by
   rw [normalized, screwMagnitude_of_angular_ne_zero ξ hω]
@@ -58,7 +59,8 @@ theorem normalized_of_unit (ξ : Twist) (hξ : IsUnitTwist ξ) : normalized ξ =
   · simp [hξ]
   exact normalized_of_unit _ (normalized_unit ξ hξ)
 
-/-- Actual exponential motion is preserved after full-pair and parameter normalization. -/
+/-- Actual exponential motion is preserved after full-twist normalization (both components
+of the twist) and the matching parameter rescaling. -/
 theorem exp_eq_normalized (ξ : Twist) (t : ℝ) :
     exp ξ t = exp (normalized ξ) (screwMagnitude ξ * t) := by
   by_cases hξ : ξ = 0

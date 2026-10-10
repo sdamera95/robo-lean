@@ -21,7 +21,8 @@ The contents:
 * `planarTwoLink`, the base-frame chain of eq. (3.3) with the twists `ξ₁, ξ₂` and the
   reference tool pose `g_st(0)` of pp. 87–88;
 * `planarTwoLinkPosition`, a geometric specification of the tool position built without
-  any exponential (the sum of the two rotated link vectors), and its closed form (K06);
+  the twist exponential (it uses the planar rotation `Rotation.zRotation`), namely the sum
+  of the two rotated link vectors, and its closed form (K06);
 * `planarTwoLink_fk`, the product of exponentials equals `Rz(θ₁+θ₂)` and that position,
   eq. (3.4) (K07);
 * `planarTwoLinkFrames`, the adjacent-frame description of eq. (3.1) (K02 instance), whose
@@ -359,5 +360,52 @@ theorem planarTwoLink_reachableWorkspace_nonempty (a b : ℝ) (Q : Set (Fin 2 �
     (h : (0 : Fin 2 → ℝ) ∈ Q) :
     vec 0 (a + b) 0 ∈ (planarTwoLink a b).reachableWorkspace Q :=
   SerialChain.toolRef_translation_mem_reachableWorkspace (c := planarTwoLink a b) h
+
+/-! ### Body Jacobian columns (MLS eq. (3.55), p. 117) -/
+
+/-- MLS eq. (3.55), p. 117: body Jacobian column of the planar two-link arm, the joint axis
+seen in tool coordinates. Convention check derived by hand in the E009 review. The second
+column (Lean joint `1`, the book's joint 2) is `ξ₂† = (-b, 0, 0, 0, 0, 1)` for every `q`,
+in the order `(v, ω)`. -/
+theorem planarTwoLink_bodyJacobian_one (a b : ℝ) (q : Fin 2 → ℝ) :
+    (planarTwoLink a b).bodyJacobian q 1 = ⟨vec (-b) 0 0, vec 0 0 1⟩ := by
+  have hd : ((planarTwoLink a b).jointMotions q).drop 1 =
+      [Twist.exp (Twist.revolute Rotation.zAxis (vec 0 a 0)) (q 1)] := by
+    simp [SerialChain.jointMotions, List.ofFn_succ, planarTwoLink]
+  have hr : Rotation.exp Rotation.zAxis (q 1) = Rotation.zRotation (q 1) := rfl
+  change Twist.adjoint ((((planarTwoLink a b).jointMotions q).drop 1).prod *
+      (planarTwoLink a b).toolRef)⁻¹ ((planarTwoLink a b).twist 1) = _
+  rw [hd, List.prod_singleton, Twist.exp_revolute _ _ norm_zAxis, planarTwoLink_twist_one, hr]
+  apply Twist.ext <;> ext i <;> fin_cases i <;>
+    simp [Twist.adjoint, planarTwoLink, Rotation.act_apply, Rotation.zRotation_val,
+      Matrix.mulVec, dotProduct, Fin.sum_univ_succ, Vec3.cross, cross_apply, Rotation.zAxis,
+      vec, Matrix.vecHead, Matrix.vecTail]
+  ring_nf
+
+/-- MLS eq. (3.55), p. 117: body Jacobian column of the planar two-link arm, the joint axis
+seen in tool coordinates. Convention check derived by hand in the E009 review. The first
+column (Lean joint `0`, the book's joint 1) is
+`ξ₁† = (-a cos θ₂ - b, a sin θ₂, 0, 0, 0, 1)` for every `q`, in the order `(v, ω)`; it
+depends on `θ₂ = q 1` only. -/
+theorem planarTwoLink_bodyJacobian_zero (a b : ℝ) (q : Fin 2 → ℝ) :
+    (planarTwoLink a b).bodyJacobian q 0 =
+      ⟨vec (-a * Real.cos (q 1) - b) (a * Real.sin (q 1)) 0, vec 0 0 1⟩ := by
+  have act_ofLp : ∀ (R : Rotation) (x : Vec3) (i : Fin 3),
+      (R.act x).ofLp i = Matrix.mulVec R.val (WithLp.ofLp x) i := fun _ _ _ => rfl
+  have hd : ((planarTwoLink a b).jointMotions q).drop 0 =
+      [Twist.exp (Twist.revolute Rotation.zAxis (vec 0 0 0)) (q 0),
+       Twist.exp (Twist.revolute Rotation.zAxis (vec 0 a 0)) (q 1)] := by
+    simp [SerialChain.jointMotions, List.ofFn_succ, planarTwoLink]
+  have h0 : (planarTwoLink a b).twist 0 = Twist.revolute Rotation.zAxis (vec 0 0 0) := rfl
+  have hr : ∀ t, Rotation.exp Rotation.zAxis t = Rotation.zRotation t := fun _ => rfl
+  change Twist.adjoint ((((planarTwoLink a b).jointMotions q).drop 0).prod *
+      (planarTwoLink a b).toolRef)⁻¹ ((planarTwoLink a b).twist 0) = _
+  rw [hd, h0, Twist.exp_revolute _ _ norm_zAxis, Twist.exp_revolute _ _ norm_zAxis, hr, hr]
+  simp only [List.prod_cons, List.prod_nil, mul_one]
+  apply Twist.ext <;> ext i <;> fin_cases i <;>
+    simp [Twist.adjoint, Twist.revolute, planarTwoLink, Rotation.zRotation_val, Matrix.mulVec,
+      dotProduct, Fin.sum_univ_succ, Vec3.cross, cross_apply, Rotation.zAxis, vec, act_ofLp,
+      Matrix.vecHead, Matrix.vecTail] <;>
+    ring_nf
 
 end RoboLean.Examples

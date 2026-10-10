@@ -266,4 +266,11 @@ theorem reciprocal_finite_iff_geometricProduct_zero (S T : FiniteScrew)
   rw [C.pair_eq_reciprocalProduct]
 
 end GeometricScrew
+
+/-- Supporting lemma; no direct MLS counterpart. The wrench-to-twist reading of a
+six-vector is the inverse of the twist-to-wrench swap. Both maps exchange the two
+components, `(f, τ) ↔ (τ, f)`, between the two distinct types. -/
+theorem Wrench.toTwist_eq_swapWrench_symm (F : Wrench) :
+    Wrench.toTwist F = Twist.swapWrench.symm F := rfl
+
 end RoboLean

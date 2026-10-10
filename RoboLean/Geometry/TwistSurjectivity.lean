@@ -40,8 +40,8 @@ theorem exists_twist_exp (g : RigidTransform) :
       exact Twist.translationJacobian_mulVec_inv_mulVec ω hω t htpos ht2π
         (WithLp.ofLp g.translation)
 
-/-- Every rigid transform is attained at parameter one after scaling the entire
-linear/angular twist pair. No unit-twist or logarithm-selection claim is made. -/
+/-- Every rigid transform is attained at parameter one after scaling both components of the
+twist. No unit-twist or logarithm-selection claim is made. -/
 theorem exists_twist_exp_one (g : RigidTransform) :
     ∃ ξ : Twist, Twist.exp ξ 1 = g := by
   obtain ⟨ξ, t, h⟩ := exists_twist_exp g

@@ -42,6 +42,14 @@ structure Wrench where
   stated frame, MLS printed p. 61. -/
   torque : Vec3
 
+/-- Two wrenches are equal when their force and moment coordinates are equal
+(MLS printed p. 61, wrench coordinates `(f, τ)`). -/
+add_decl_doc Wrench.ext
+
+/-- Wrenches are equal exactly when their force and moment coordinates are equal
+(MLS printed p. 61, wrench coordinates `(f, τ)`). -/
+add_decl_doc Wrench.ext_iff
+
 namespace Wrench
 
 /-- The zero wrench, with zero force and zero moment (MLS printed p. 61 coordinates). -/
