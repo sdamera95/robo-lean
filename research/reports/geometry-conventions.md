@@ -527,12 +527,43 @@ are the Euclidean norm of `Vec3`. "Unrestricted joints" is `Q = Set.univ`. The a
 certificate and radial-band statements are design statements from the assessment, not MLS
 results ([ledger C01–C07](mls-coverage-ledger.md#design-certificates-beyond-mls)).
 
+**Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
+[p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis
+`‖ω‖ = 1`, where `r` is a point on the axis; `e^{ξ̂θ} p` is
+`(Twist.exp ξ θ).applyPoint p`. With `u = p − r` and `v = q − r`, `PadenKahan.perp ω u` is
+`u′ = u − ω ωᵀu` and `PadenKahan.planeAngle ω u v` is
+`θ₀ = atan2(ωᵀ(u′ × v′), u′ᵀv′)` (eq. (3.28)), with the library's `Rotation.atan2`
+(argument of `x + i y`, in `(−π, π]`, `atan2 0 0 = 0`). Angles are real numbers and
+solutions are stated modulo `2π`. Subproblem 2 models intersecting axes by one axis point
+`r` for both twists and treats the non-parallel case `ω₁ × ω₂ ≠ 0`; its zero, one or two
+solutions are counted as intermediate points `c = e^{ξ̂₂θ₂} p` (eq. (3.21)). Subproblem 3
+takes `δ ≥ 0` and the nondegeneracy `u′ ≠ 0`, `v′ ≠ 0`, which the book does not state
+([E014](../../docs/implogs/E014-inverse-kinematics-subproblems-and-singularities.md)). MLS
+[p. 98](../../references/MLS.pdf#page=116), eq. (3.16), prints the closed-form planar two-link
+inverse kinematics; the existence half of the workspace row C02 is its `π − α` branch.
+
+**Singular configurations.** `SerialChain.IsSingular c θ` means that the `6 × n` spatial
+Jacobian matrix has rank less than `min 6 n` ([p. 123](../../references/MLS.pdf#page=141)).
+For `n ≤ 6` this is linear dependence of the twist columns, equivalently of the body
+Jacobian's columns; for `n > 6` it is the library's extension. For the planar two-link
+arm, the p. 123 definition gives no singular configuration when the first link length is
+nonzero; the folded configurations `sin θ₂ = 0` are singular for the `2 × 2` position
+Jacobian `∂p/∂θ` (`Examples.planarTwoLinkPositionJacobian`, in the sense of eq. (3.64)),
+which is a different map.
+
+**Closed chains.** `ClosedChain n₁ n₂` holds two serial chains in one base and one tool
+frame ([p. 133](../../references/MLS.pdf#page=151)). Its joint space `Q′` is the set of
+pairs `(θ₁, θ₂)`, each admissible for its chain, with `g₁(θ₁) = g₂(θ₂)` (eq. (3.65)). The
+reference tool poses of the two chains are not required to agree; their agreement is
+exactly `(0, 0) ∈ Q′`. The differential constraint `J₁ˢθ̇₁ = J₂ˢθ̇₂` (eq. (3.67)) is stated
+along trajectories that keep the loop closed near the time considered, and `ρ` (eq. (3.70))
+is the dimension of the intersection of the two Jacobian ranges.
+
 **Evidence scope.** The declarations named here were elaborated by the E009
 shadow-tree checks and axiom audit recorded in the
 [E009 gate](../../docs/implogs/gates/E009/); the integrated `lake build` of the
-root import list is root's landing check and is recorded separately. K13 (force
-pullback) is not covered. K13 and the planar workspace rows are covered by the [E011 gate](../../docs/implogs/gates/E011/20261009T093129Z/) and the
-integrated [E010/E011 gate](../../docs/implogs/gates/E010/20261009T100204Z/), which built them against the `Twist` structure.
+root import list is root's landing check and is recorded separately. K13 and the planar workspace rows are covered by the [E011 gate](../../docs/implogs/gates/E011/20261009T093129Z/) and the
+integrated [E010/E011 gate](../../docs/implogs/gates/E010/20261009T100204Z/), which built them against the `Twist` structure. The subproblem, singularity and closed-chain declarations are covered by the [E014 gate](../../docs/implogs/gates/E014/20261010T002522Z/) and root's integrated gate [E014/20261010T010046Z](../../docs/implogs/gates/E014/20261010T010046Z/).
 
 ## Dynamics conventions
 
@@ -590,3 +621,66 @@ chain rule). Derivative data are inputs: either the family `dM`, or Fréchet der
 `partials M' k i j = M' i j eₖ`. The skew symmetry of `Ṁ − 2C` (Lemma 4.2(2)) depends on this
 choice of `C` (as MLS notes on p. 171) and on symmetric partials, which follow from `M` symmetric at
 every configuration.
+
+Recorded 2026-10-10 01:05 UTC for increment E013 (root applied the lead's proposal). Source: MLS
+printed pp. 155-178 and p. 209 (Exercise 8), read by the E013 lead as text; p. 175 rendered.
+
+**Lagrange's equations (Theorem 4.1, p. 158).** A Lagrangian is a real function
+`L : (Fin n → ℝ) → (Fin n → ℝ) → ℝ` of configuration and velocity. Its partial derivatives
+`∂L/∂q̇ᵢ` and `∂L/∂qᵢ` at `(q, v)` are the one-variable derivatives at `0` of
+`s ↦ L(q, v + s eᵢ)` and `s ↦ L(q + s eᵢ, v)` (`Lagrangian.velocityPartial`,
+`Lagrangian.positionPartial`). `LagrangeEquationsAt L θ Υ t` means: for every `i`, the function
+`s ↦ ∂L/∂q̇ᵢ(θ(s), θ̇(s))`, with `θ̇ = deriv θ`, has an actual derivative at `t` equal to
+`∂L/∂qᵢ(θ(t), θ̇(t)) + Υᵢ`. The existence of that derivative is part of the statement. MLS proves
+nothing here (it cites [99]); the predicate is a definition, not a derived law of mechanics.
+
+**Mechanical Lagrangian and equations of motion (pp. 169-171).**
+`Lagrangian.mechanical M V q v = ½ vᵀ M(q) v − V(q)`. The gradient of a potential is read from
+Fréchet derivative data `V'`, \((\partial V/\partial q)_i = V'(e_i)\) (`Lagrangian.gradient`), in
+the style of `Christoffel.partials`. With `M(q)` symmetric everywhere, Lagrange's equations are
+equivalent to
+\(M(\theta)\ddot\theta + C(\theta,\dot\theta)\dot\theta + \partial V/\partial\theta = \Upsilon\),
+with `C` the Christoffel matrix of (4.23). For (4.24) the generalized force is split as
+\(\Upsilon = \tau - N_e\) (actuator torques minus further joint forces such as viscous friction
+\(N_e = \beta\dot\theta\)), giving \(N = \partial V/\partial\theta + N_e\). The energy is
+\(H = \tfrac12\dot\theta^{\mathsf T}M(\theta)\dot\theta + V(\theta)\), and along solutions
+\(\dot H = \dot\theta^{\mathsf T}\Upsilon\) (Exercise 8, p. 209).
+
+**Gravity (pp. 169, 174).** Gravity is uniform, given by a scalar `g` and a vector `up` in base
+coordinates pointing opposite to gravity, so the gravitational acceleration is `−g • up`. The
+height of a point `p` is `⟪up, p⟫`; `up` is meant to be a unit vector, and no theorem needs that.
+The mass center of link `k` is the origin of its link frame (p. 168), so
+\(h_k(\theta) = \langle up, p_k(\theta)\rangle\) with \(p_k\) the translation of
+\(g_{sl_k}(\theta)\). The masses are an explicit argument `m : Fin n → ℝ`, not read from the
+generalized inertias. `gravityTerm` is `∂V/∂θ`, defined through `fderiv`. `V` is proved
+differentiable for every chain, so the `fderiv` junk value is never reached, and `gravityTerm`
+equals the Jacobian form \(\sum_k m_k g \langle up, \omega_{ik}\times p_k + v_{ik}\rangle\), with
+\((v_{ik}, \omega_{ik})\) column `i` of the spatial Jacobian of link `k`. In the library's examples
+`up = Rotation.zAxis`.
+
+**Newton-Euler equations and the coadjoint sign (pp. 165-167).** The body frame is at the mass
+center. A body velocity `V = (v, ω)` and a body wrench `F = (f, τ)` at the mass center use the
+twist and wrench orders. The momentum `momentum m 𝓘 V = (m v, 𝓘 ω)` is a `Wrench` with
+coordinates `generalizedInertia m 𝓘 *ᵥ V.coordinates`. The body acceleration is a twist `A` whose
+linear and angular parts are actual derivatives of those of `V`, because `Twist` carries no
+topology. (4.16) is `momentum m 𝓘 A + gyroscopic m 𝓘 V = F` with
+`gyroscopic = (ω × m v, ω × 𝓘ω)`. The library's twist bracket is
+`Twist.bracket V η = (ω_V × v_η − ω_η × v_V, ω_V × ω_η)`, the vee of \(\hat V\hat\eta − \hat\eta\hat V\),
+with matrix `adMatrix V = [[ω̂, v̂], [0, ω̂]]` on six coordinates. Its transpose with respect to the
+power pairing is `coadjoint V F = (−ω × f, −v × f − ω × τ)` (`pair (coadjoint V F) η = pair F [V, η]`).
+In this convention `gyroscopic = −coadjoint V (𝓜V)`, so (4.16) reads
+\(\mathcal M\dot V - \operatorname{ad}_V^{\mathsf T}(\mathcal M V) = F\). The gyroscopic term pairs
+to zero with `V`, which gives the power balance
+\(\tfrac{d}{dt}\tfrac12 V^{\mathsf T}\mathcal M V = F\cdot V\) for symmetric `𝓘`.
+
+**Derivatives of the inertia matrix (Prop. 4.3, pp. 175-177).** `massMatrixDeriv θ i j` is the
+Fréchet derivative at `θ` of `q ↦ M(q)ᵢⱼ`. It exists for every chain, and
+`Christoffel.partials (massMatrixDeriv θ) k = ∂M/∂θₖ`. Only first-order differentiability is
+established. The book's \(A_{lj}\) (4.27) is the adjoint of the rigid motion
+`relativeMotion l j θ`, the inverse of the product of the joint motions strictly after joint `j`
+up to joint `l`, for `j ≤ l` (Lean indices). The case \(A_{lj} = 0\) for \(l < j\) is not
+represented, and the sums are restricted to \(l \ge \max(i,j)\). Internally the proofs use the
+operator norm on homogeneous matrices (`Matrix.Norms.Operator`); every public statement concerns
+real-valued entries and does not depend on that choice. Evidence: the
+[E013 gate](../../docs/implogs/gates/E013/20261010T002511Z/) and root's integrated gate
+[E013/20261010T005937Z](../../docs/implogs/gates/E013/20261010T005937Z/).
