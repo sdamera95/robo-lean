@@ -69,3 +69,7 @@ import RoboLean.Dynamics.MassMatrixDerivative
 import RoboLean.Examples.PlanarTwoLinkLagrangian
 import RoboLean.Examples.ThreeLinkGravity
 import RoboLean.Examples.SphericalPendulum
+import RoboLean.Kinematics.PadenKahan
+import RoboLean.Kinematics.Singularity
+import RoboLean.Kinematics.ClosedChain
+import RoboLean.Examples.PlanarTwoLinkSingularity
