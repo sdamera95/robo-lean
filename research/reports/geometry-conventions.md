@@ -684,3 +684,45 @@ operator norm on homogeneous matrices (`Matrix.Norms.Operator`); every public st
 real-valued entries and does not depend on that choice. Evidence: the
 [E013 gate](../../docs/implogs/gates/E013/20261010T002511Z/) and root's integrated gate
 [E013/20261010T005937Z](../../docs/implogs/gates/E013/20261010T005937Z/).
+
+## Stability and control conventions
+
+Recorded 2026-10-10 02:08 UTC for increment E016 (root applied the lead's proposal; integrated gate [E016/20261010T020417Z](../../docs/implogs/gates/E016/20261010T020417Z/)). Source: MLS printed
+pp. 179–199, read by the E016 lead as text; pp. 182, 191, 193, 194 rendered.
+
+**Systems and solutions (p. 179).** A system `ẋ = f(x, t)` is `f : ℝ → E → E` with time first,
+`f t x`; likewise a Lyapunov function is `V : ℝ → E → ℝ`, `V t x`. `E` is a real normed space; for
+`Fin n → ℝ` and products the norm is Mathlib's sup norm (maximum of the components), so
+quadratic forms are compared with `‖x‖²` through compactness of the unit sphere
+(`QuadraticBounds`), not through eigenvalues. A solution from `t₀` (`Stability.IsSolution f t₀ x`)
+is continuous on `[t₀, ∞)` and has the actual derivative `f t (x t)` at every `t > t₀`. Initial
+times are `t₀ ≥ 0` (MLS's `ℝ₊`). Existence and uniqueness are not assumed or proved: every
+stability notion quantifies over all solutions, so a theorem says nothing about whether solutions
+exist; the constant solution at an equilibrium is the only solution exhibited.
+
+**Stability notions (Definitions 4.1–4.3).** `StableAt f xe t₀` and `AsymptoticallyStableAt` are
+pointwise in `t₀`; `UniformlyStable` and `UniformlyAsymptoticallyStable` take `δ` (and the
+convergence time) independent of `t₀ ≥ 0` and of the solution; `ExponentiallyStable` takes
+`m, α, ε` independent of `t₀ ≥ 0`. An equilibrium `xe ≠ 0` is handled through `shift f xe`,
+whose origin has the same stability (`stableAt_shift_iff`), as MLS does on p. 179.
+
+**Lyapunov candidates (Definitions 4.4–4.6).** The comparison functions `α`, `β` are continuous
+and strictly increasing on `[0, ∞)` and vanish at `0` (`IsClassK`); MLS does not state `α(0) = 0`,
+which is added. "`V̇` along the trajectories" is the hypothesis `HasDerivAlongSolutions f V Vdot U`
+(along every solution while it is in `U`, `d/dt V(t, x(t)) = Vdot(t, x(t))`); for a Fréchet-
+differentiable `V` it holds with `Vdot = ∂V/∂t + ∂V/∂x f`.
+
+**The manipulator as a system (eq. (4.47)).** `ManipulatorModel n` bundles an `InertialChain n`,
+link masses, `g`, `up` and further joint forces `Nₑ(θ, θ̇)`; `N = ∂V/∂θ + Nₑ`. The equations of
+motion are Lagrange's equations for `L = T − V` with generalized force `τ − Nₑ` (E013's predicate),
+equivalent to (4.47) with symmetric link inertias. The state is `(θ, θ̇) ∈ ℝⁿ × ℝⁿ`; under a feedback
+law `τ = u(t, θ, θ̇)` the closed loop is `f(t, (q, v)) = (v, M(q)⁻¹(u − C(q, v)v − N(q, v)))` with
+Mathlib's `Matrix.inv`, used only under the hypothesis that `M(q)` is positive definite.
+
+**Gains and control laws (§5).** Gains are real `n × n` matrices; "positive definite" is Mathlib's
+`Matrix.PosDef`, which includes symmetry (MLS writes `K > 0`). Computed torque is (4.49) with a
+desired trajectory given by `θ_d` and actual derivatives `θ_d'`, `θ_d''` at every time. The PD
+set-point law formalized is `τ = N(θ, θ̇) − K_v θ̇ − K_p(θ − θ_d)` (compensation of `N`, (4.53) with
+`θ̇_d ≡ 0`); the bare law (4.51) is defined and shown to have `θ_d` as a rest point only where
+`N(θ_d, 0) = 0`. Exact cancellation of the model is assumed throughout; sampled implementation,
+actuator limits and model error are outside these statements.
