@@ -13,10 +13,15 @@ reachable workspace of MLS eq. (3.12), p. 95, is the closed annulus
 in the plane through the base origin perpendicular to the joint axes (Lean writes the third
 coordinate as `x 2`). This annulus statement and the design certificate built on it come from
 the research design document `research/reports/mls-lean-assessment.md`, paragraph "Robot
-design and workspace coverage". They are not theorems printed in MLS: MLS Example 3.4
-(pp. 96–97) describes the analogous annulus for two links only informally, as one step of a
-planar three-link construction, in a different frame. Every docstring below that concerns the
-annulus or the certificate says so.
+design and workspace coverage". The workspace equality and the design certificates are not
+theorems printed in MLS: MLS Example 3.4 (pp. 96–97) describes the analogous annulus for two
+links only informally, as one step of a planar three-link construction, in a different frame.
+The inverse kinematics behind the second inclusion is printed: MLS §3.1, p. 98, eq. (3.16),
+solves the planar two-link arm by the law of cosines, `θ₂ = π ± α` with
+`α = cos⁻¹((l₁² + l₂² - r²) / (2 l₁ l₂))`, and notes that outside the workspace no solution
+exists (it asks the reader to consider `r > l₁ + l₂`). The elbow angle
+`arccos((‖x‖² - a² - b²) / (2ab))` used below is the `π - α` branch of (3.16). Every docstring
+below that concerns the annulus or the certificate says so.
 
 The contents:
 
@@ -129,10 +134,16 @@ For positive link lengths `a, b`, every point `x` of the plane `x₃ = 0` with
 `q`. The construction: `θ₂ = arccos((‖x‖² - a² - b²) / (2ab))` (law of cosines,
 `planarTwoLinkPosition_norm_sq`; the bounds give an argument in `[-1, 1]`), and `θ₁` the
 argument of `ζ / w`, where `ζ = x₂ - i x₁` is the target and `w = a + b e^{iθ₂}` the position
-at `θ₁ = 0`, both of modulus `‖x‖`. Source: the annulus statement of
-`research/reports/mls-lean-assessment.md` ("Robot design and workspace coverage"), a design
-statement rather than an MLS theorem; the position is MLS eq. (3.4), p. 89, specialized. No
-uniqueness, continuity or branch selection is claimed. -/
+at `θ₁ = 0`, both of modulus `‖x‖`. Source: MLS §3.1, p. 98, eq. (3.16), the law-of-cosines
+inverse kinematics `θ₂ = π ± α`, `α = cos⁻¹((l₁² + l₂² - r²) / (2 l₁ l₂))`, with `l₁ = a`,
+`l₂ = b`, `r = ‖x‖`: the elbow angle here is the `π - α` branch, since
+`arccos(-y) = π - arccos y`; the relative elbow angle does not depend on the zero direction
+(`+x` in MLS Fig. 3.7, `+y` here). MLS determines `θ₁` by `atan2(y, x) ± β`; the complex
+argument above is a different construction of `θ₁`, not compared with that formula here. The
+annulus hypotheses come from `research/reports/mls-lean-assessment.md` ("Robot design and
+workspace coverage"); the workspace equality they feed is a design statement, not printed in
+MLS. The position is MLS eq. (3.4), p. 89, specialized. No uniqueness, continuity or branch
+selection is claimed. -/
 theorem exists_planarTwoLinkPosition_eq {a b : ℝ} (ha : 0 < a) (hb : 0 < b) {x : Vec3}
     (hx : x 2 = 0) (h₁ : |a - b| ≤ ‖x‖) (h₂ : ‖x‖ ≤ a + b) :
     ∃ q : Fin 2 → ℝ, planarTwoLinkPosition a b q = x := by

@@ -155,8 +155,9 @@ theorem sum_angular {ι : Type*} (s : Finset ι) (f : ι → Twist) :
 
 end Twist
 
-/-- The independent real matrix submodule `se(3)`: upper-left skew block,
-unrestricted translation column, and both lower blocks zero. -/
+/-- The independent real matrix submodule `se(3)`, MLS equation (2.29), p. 40, in the
+homogeneous form `[ω̂, v; 0, 0]` printed there: upper-left skew block (`so(3)`, equation
+(2.10), p. 28), unrestricted translation column, and both lower blocks zero. -/
 def se3Submodule : Submodule ℝ HomogeneousMatrix where
   carrier := { M | M.toBlocks₁₁ᵀ = -M.toBlocks₁₁ ∧
     M.toBlocks₂₁ = 0 ∧ M.toBlocks₂₂ = 0 }
@@ -183,47 +184,60 @@ def se3Submodule : Submodule ℝ HomogeneousMatrix where
     · change c • A.toBlocks₂₂ = 0
       rw [hA.2.2, smul_zero]
 
-/-- Matrices in the independently defined `se(3)` submodule. -/
+/-- Matrices in the independently defined `se(3)` submodule: the twists `ξ̂` of MLS p. 41,
+elements of `se(3)` as in equation (2.29), p. 40. -/
 abbrev Se3 := ↥se3Submodule
 
+/-- Membership in `se(3)`, MLS equation (2.29), p. 40: a skew upper-left block (`so(3)`,
+equation (2.10), p. 28) and a zero bottom row. -/
 theorem mem_se3Submodule_iff (M : HomogeneousMatrix) :
     M ∈ se3Submodule ↔ M.toBlocks₁₁ᵀ = -M.toBlocks₁₁ ∧
       M.toBlocks₂₁ = 0 ∧ M.toBlocks₂₂ = 0 := Iff.rfl
 
 namespace Twist
 
-/-- Homogeneous twist matrix, MLS equation (2.31). Its last entry is zero. -/
+/-- Homogeneous twist matrix `ξ̂ = [ω̂, v; 0, 0]`, the wedge of MLS equation (2.31), p. 41.
+Its last entry is zero. -/
 def hat (ξ : Twist) : HomogeneousMatrix :=
   fromBlocks (Vec3.hat ξ.angular) (Matrix.of fun i _ => ξ.linear i) 0 0
 
-/-- Extract linear and axial coordinates, MLS equation (2.30).
+/-- Extract linear and axial coordinates, the vee of MLS equation (2.30), p. 41.
 The reverse inverse law requires the `se(3)` block conditions. -/
 def vee (M : HomogeneousMatrix) : Twist :=
   ⟨WithLp.toLp 2 (fun i => M (Sum.inl i) (Sum.inr 0)), Vec3.vee M.toBlocks₁₁⟩
 
+/-- The upper-left block of `ξ̂` is `ω̂`, MLS equation (2.31), p. 41. -/
 @[simp]
 theorem hat_angular (ξ : Twist) : ξ.hat.toBlocks₁₁ = Vec3.hat ξ.angular := rfl
 
+/-- The translation column of `ξ̂` holds the linear coordinates `v`, MLS equation (2.31),
+p. 41. -/
 @[simp]
 theorem hat_linear (ξ : Twist) (i : Fin 3) :
     ξ.hat (Sum.inl i) (Sum.inr 0) = ξ.linear i := rfl
 
+/-- The lower-left block of `ξ̂` is zero, MLS equation (2.31), p. 41. -/
 @[simp]
 theorem hat_lowerLeft (ξ : Twist) : ξ.hat.toBlocks₂₁ = 0 := rfl
 
+/-- The lower-right entry of `ξ̂` is zero, MLS equation (2.31), p. 41. -/
 @[simp]
 theorem hat_lowerRight (ξ : Twist) : ξ.hat.toBlocks₂₂ = 0 := rfl
 
+/-- The wedge of MLS equation (2.31), p. 41, forms a matrix in `se(3)` (equation (2.29),
+p. 40) out of any twist coordinates. -/
 theorem hat_mem_se3Submodule (ξ : Twist) : ξ.hat ∈ se3Submodule :=
   ⟨Vec3.hat_transpose ξ.angular, rfl, rfl⟩
 
+/-- The vee (2.30) inverts the wedge (2.31), MLS p. 41. -/
 @[simp]
 theorem vee_hat (ξ : Twist) : vee ξ.hat = ξ := by
   apply Twist.ext
   · rfl
   · exact Vec3.vee_hat ξ.angular
 
-/-- The reverse inverse uses skew symmetry and the zero bottom row explicitly. -/
+/-- The wedge (2.31) inverts the vee (2.30) on `se(3)`, MLS p. 41. The reverse inverse uses
+skew symmetry and the zero bottom row explicitly. -/
 theorem hat_vee (M : HomogeneousMatrix) (h : M ∈ se3Submodule) :
     (vee M).hat = M := by
   apply Matrix.ext_iff_blocks.mpr
@@ -233,6 +247,8 @@ theorem hat_vee (M : HomogeneousMatrix) (h : M ∈ se3Submodule) :
   subst j
   rfl
 
+/-- Supporting lemma; no direct MLS counterpart. The wedge (2.31), p. 41, is additive; MLS states
+the `so(3)` analogue `(v + w)^ = v̂ + ŵ` on p. 28. -/
 @[simp]
 theorem hat_add (ξ η : Twist) : (ξ + η).hat = ξ.hat + η.hat := by
   apply Matrix.ext_iff_blocks.mpr
@@ -243,6 +259,8 @@ theorem hat_add (ξ η : Twist) : (ξ + η).hat = ξ.hat + η.hat := by
   · change (0 : Matrix (Fin 1) (Fin 1) ℝ) = 0 + 0
     rw [add_zero]
 
+/-- Supporting lemma; no direct MLS counterpart. The wedge (2.31), p. 41, commutes with real
+scalars; supports the linear identification `hatLinearEquiv`. -/
 @[simp]
 theorem hat_smul (c : ℝ) (ξ : Twist) : (c • ξ).hat = c • ξ.hat := by
   apply Matrix.ext_iff_blocks.mpr
@@ -253,8 +271,9 @@ theorem hat_smul (c : ℝ) (ξ : Twist) : (c • ξ).hat = c • ξ.hat := by
   · change (0 : Matrix (Fin 1) (Fin 1) ℝ) = c • 0
     rw [smul_zero]
 
-/-- Hat and vee identify all twist coordinates with the independent matrix
-carrier, as real vector spaces; this includes zero and arbitrary axes. -/
+/-- Hat and vee identify all twist coordinates `ξ ∈ ℝ⁶` with the independent matrix
+carrier `se(3)`, as real vector spaces, MLS p. 41, equations (2.30)–(2.31); this includes zero
+and arbitrary axes. -/
 def hatLinearEquiv : Twist ≃ₗ[ℝ] Se3 where
   toFun ξ := ⟨ξ.hat, hat_mem_se3Submodule ξ⟩
   invFun M := vee M.val
@@ -263,22 +282,29 @@ def hatLinearEquiv : Twist ≃ₗ[ℝ] Se3 where
   map_add' ξ η := Subtype.ext (hat_add ξ η)
   map_smul' c ξ := Subtype.ext (hat_smul c ξ)
 
+/-- The forward map of `hatLinearEquiv` is the wedge, MLS equation (2.31), p. 41. -/
 @[simp]
 theorem hatLinearEquiv_apply (ξ : Twist) :
     (hatLinearEquiv ξ).val = ξ.hat := rfl
 
+/-- The inverse map of `hatLinearEquiv` is the vee, MLS equation (2.30), p. 41. -/
 @[simp]
 theorem hatLinearEquiv_symm_apply (M : Se3) :
     hatLinearEquiv.symm M = vee M.val := rfl
 
+/-- Supporting lemma; no direct MLS counterpart. The wedge (2.31), p. 41, sends the zero twist to
+the zero matrix; a consequence of its linearity. -/
 @[simp]
 theorem hat_zero : (0 : Twist).hat = 0 :=
   congrArg Subtype.val hatLinearEquiv.map_zero
 
+/-- Supporting lemma; no direct MLS counterpart. The wedge (2.31), p. 41, commutes with negation; a
+consequence of its linearity. -/
 @[simp]
 theorem hat_neg (ξ : Twist) : (-ξ).hat = -ξ.hat :=
   congrArg Subtype.val (hatLinearEquiv.map_neg ξ)
 
+/-- The wedge (2.31) is injective, since the vee (2.30) inverts it, MLS p. 41. -/
 theorem hat_injective : Function.Injective hat := by
   intro ξ η h
   simpa only [vee_hat] using congrArg vee h

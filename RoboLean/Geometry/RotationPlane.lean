@@ -25,7 +25,9 @@ open Matrix
 
 namespace RoboLean.Vec3
 
-/-- Every unit axis has a perpendicular unit vector in Euclidean three-space. -/
+/-- Supporting lemma; no direct MLS counterpart. Every unit axis has a perpendicular unit vector in
+Euclidean three-space; supplies the second adapted basis vector for the library's proof of MLS
+Proposition 2.5, pp. 29–30. -/
 theorem exists_unit_orthogonal (ω : Vec3) (hω : ‖ω‖ = 1) :
     ∃ u : Vec3, ‖u‖ = 1 ∧ inner ℝ ω u = 0 := by
   have hω0 : ω ≠ 0 := by
@@ -36,17 +38,23 @@ theorem exists_unit_orthogonal (ω : Vec3) (hω : ‖ω‖ = 1) :
   refine ⟨(b 0 : Vec3), b.orthonormal.norm_eq_one 0, ?_⟩
   exact Submodule.mem_orthogonal_singleton_iff_inner_right.mp (b 0).property
 
-/-- Cross product is orthogonal to its first argument, in the Euclidean inner product. -/
+/-- Supporting lemma; no direct MLS counterpart. The cross product of MLS p. 26, equations
+(2.4)–(2.5), is orthogonal to its first argument, in the Euclidean inner product; supports the
+orthonormality of the adapted frame. -/
 @[simp] theorem inner_cross_left (v w : Vec3) : inner ℝ v (cross v w) = 0 := by
   simp only [EuclideanSpace.inner_eq_star_dotProduct, cross_coordinates, star_trivial]
   rw [dotProduct_comm, dot_self_cross]
 
-/-- Cross product is orthogonal to its second argument. -/
+/-- Supporting lemma; no direct MLS counterpart. The cross product of MLS p. 26, equations
+(2.4)–(2.5), is orthogonal to its second argument; supports the orthonormality of the adapted
+frame. -/
 @[simp] theorem inner_cross_right (v w : Vec3) : inner ℝ w (cross v w) = 0 := by
   simp only [EuclideanSpace.inner_eq_star_dotProduct, cross_coordinates, star_trivial]
   rw [dotProduct_comm, dot_cross_self]
 
-/-- The Euclidean squared-norm identity for the right-handed cross product. -/
+/-- Supporting lemma; no direct MLS counterpart. The Euclidean squared-norm identity
+`‖v × w‖² = ‖v‖² ‖w‖² - (v · w)²` for the right-handed cross product of MLS p. 26; supports
+the unit norm of the third adapted basis vector. -/
 theorem norm_cross_sq (v w : Vec3) :
     ‖cross v w‖ ^ 2 = ‖v‖ ^ 2 * ‖w‖ ^ 2 - (inner ℝ v w) ^ 2 := by
   have h : inner ℝ (cross v w) (cross v w) =
@@ -56,7 +64,8 @@ theorem norm_cross_sq (v w : Vec3) :
     ring
   simpa only [real_inner_self_eq_norm_sq, real_inner_comm w v, pow_two] using h
 
-/-- The third vector of the adapted frame has unit Euclidean norm. -/
+/-- Supporting lemma; no direct MLS counterpart. The third vector of the adapted frame has unit
+Euclidean norm; supports its orthonormality. -/
 theorem norm_cross_of_unit_orthogonal (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) :
     ‖cross ω u‖ = 1 := by
@@ -64,14 +73,17 @@ theorem norm_cross_of_unit_orthogonal (ω u : Vec3)
   rw [hω, hu, hperp] at h
   nlinarith [norm_nonneg (cross ω u)]
 
-/-- The ordered frame is orthonormal; its third vector fixes the handedness. -/
+/-- Supporting lemma; no direct MLS counterpart. The ordered frame is orthonormal, and its third
+vector fixes the handedness; supports the construction of `adaptedBasis`. -/
 theorem orthonormal_adapted (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) :
     Orthonormal ℝ ![ω, u, cross ω u] := by
   simp [orthonormal_vecCons_iff, Fin.forall_fin_succ, hω, hu, hperp,
     norm_cross_of_unit_orthogonal ω u hω hu hperp]
 
-/-- The full orthonormal basis associated with a unit axis and perpendicular unit vector. -/
+/-- Supporting lemma; no direct MLS counterpart. The full orthonormal basis associated with a unit
+axis and perpendicular unit vector; supports the planar reduction in the library's proof of MLS
+Proposition 2.5, pp. 29–30. -/
 def adaptedBasis (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) :
     OrthonormalBasis (Fin 3) ℝ Vec3 :=
@@ -108,7 +120,9 @@ def adaptedBasis (ω u : Vec3)
   rw [coe_adaptedBasis]
   rfl
 
-/-- Exact coordinates in the adapted basis, for every Euclidean vector. -/
+/-- Supporting lemma; no direct MLS counterpart. Exact coordinates in the adapted basis, for every
+Euclidean vector; supports the planar reduction in the library's proof of MLS Proposition 2.5,
+pp. 29–30. -/
 theorem adapted_decomposition (ω u : Vec3)
     (hω : ‖ω‖ = 1) (hu : ‖u‖ = 1) (hperp : inner ℝ ω u = 0) (v : Vec3) :
     v = inner ℝ ω v • ω + inner ℝ u v • u +

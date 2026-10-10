@@ -30,15 +30,23 @@ open Matrix
 
 namespace RoboLean
 
-/-- Three-dimensional real coordinate space with its Euclidean metric. -/
+/-- Three-dimensional real coordinate space `ℝ³` with its Euclidean metric: Cartesian
+coordinates `(x, y, z)` relative to three orthonormal axes, MLS p. 20, with the magnitude of a
+vector given by its Euclidean norm, MLS p. 21. Points and free vectors share this carrier, as
+their 3-tuples do on MLS p. 21; `RigidTransform.applyPoint` and `RigidTransform.applyVector`
+keep them apart. -/
 abbrev Vec3 := EuclideanSpace ℝ (Fin 3)
 
-/-- Proper rotations: orthogonal real matrices with determinant one. -/
+/-- Proper rotations: the group `SO(3)` of real `3 × 3` matrices with `RRᵀ = RᵀR = I` and
+`det R = +1`, MLS equations (2.1)–(2.2), pp. 23–24, the rotation matrices of right-handed
+frames; reused from Mathlib's special orthogonal group. -/
 abbrev Rotation : Type := Matrix.specialOrthogonalGroup (Fin 3) ℝ
 
 namespace Rotation
 
-/-- The linear action of a rotation on Euclidean coordinates. -/
+/-- The linear action of a rotation on Euclidean coordinates, MLS p. 25: `R_ab` takes the
+coordinates `q_b` of a point in frame B to `q_a = R_ab q_b` in frame A, and acts on vectors by
+the same matrix product. Column-vector convention. -/
 noncomputable def act (R : Rotation) : Vec3 →ₗ[ℝ] Vec3 :=
   Matrix.toEuclideanLin R.val
 
@@ -54,7 +62,8 @@ theorem transpose_mul (R : Rotation) : R.valᵀ * R.val = 1 :=
 theorem mul_transpose (R : Rotation) : R.val * R.valᵀ = 1 :=
   (Matrix.mem_orthogonalGroup_iff (Fin 3) ℝ).mp R.property.1
 
-/-- For real orthogonal matrices, group inversion is transpose. -/
+/-- For real orthogonal matrices, group inversion is transpose: the inverse of
+`R ∈ SO(3)` is `Rᵀ`, MLS p. 24 (group axiom 3, from equation (2.1)). -/
 @[simp] theorem inv_val (R : Rotation) : (R⁻¹).val = R.valᵀ := rfl
 
 /-- A rotation has determinant `+1`, the condition defining `SO(3)` in MLS
@@ -85,7 +94,8 @@ theorem inner_act (R : Rotation) (x y : Vec3) :
   rw [← Matrix.dotProduct_transpose_mulVec, Matrix.mulVec_mulVec,
     transpose_mul, Matrix.one_mulVec, dotProduct_comm]
 
-/-- The matrix action packaged with its Euclidean norm-preservation proof. -/
+/-- The matrix action packaged with its Euclidean norm-preservation proof; supports MLS
+Proposition 2.2, part 1, p. 26 (rotations preserve distance). -/
 noncomputable def toLinearIsometry (R : Rotation) : Vec3 →ₗᵢ[ℝ] Vec3 :=
   R.act.isometryOfInner R.inner_act
 
@@ -110,7 +120,9 @@ noncomputable def toLinearIsometry (R : Rotation) : Vec3 →ₗᵢ[ℝ] Vec3 :=
 
 end Rotation
 
-/-- A proper rigid transformation, with named rotation and translation fields. -/
+/-- A proper rigid transformation, an element `(p, R)` of `SE(3) = ℝ³ × SO(3)`, MLS
+equation (2.21), p. 35. Convention: named `rotation` and `translation` fields in place of
+the book's positional pair `(p, R)`. -/
 @[ext]
 structure RigidTransform where
   /-- The orientation `R_ab ∈ SO(3)` of the pair in MLS equation (2.21), p. 35. -/
@@ -118,10 +130,26 @@ structure RigidTransform where
   /-- The position `p_ab ∈ ℝ³` of the pair in MLS equation (2.21), p. 35. -/
   translation : Vec3
 
+/-- Build a rigid transformation from its rotation `R` and translation `p`, the pair
+`(p, R) ∈ SE(3)` of MLS equation (2.21), p. 35, with named fields. -/
+add_decl_doc RigidTransform.mk
+
+/-- Two rigid transformations are equal when their rotations and translations are equal
+(MLS p. 35, the pair `(p, R) ∈ SE(3)`). -/
+add_decl_doc RigidTransform.ext
+
+/-- Rigid transformations are equal exactly when their rotations and translations are equal
+(MLS p. 35, the pair `(p, R) ∈ SE(3)`). -/
+add_decl_doc RigidTransform.ext_iff
+
 namespace RigidTransform
 
 /-- The identity rigid transformation, the identity element of `SE(3)` (MLS p. 37). -/
 noncomputable instance : One RigidTransform := ⟨⟨1, 0⟩⟩
+
+/-- Supporting lemma; no direct MLS counterpart. Keeps `simp` confluent with
+`Twist.mk_zero_zero`. -/
+@[simp] theorem mk_one_zero : (⟨1, 0⟩ : RigidTransform) = 1 := rfl
 
 /-- Composition of rigid transformations, MLS equation (2.24), p. 37:
 `(R_ab R_bc, R_ab p_bc + p_ab)`. -/
@@ -149,7 +177,8 @@ noncomputable instance : Inv RigidTransform :=
 @[simp] theorem inv_translation (g : RigidTransform) :
     g⁻¹.translation = -(g.rotation⁻¹).act g.translation := rfl
 
-/-- The inverse translation in the textbook's explicit matrix coordinates. -/
+/-- The inverse translation in the textbook's explicit matrix coordinates, `-Rᵀp`, the
+upper-right block of `ḡ⁻¹` printed on MLS p. 37 (item 3). -/
 theorem inv_translation_coordinates (g : RigidTransform) :
     WithLp.ofLp g⁻¹.translation = -(g.rotation.valᵀ *ᵥ WithLp.ofLp g.translation) := rfl
 
@@ -161,11 +190,12 @@ noncomputable instance : Group RigidTransform where
   mul_one g := by ext <;> simp
   inv_mul_cancel g := by ext <;> simp
 
-/-- Action on a point; translation affects point coordinates. -/
+/-- Action on a point, `g(q) = p + Rq`, MLS equation (2.22), p. 35, written here as
+`R x + p`; translation affects point coordinates. -/
 noncomputable def applyPoint (g : RigidTransform) (x : Vec3) : Vec3 :=
   g.rotation.act x + g.translation
 
-/-- Action on a free vector; translation does not affect it. -/
+/-- Action on a free vector, `g_*(v) = Rv`, MLS p. 36; translation does not affect it. -/
 noncomputable def applyVector (g : RigidTransform) (v : Vec3) : Vec3 :=
   g.rotation.act v
 
@@ -226,7 +256,9 @@ vectors; supports MLS Proposition 2.7, p. 38. -/
     dist (g.applyPoint x) (g.applyPoint y) = dist x y := by
   simpa only [applyPoint, dist_add_right] using g.rotation.dist_act x y
 
-/-- Algebraic orientation convention: the linear part has determinant one. -/
+/-- Algebraic orientation convention: the linear part has determinant one, the condition
+`det R = +1` of `SO(3)` in MLS equation (2.2), p. 24, for the rotation of `(p, R) ∈ SE(3)`,
+equation (2.21), p. 35. -/
 @[simp] theorem rotation_det (g : RigidTransform) : g.rotation.val.det = 1 :=
   g.rotation.det_eq_one
 

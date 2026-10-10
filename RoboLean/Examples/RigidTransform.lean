@@ -25,10 +25,12 @@ noncomputable section
 
 namespace RoboLean.Examples
 
-/-- A Euclidean vector with explicitly ordered Cartesian coordinates. -/
+/-- A Euclidean vector with explicitly ordered Cartesian coordinates `(x, y, z) ∈ ℝ³`,
+MLS p. 20. -/
 def vec (x y z : ℝ) : Vec3 := WithLp.toLp 2 ![x, y, z]
 
-/-- The right-handed positive quarter turn about the third coordinate axis. -/
+/-- The right-handed positive quarter turn about the third coordinate axis, `R_z(π/2)` for
+the elementary rotation `R_z` of MLS p. 31. -/
 def quarterTurn : Rotation :=
   ⟨!![0, -1, 0; 1, 0, 0; 0, 0, 1], by
     rw [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
@@ -38,13 +40,17 @@ def quarterTurn : Rotation :=
         norm_num [Matrix.mul_apply, Matrix.transpose_apply, Fin.sum_univ_succ]
     · norm_num [Matrix.det_fin_three]⟩
 
-/-- A quarter turn followed by the translation `(1, 2, 3)`. -/
+/-- A quarter turn followed by the translation `(1, 2, 3)`: the element
+`(p, R) = ((1, 2, 3), R_z(π/2))` of `SE(3)`, MLS equation (2.21), p. 35. -/
 def g : RigidTransform := ⟨quarterTurn, vec 1 2 3⟩
 
-/-- Translation by `(2, 0, 0)` without rotation. -/
+/-- Translation by `(2, 0, 0)` without rotation: the element `((2, 0, 0), I)` of `SE(3)`,
+MLS equation (2.21), p. 35. -/
 def h : RigidTransform := ⟨1, vec 2 0 0⟩
 
-/-- The same coordinates are used as a point or displacement in separate tests. -/
+/-- The same coordinates are used as a point or displacement in separate tests: a point
+under the action (2.22), MLS p. 35, and a free vector under `g_*(v) = Rv`, MLS p. 36; MLS
+p. 21 notes that both are represented by 3-tuples. -/
 def q : Vec3 := vec 1 1 1
 
 /-- Convention check: `R_z(π/2)` (MLS p. 31) sends `(x, y, z)` to `(-y, x, z)`. -/
@@ -103,7 +109,8 @@ theorem g_inv_translation : (g⁻¹).translation = vec (-2) 1 (-3) := by
     norm_num [Rotation.act_apply, quarterTurn, vec, Matrix.mulVec, dotProduct,
       Fin.sum_univ_succ]
 
-/-- An exact rational rotation with planar cosine `3/5` and sine `4/5`. -/
+/-- An exact rational rotation with planar cosine `3/5` and sine `4/5`: a matrix of the
+elementary form `R_z(α)` of MLS p. 31 with `cos α = 3/5`, `sin α = 4/5`. -/
 def rationalTurn : Rotation :=
   ⟨!![3 / 5, -(4 / 5), 0; 4 / 5, 3 / 5, 0; 0, 0, 1], by
     rw [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
