@@ -95,3 +95,4 @@ import RoboLean.Examples.OneLinkControl
 import RoboLean.Dynamics.InertiaTensor
 import RoboLean.Examples.ThreeLinkDynamics
 import RoboLean.Examples.ScaraDynamics
+import RoboLean.Design.PlanarArmTimeoutSupervisor
