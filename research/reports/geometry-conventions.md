@@ -564,6 +564,19 @@ verification condition over `Nat` reaches cvc5 as linear integer arithmetic. A L
 Veil file about Veil's generated declarations passes the instance arguments exactly as Veil's
 assembled transition system does (read with `pp.explicit`); left to instance synthesis, the first
 application timed out at `whnf` in E022.
+A Veil `function f : target → Nat` is a Lean field `f : Target → ℕ`, and its update
+`f t := e` is `Function.update f t e`, which needs `[DecidableEq Target]` (Veil's generated
+theorems carry `DecidableEq target` too); `Nat` subtraction truncates on both sides. An immutable
+individual that only `after_init` reads (`capacity`, read by `budget := capacity`) is a parameter of
+`init` rather than of `Step` ([E027](../../docs/implogs/E027-veil-third-pilot-budget-supervisor.md)).
+A supervisor that extends a supervisor which itself extends another names its parent projection
+(`structure State extends toTimeoutState : PlanarArmTimeoutSupervisor.State Target`), because the
+default name `toState` collides with the inner parent projection; its simulation then maps each
+step to the step of the same name when the new guards only strengthen existing actions. lean-smt
+embeds a `Nat`-valued function as an `Int`-valued one with the assertion `∀ a₁, f a₁ ≥ 0`, and
+rewrites `x - y` into `if x ≥ y then x - y else 0`; with such a function in a model, debug with
+`trace.smt` (goal and query), not `trace.smt.solve`, whose proof printer fails on the binder `a₁`
+(E027).
 
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
 [p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis

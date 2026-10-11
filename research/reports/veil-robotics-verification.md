@@ -97,6 +97,35 @@ instance arguments written out. Veil's DSL elaboration (actions to programs, cla
 predicates) remains part of the trusted base, and the link to the continuous Lean theorems remains
 a recorded convention.
 
+## Third evaluation, 2026-10-11 (E027)
+
+The question left by the second evaluation, where reconstruction stops as the arithmetic gets
+richer, was run on the same Veil commit with the timeout supervisor extended by three counters
+([entry E027](../../docs/implogs/E027-veil-third-pilot-budget-supervisor.md),
+[gate](../../docs/implogs/gates/E027/20261011T150354Z/)): a per-target admission count
+`attempts : target → Nat` bounded by `maxAttempts` (arithmetic under a quantifier), the sum
+invariant `ticksClosed + age = ticksTotal` (which needs the auxiliary clause that an idle supervisor
+has age zero), and a tick budget decremented by `budget := budget - 1` under `require budget ≥ 1`
+with the invariant `budget + ticksTotal = capacity` (truncated subtraction). With
+`veil.smt.trust false`, all 41 clause conditions that reached cvc5 were reconstructed into Lean
+proofs that depend only on `propext`, `Classical.choice` and `Quot.sound`, each in at most 100 ms;
+no condition failed or timed out, so no knob was needed. Verdict per feature: arithmetic under a
+quantifier reconstructed (cvc5 instantiates the quantified invariant and eliminates the `ite` of
+the function update; lean-smt replays the instantiation by application and the arithmetic through
+its integer lemmas); the sum invariant reconstructed (a Farkas-style combination of the invariant,
+the auxiliary clause and the guard); truncated subtraction reconstructed (lean-smt rewrites
+`budget - 1` into an `if`, cvc5 eliminates it with the guard). The deliberately unsafe variant
+without the budget guard was refuted by every check, with counterexamples that need `0 - 1 = 0`, so
+the solver sees the truncation. Two qualifications. First, the diagnostic `trace.smt.solve`, which
+prints cvc5's proof, makes the check fail on such a model: lean-smt's encoding of a `Nat`-valued
+function adds a quantifier whose bound variable `a₁` is not ASCII, and cvc5's proof printer rejects
+it; the untraced check is unaffected, and `trace.smt` (goal and query) works. Second, the run says
+nothing about nonlinear terms, `div`/`mod` or much larger models; the bounded `unsat trace` query's
+proof grew to 27129 steps (3705 in the second evaluation), but Veil does not reconstruct trace
+queries. As before, Veil's DSL elaboration is trusted, a composition of the per-condition theorems
+over the reachable states was proved in Lean inside the Veil file, and the link to the continuous
+Lean theorems remains a recorded convention.
+
 ## Related Z3 work in this research program
 
 A companion source review identified a [current symbolic-unrolling path](</home/sandeep/research/projects/R-DTLGN/icra-outputs/runs/2026-09-20D-thermometer-rho-campaign/z3-code/_bmc8.py:78>), a [Bool-pair ternary encoder](</home/sandeep/research/projects/R-DTLGN/r_dtlgn/smt/encoder_bool.py:26>), and a [newer inductive-step experiment](</home/sandeep/research/projects/R-DTLGN/icra-outputs/certification/observed-envelope/_step.py:108>). Their presence shows the project already extends beyond a simple bounded-checking script; this report does not establish that the inductive experiment produced a successful unbounded certificate. One possible Lean contribution, independent of adopting Veil, is to prove the encoder agrees with a finite ternary evaluator for arbitrary circuits and ticks. Agreement between a learned policy and an STL requirement would remain a separate claim. These Z3 examples provide methodological context and do not limit Veil's possible uses across robotics, control, and learning.
