@@ -111,3 +111,8 @@ import RoboLean.Grasp.Frictionless
 import RoboLean.Examples.PlanarGrasp
 import RoboLean.Examples.BoxGrasp
 import RoboLean.Design.PlanarArmBudgetSupervisor
+import RoboLean.Grasp.SpatialGrasp
+import RoboLean.Grasp.HandJacobian
+import RoboLean.Grasp.Manipulability
+import RoboLean.Examples.HandGrasp
+import RoboLean.Examples.ScaraHand
