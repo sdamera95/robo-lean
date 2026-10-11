@@ -891,3 +891,74 @@ definite, and the closed loop `ManipulatorModel.pdClosedLoop` has a solution flo
 loop is linear and its flow is constructed; since E023 the flow is constructed for every locally
 Lipschitz closed loop with uniformly positive definite `M` (the energy traps the solutions), in
 particular for the planar two-link arm, whose closed loop is `C¹`.
+
+## Grasp and contact conventions
+
+Recorded 2026-10-11 14:31 UTC for increment E025 (root applied the lead's proposal; integrated gate
+[E025/20261011T015438Z](../../docs/implogs/gates/E025/20261011T015438Z/)). Source: MLS Chapter 5 §§2–3, printed pp. 214–228,
+read by the E025 lead as text, with the formula pages inspected as renders
+([E025 gate](../../docs/implogs/gates/E025/20261011T011616Z/source/)).
+
+**Frames.** The object frame `O` sits at the object's center of mass (p214); nothing in the
+library uses that choice. The contact frame `Cᵢ` has its origin at the contact point and its
+`z`-axis along the *inward* surface normal (pp214–215); in the planar Example 5.3 the contact
+`y`-axis is the inward normal (p222). `g_{ocᵢ} = (p_{cᵢ}, R_{cᵢ})` takes contact coordinates to
+object coordinates (p215), the library's `g_AB` direction. The contact location is fixed on the
+object (p214). Frames are data: no type checks that a frame's `z`-axis is an inward normal. MLS
+§6 changes convention: the contact frame along a surface curve is the normalized Gauss frame
+`[c_u/‖c_u‖, c_v/‖c_v‖, n]`, `n = c_u × c_v/‖c_u × c_v‖` (p245, eq. (5.22); p246, footnote 2:
+"This is different from our previous convention, where we choose the z-axis along the inward
+pointing normal"). Whether `n` points outward depends on the chart's orientation; the §6 tranche
+must fix it before reusing the contact models of §2.
+
+**Contact wrenches and the transfer.** A contact wrench `F_c = (f, τ)` acts at the contact origin
+and is written in the contact frame, force first, as `Wrench` (MLS p61). It is carried to the
+object frame by `Wrench.transform g_{oc}`, which the library identifies with `Ad_{g_{oc}⁻¹}ᵀ`
+(p218 and eqs. (2.65)–(2.67)). Contact wrenches are summed only after this transfer
+(`Wrench.net`, p219).
+
+**Coefficients and cones (design question Q1).** A friction cone lives in the space of contact
+force *coefficients* (`ℝ^m`, as in the book), not in the wrench space; the cone of wrenches a
+contact can apply is the image `B_c(FC_c)` (`ContactModel.wrenchCone`), and that of the grasp is
+`G(FC)`. Coefficients are `Fin m → ℝ` with the product topology (the Euclidean topology). Lean
+coefficient `j` is the book's `f_{j+1}`; the normal force of a spatial contact is Lean `f 2`, of a
+planar contact Lean `f 1`.
+
+**Friction cone carrier (Q3).** `FrictionCone E` bundles a Mathlib `ConvexCone ℝ E` (Definition
+5.1, property 2: closure under positive scaling and addition, which with `α, β > 0` is the printed
+property) with closedness and nonempty interior (property 1). A friction cone contains `0` (not
+stated by MLS; it follows). The printed cones are convex cones for every coefficient; they are
+friction cones under the book's `μ > 0`, `γ > 0`.
+
+**Grasp map (Q2).** A grasp map is a real linear map from contact force coefficients to object
+wrenches; for a contact grasp the coefficient space is `(i : ι) → Fin (m i) → ℝ` (the book's
+`f_c = (f_{c₁}, …, f_{c_k})`), and the friction cone is the product cone. The book's `p × m`
+matrix is `ContactGrasp.matrix e` in wrench coordinates `e` (for spatial grasps
+`Wrench.coordinatesEquiv`, six rows force first), with columns indexed by `Σ i, Fin (m i)` in the
+stacked order; printed matrices with `Fin m` columns are compared through the stacked vector
+`![f 0 0, f 0 1, …]` in the printed order.
+
+**Planar grasps (Q4).** Planar wrenches are coordinate vectors `Fin 3 → ℝ` in the order
+`(f_x, f_y, τ)`, `τ` the moment about the normal to the plane (p222). A planar contact frame is
+`(R, p)` with `R ∈ SO(2)` (Mathlib's `specialOrthogonalGroup (Fin 2) ℝ`) and `p ∈ ℝ²`; its wrench
+transfer is the printed `[[R, 0], [[-p_y, p_x]R, 1]]`. Embedding `R` as `[[R, 0], [0, 1]] ∈ SO(3)`,
+`p` as `(p_x, p_y, 0)` and a planar wrench as force `(f_x, f_y, 0)` and moment `(0, 0, τ)`, the
+planar rule is the spatial rule (2.66) (`Planar.transform_embedWrench`).
+
+**Force-closure (Q8).** `Grasp.ForceClosure G FC` is Definition 5.2 with unbounded contact force
+magnitudes; it presumes the contacts are maintained and rigid (p214). It says nothing about
+bounded actuators, contact persistence, slip under dynamics or a physical hand. Every
+force-closure docstring repeats this caveat.
+
+**Internal forces.** Definition 5.3 (p223) is followed: internal `N(G) ∩ FC`, strictly internal
+`N(G) ∩ int(FC)`. Table 5.4 (p239) calls the latter "internal forces"; the library does not use
+the table's wording.
+
+**Positive spans (Q7).** "Positively spans" is defined as printed (p225), with strictly positive
+coefficients; `Grasp.positivelySpans_iff_nonneg` proves it equivalent to spanning with
+nonnegative coefficients, the form used in proofs.
+
+**Deferred (Q5, Q6).** The §6 normal orientation (above) and the strictness of the antipodal
+conditions of Theorem 5.6 (p232; per the E025 scout digest, not read by the lead, the printed
+conditions are strict inequalities while the statement says the line "lies inside" the closed
+cones) are not settled here; neither is used by E025.
