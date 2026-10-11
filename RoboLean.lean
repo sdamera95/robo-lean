@@ -116,3 +116,6 @@ import RoboLean.Grasp.HandJacobian
 import RoboLean.Grasp.Manipulability
 import RoboLean.Examples.HandGrasp
 import RoboLean.Examples.ScaraHand
+import RoboLean.Kinematics.MapJacobian
+import RoboLean.Control.WorkspaceControl
+import RoboLean.Examples.WorkspaceControl
