@@ -68,6 +68,35 @@ says nothing about reconstruction for arithmetic, for larger models or for quant
 protocols. The link from Veil's uninterpreted guard to the continuous Lean theorem remains a
 recorded convention while the two projects use different Lean versions.
 
+## Second evaluation, 2026-10-11 (E022)
+
+The arithmetic follow-up of the first evaluation was run
+on the same Veil commit with the E018 supervisor extended by a command age: `tick` increments an
+integer `age` while `age < bound`, `timeout` clears the command when `age = bound`, and the clauses
+include `age ≤ bound` ([entry E022](../../docs/implogs/E022-veil-second-pilot-timeout-supervisor.md),
+[gate](../../docs/implogs/gates/E022/20261011T001058Z/)). Integer state needed no special treatment in
+the explicit-state checker: the reachable ages are bounded, so `#model_check` exhausted 9216 states
+of a five-target instance with `bound := 3`, and the deliberately unsafe variant (the bound guard
+removed from `tick`) was refuted by every check that should fail. With `veil.smt.trust false`, all
+21 clause conditions reached cvc5 and were reconstructed into Lean proofs that depend only on
+`propext`, `Classical.choice` and `Quot.sound`; no condition failed, timed out or needed
+`veil.smt.timeout`, `veil.solver grind` or a hand proof, and the replays took 35 to 68 ms each in the final gate run. The
+arithmetic exercised was small: one condition (`tick` preserves `age ≤ bound`) needed a linear
+integer inference, which cvc5 proved with its arithmetic rewriting and bound-tightening rules and
+lean-smt replayed through its integer polynomial normalizer; two frame conditions used arithmetic
+normalization; Veil's preprocessing closed the arithmetic of the reset conditions before the
+solver. The run therefore shows that reconstruction handles linear integer arithmetic of this
+size, not that it scales to sums, several counters, arithmetic under quantifiers or nonlinear
+terms. The bounded `unsat trace` was refuted by cvc5 with a 3705-step proof containing arithmetic
+rules, but Veil keeps no Lean proof term for trace queries, so it remains a solver verdict. One
+qualification of the first evaluation was removed: the per-condition theorems can be composed in
+Lean, inside the Veil file, into a theorem that every reachable state of the module's assembled
+transition system satisfies all clauses, with a lemma that this system has a reachable state; the
+proof uses Veil's own lemmas relating its specifications to its transition relation and needs the
+instance arguments written out. Veil's DSL elaboration (actions to programs, clauses to
+predicates) remains part of the trusted base, and the link to the continuous Lean theorems remains
+a recorded convention.
+
 ## Related Z3 work in this research program
 
 A companion source review identified a [current symbolic-unrolling path](</home/sandeep/research/projects/R-DTLGN/icra-outputs/runs/2026-09-20D-thermometer-rho-campaign/z3-code/_bmc8.py:78>), a [Bool-pair ternary encoder](</home/sandeep/research/projects/R-DTLGN/r_dtlgn/smt/encoder_bool.py:26>), and a [newer inductive-step experiment](</home/sandeep/research/projects/R-DTLGN/icra-outputs/certification/observed-envelope/_step.py:108>). Their presence shows the project already extends beyond a simple bounded-checking script; this report does not establish that the inductive experiment produced a successful unbounded certificate. One possible Lean contribution, independent of adopting Veil, is to prove the encoder agrees with a finite ternary evaluator for arbitrary circuits and ticks. Agreement between a learned policy and an STL requirement would remain a separate claim. These Z3 examples provide methodological context and do not limit Veil's possible uses across robotics, control, and learning.

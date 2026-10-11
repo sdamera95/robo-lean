@@ -553,7 +553,17 @@ versions and cannot import each other, so the correspondence is a recorded conve
 only by reading the two files side by side (the table in [E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md)), not by any kernel. The finite
 instance of a Veil model may carry a guard table computed from concrete targets; E018's table is
 `planarGuard 2 1` at five tool positions, checked on the Lean side. Veil action names must avoid
-the fields `distinct` and `complete` of Veil's generated action-tag class.
+the fields `distinct` and `complete` of Veil's generated action-tag class. A Veil `individual x : Nat` is a Lean `ℕ` field, and an immutable (theory) `individual bound : Nat`
+is a Lean parameter `bound : ℕ` of `Step`, like the guard ([E022](../../docs/implogs/E022-veil-second-pilot-timeout-supervisor.md)). A supervisor that extends another one extends
+its `State` structure (`structure State extends PlanarArmSupervisor.State`), and its relation to
+the smaller supervisor is a simulation theorem (`ReachableState.toState`: forgetting the new fields
+maps each step to a step of the smaller supervisor or to no step), through which the smaller
+supervisor's refinement theorems are reused rather than reproved. The SMT backend embeds Veil's
+`Nat` into integers with nonnegativity assumptions (lean-smt's `Embedding/Nat` rewrites), so a
+verification condition over `Nat` reaches cvc5 as linear integer arithmetic. A Lean theorem in a
+Veil file about Veil's generated declarations passes the instance arguments exactly as Veil's
+assembled transition system does (read with `pp.explicit`); left to instance synthesis, the first
+application timed out at `whnf` in E022.
 
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
 [p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis

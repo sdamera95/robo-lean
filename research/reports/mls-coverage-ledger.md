@@ -51,9 +51,10 @@ selected denominator was 181 with 164 Verified in full at I14.
 [I17](#implementation-evidence-i17) moves N32, N36 and N40 to Verified in full (N32 with an added hypothesis, recorded):
 182 selected, 171 Verified in full.
 [I18](#implementation-evidence-i18) moves N21, N22 and N23 to Verified in full: 182 selected, 174 Verified in full. Open: R27, R28,
-X60 (partial), N33 (partial), N34, N35 (partial), N41, N42. The ten design
-rows C01-C10 are counted separately and are not MLS obligations (C09-C10 from the Veil pilot E018,
-[I15](#implementation-evidence-i15)).
+X60 (partial), N33 (partial), N34, N35 (partial), N41, N42. [I19](#implementation-evidence-i19) adds the design rows C11 and C12 (Veil pilot E022); the MLS counts do not
+change. The twelve design
+rows C01-C12 are counted separately and are not MLS obligations (C09-C10 from the Veil pilot E018,
+[I15](#implementation-evidence-i15); C11-C12 from the second Veil pilot E022, [I19](#implementation-evidence-i19)).
 These are selected-item counts,
 not independent Lean theorem counts or a whole-book percentage.
 
@@ -101,6 +102,7 @@ are deferred; the named actions retain their distinct meanings.
 | IK2 | `RoboLean/Examples/PlanarTwoLinkInverseKinematics.lean` | Planar two-link inverse kinematics, eq. (3.16) (K30) |
 | EL | `RoboLean/Examples/ElbowManipulator.lean` | Elbow manipulator, Examples 3.2 and 3.5 (K28) |
 | DS | `RoboLean/Design/PlanarArmSupervisor.lean` | Target supervisor mirrored from the Veil pilot, invariant and refinement (C09, C10) |
+| DT | `RoboLean/Design/PlanarArmTimeoutSupervisor.lean` | Timeout supervisor mirrored from the second Veil pilot: invariants with an integer age, simulation into the first supervisor, refinement (C11, C12) |
 | IT | `RoboLean/Dynamics/InertiaTensor.lean` | Mass distributions, center of mass, inertia tensor, Example 4.2 (N22) |
 | TD | `RoboLean/Examples/ThreeLinkDynamics.lean` | Example 4.3 link Jacobians, inertia matrix and Christoffel symbols (N23) |
 | SD | `RoboLean/Examples/ScaraDynamics.lean` | Example 4.4 SCARA chain, inertia and Coriolis matrices, gravity term (N23, N19, N12) |
@@ -382,7 +384,7 @@ only informally, as a step of a three-link construction in another frame, and
 [p98](../../references/MLS.pdf#page=116), eq3.16, prints the closed-form inverse kinematics
 `θ₂ = π ± α` with the remark that no solution exists for `r > l₁ + l₂` (found by the E011
 review); the workspace equality and the certificates below are not printed. The C rows are
-counted separately from the 181 MLS selected obligations. Rows C09 and C10 come from the Veil pilot ([E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md)): a supervisor model whose first-evaluation recipe is in [veil-robotics-verification.md](veil-robotics-verification.md), not from MLS or the assessment.
+counted separately from the 182 MLS selected obligations. Rows C09 and C10 come from the Veil pilot ([E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md)): a supervisor model whose first-evaluation recipe is in [veil-robotics-verification.md](veil-robotics-verification.md), not from MLS or the assessment. Rows C11 and C12 come from the second Veil pilot ([E022](../../docs/implogs/E022-veil-second-pilot-timeout-supervisor.md)), which extends the C09 supervisor with an integer command age to test Veil's proof reconstruction on arithmetic; not from MLS or the assessment.
 
 | ID / kind | Source | Intended statement/module | Assumptions/conventions | Dependencies or missing bridge | Formal status | Statement divergence |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -396,6 +398,8 @@ counted separately from the 181 MLS selected obligations. Rows C09 and C10 come 
 | C08 theorem | assessment, \"the origin is a singular configuration\"; p131 / 149, eq3.64 (position Jacobian, printed for three links) | Position-Jacobian singularities of the planar two-link arm | `a ≠ 0`, `b ≠ 0` (`0 < a`, `0 < b` for the boundary form); `q 0 = θ₁`, `q 1 = θ₂`; zero configuration along `+y` | K09, C01, C07 | Verified: [I13](#implementation-evidence-i13); `Examples.planarTwoLinkPositionJacobian`, `hasDerivAt_planarTwoLink_translation_eq_positionJacobian`, `det_planarTwoLinkPositionJacobian`, `det_planarTwoLinkPositionJacobian_eq_zero_iff`, `exists_planarTwoLink_null_rate_iff`, `det_planarTwoLinkPositionJacobian_eq_zero_iff_exists_int`, `det_planarTwoLinkPositionJacobian_eq_zero_iff_norm`, `det_planarTwoLinkPositionJacobian_eq_zero_of_position_eq_zero` | `det ∂p/∂θ = ab sin θ₂`; singular iff `θ₂ ∈ πℤ` iff the tool lies on a boundary circle of the annulus; C07's origin configurations are among them. A statement about the position map, not the p123 definition (K23) |
 | C09 theorem | Veil pilot design (E018); [veil-robotics-verification.md](veil-robotics-verification.md), "Practical constraints and a first evaluation" | Supervisor invariant: in every reachable state of the target supervisor, every commanded target satisfies the guard; `Design/PlanarArmSupervisor` | Any target type and any guard `reachable : Target → Prop`; reachable states are `Relation.ReflTransGen (Step reachable) init`; Veil Boolean relations are Lean sets | Mathlib `Relation.ReflTransGen`; mirrors the Veil model `robo-lean-veil/Examples/RoboLean/PlanarArmSupervisor.lean` by a recorded convention, no kernel link (D003) | Verified: [I15](#implementation-evidence-i15); `Design.PlanarArmSupervisor.State`, `init`, `Step`, `ReachableState`, `CommandedReachable`, `commandedReachable_init`, `Step.commandedReachable`, `ReachableState.commandedReachable` | Veil checks one verification condition per (action, clause) and emits no theorem that composes them along runs; the Lean theorem is that composition for the mirrored system. The action ending a command is `finish`, since Veil reserves `complete` |
 | C10 theorem | C04 with C09; [p95](../../references/MLS.pdf#page=113) / 113, eq3.12; [p98](../../references/MLS.pdf#page=116) / 116, eq3.16 | Refinement: with guard `planarGuard a b`, every target commanded in a reachable state is a tool position `planarTwoLinkPosition a b q`, and the commanded set lies in `W_R` | `0 < a`, `0 < b`; `planarGuard a b x` is C04's condition `x 2 = 0 ∧ \|a − b\| ≤ ‖x‖ ≤ a + b` exactly; targets are points `Vec3` or carry positions `pos : Target → Vec3`; `Q = Set.univ` | C09, C04 (`planarTwoLink_workspace_certificate`, `planarTwoLink_subset_reachableWorkspace_iff`), C02 | Verified: [I15](#implementation-evidence-i15); `Design.planarGuard`, `Design.PlanarArmSupervisor.ReachableState.exists_planarTwoLinkPosition_eq_pos`, `ReachableState.exists_planarTwoLinkPosition_eq`, `ReachableState.commanded_subset_reachableWorkspace` | Position reachability of the ideal model only; the Veil model's `reachable` read as `planarGuard a b` is a convention; nothing about the sampled implementation, timing, motion between targets, orientation, joint limits or collisions |
+| C11 theorem | Veil pilot design (E022); [veil-robotics-verification.md](veil-robotics-verification.md), "Second evaluation, 2026-10-11 (E022)" | Timeout-supervisor invariants: in every reachable state, every commanded target satisfies the guard, the command age is at most the bound, and an idle supervisor has age zero; `Design/PlanarArmTimeoutSupervisor` | Any target type, any guard `reachable : Target → Prop`, any bound `bound : ℕ`; `State` extends C09's state with `timedOut : Set Target` and `age : ℕ`; reachable states are `Relation.ReflTransGen (Step reachable bound) init`; `tick` requires `busy` and `age < bound`, `timeout` requires `busy` and `age = bound`; `admit`, `finish`, `timeout` reset the age | Mathlib `Relation.ReflTransGen`; mirrors the Veil model `robo-lean-veil/Examples/RoboLean/PlanarArmTimeoutSupervisor.lean` by a recorded convention, no kernel link (D003) | Verified: [I19](#implementation-evidence-i19); `Design.PlanarArmTimeoutSupervisor.State`, `init`, `Step`, `ReachableState`, `CommandedReachable`, `AgeBounded`, `IdleAgeZero`, `commandedReachable_init`, `ageBounded_init`, `idleAgeZero_init`, `Step.commandedReachable`, `Step.ageBounded`, `Step.idleAgeZero`, `ReachableState.commandedReachable`, `ReachableState.ageBounded`, `ReachableState.idleAgeZero` | `idle_age_zero` is auxiliary: `age_bounded` is inductive on its own (Veil and Lean). Each Lean step lemma uses only its own clause; Veil's conditions assume all clauses. The age counts abstract `tick` steps, not time; no liveness (that a command finishes or times out) is stated. On the Veil side the per-condition theorems are also composed over the reachable states of Veil's assembled transition system (`PlanarArmTimeoutSupervisorComposition.reachable_invariants`, E022), a Veil-side theorem outside this library |
+| C12 theorem | C10 with C11; [p95](../../references/MLS.pdf#page=113) / 113, eq3.12; [p98](../../references/MLS.pdf#page=116) / 116, eq3.16 | Simulation and refinement: forgetting `timedOut` and `age` maps every reachable state of the timeout supervisor to a reachable state of the C09 supervisor (`tick` to no step, `timeout` to `finish`); hence, with guard `planarGuard a b`, every commanded target is a tool position `planarTwoLinkPosition a b q` and the commanded set lies in `W_R` | `0 < a`, `0 < b`, any bound; `planarGuard a b x` is C04's condition exactly; targets are points `Vec3` or carry positions `pos : Target → Vec3`; `Q = Set.univ` | C09, C10 (`PlanarArmSupervisor.ReachableState.exists_planarTwoLinkPosition_eq_pos`, `_eq`, `commanded_subset_reachableWorkspace`), Mathlib `Relation.ReflGen.to_reflTransGen` | Verified: [I19](#implementation-evidence-i19); `Design.PlanarArmTimeoutSupervisor.Step.toState`, `ReachableState.toState`, `ReachableState.exists_planarTwoLinkPosition_eq_pos`, `ReachableState.exists_planarTwoLinkPosition_eq`, `ReachableState.commanded_subset_reachableWorkspace` | Position reachability of the ideal model only; the Veil model's `reachable` read as `planarGuard a b` is a convention; nothing about the sampled implementation, timing, motion between targets, orientation, joint limits or collisions |
 
 ## Chapter 4 dynamics obligations
 
@@ -1136,6 +1140,43 @@ HEAD versions of the six unowned modules downstream of the changed Dynamics modu
 against the changed modules with exit 0 and no output; an independent sympy recomputation of the
 two examples ([sympy](../../docs/implogs/gates/E021/20261010T211233Z/sympy/)). **Verified - root's integrated gate [E021/20261010T220533Z](../../docs/implogs/gates/E021/20261010T220533Z/):** `lake build` exit 0 in 49 s with 0 warnings on the 97-module root (3168 jobs), run in the linked landing worktree at HEAD `3e4c873` plus the E021 files (byte-identical to the committed ones); whole-library audit `modules=97 constants=2901 standard_three=2638 axiom_free=48 disallowed=0 opaque=0 axiom_decls=0`; commit `7854d59`. Physical fidelity, numerics and user acceptance
 remain Unverified. I18 moves N21, N22 and N23 to Verified in full: 182 selected, 174 Verified in full.
+
+## Implementation evidence I19
+
+E022 ([entry](../../docs/implogs/E022-veil-second-pilot-timeout-supervisor.md)): the second Veil
+pilot, a supervisor with an integer command age. New Lean module
+[PlanarArmTimeoutSupervisor](../../RoboLean/Design/PlanarArmTimeoutSupervisor.lean) (rows C11,
+C12), added to the root import list by root at landing (see the integrated-gate sentence below); new Veil files `Examples/RoboLean/PlanarArmTimeoutSupervisor.lean`
+and `PlanarArmTimeoutSupervisorUnsafe.lean` in the sibling project `robo-lean-veil` (Veil 0263f6c,
+Lean 4.32.0). Sources read by the lead as text extracts of printed pp. 95 and 98
+([extracts](../../docs/implogs/gates/E022/20261011T001058Z/source/)). **Verified - lead evidence:**
+the module elaborates with `lake env lean` exit 0 and no output (against the oleans of
+`.lake/build` written before commit 9adc6d7); the ordered
+[`#print axioms`](../../docs/implogs/gates/E022/20261011T001058Z/print-axioms.stdout) over its 31
+public declarations prints no axiom outside `propext`, `Classical.choice`, `Quot.sound`, and the
+sweep over the 87 constants of `RoboLean.Design` reports `outside_standard_three=0 sorryAx=0
+axiom_decls=0 opaque=0`; the [instances](../../docs/implogs/gates/E022/20261011T001058Z/Instances.lean)
+(exit 0) give, for `a = 2`, `b = 1`, a reachable state at the age bound with a commanded target and
+its joint vector, a reachable state that has timed out, a rejection, the five-target guard table of
+the Veil instance, and age `3` reached under `bound = 3`. **Veil side, recorded as Veil's report,
+all with `veil.smt.trust false`:** `#model_check interpreted` "✅ No violation (explored 9216
+states)" on five targets with `bound := 3`, no depth bound; six `sat trace` queries "✅ Satisfying
+trace found", including one that ticks to the bound and times out; `unsat trace` over exactly six
+actions silent with exit 0; `#check_invariants` ✅ on all 28 rows; `#print axioms` on the 28
+generated theorems prints only the three standard axioms; a control with trust on shows `sorryAx`
+in exactly the 21 clause theorems; the deliberately unsafe variant (`require age < bound` removed
+from `tick`) reports "❌ Violation: safety_failure (violates: age_bounded)", a counterexample to the
+`unsat trace` and ❌ on `tick`/`age_bounded`
+([gate](../../docs/implogs/gates/E022/20261011T001058Z/)). **Reconstruction with arithmetic:** each
+of the 21 clause conditions reached cvc5 and was reconstructed; only `tick_age_bounded` needed a
+linear-arithmetic inference (from `age < bound` to `age + 1 ≤ bound`, `Nat` embedded into `Int`),
+and its proof term carries 13 `Smt.Reconstruct.Int` constants
+([summary](../../docs/implogs/gates/E022/20261011T001058Z/control/smt-replay-summary.txt)). **Veil-side
+composition:** `PlanarArmTimeoutSupervisorComposition.reachable_invariants` (every reachable state of
+the module's `relationalTransitionSystem` satisfies the three clauses) and `reachable_nonempty`
+print only the three standard axioms. The Veil-to-Lean correspondence is a recorded convention, not
+a kernel link. **Verified - root's integrated gate [E022/20261011T004855Z](../../docs/implogs/gates/E022/20261011T004855Z/):** `lake build` exit 0 in 5.3 s with 0 warnings on the 98-module root (3169 jobs), run in the linked landing worktree at HEAD `9adc6d7` plus the module (byte-identical to the committed one) and the import appended to `RoboLean.lean`; whole-library audit `modules=98 constants=2957 standard_three=2649 axiom_free=87 disallowed=0 opaque=0 axiom_decls=0`; commit `7e752fe`. Physical
+fidelity, the sampled implementation, numerics and user acceptance remain Unverified.
 
 ## Source evidence and cautions
 
