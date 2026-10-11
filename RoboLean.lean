@@ -110,3 +110,4 @@ import RoboLean.Grasp.GraspMap
 import RoboLean.Grasp.Frictionless
 import RoboLean.Examples.PlanarGrasp
 import RoboLean.Examples.BoxGrasp
+import RoboLean.Design.PlanarArmBudgetSupervisor
