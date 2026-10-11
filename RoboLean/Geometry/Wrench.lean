@@ -323,6 +323,26 @@ def transformEquiv (g : RigidTransform) : Wrench ≃ₗ[ℝ] Wrench where
 def coordinates (F : Wrench) : Fin 3 ⊕ Fin 3 → ℝ :=
   Sum.elim (WithLp.ofLp F.force) (WithLp.ofLp F.torque)
 
+/-- The six coordinates `Wrench.coordinates` (force first, MLS printed p. 61, `F ∈ ℝ⁶`) as a real
+linear equivalence, mirroring `Twist.coordinatesEquiv`. Supporting declaration for reading grasp
+maps as real `6 × m` matrices (MLS eq. (5.6), printed p. 219). -/
+def coordinatesEquiv : Wrench ≃ₗ[ℝ] (Fin 3 ⊕ Fin 3 → ℝ) where
+  toFun := coordinates
+  invFun x := ⟨WithLp.toLp 2 (fun i => x (Sum.inl i)), WithLp.toLp 2 (fun i => x (Sum.inr i))⟩
+  map_add' F G := by
+    funext r
+    rcases r with i | i <;> rfl
+  map_smul' c F := by
+    funext r
+    rcases r with i | i <;> rfl
+  left_inv F := rfl
+  right_inv x := by
+    funext r
+    rcases r with i | i <;> rfl
+
+/-- `coordinatesEquiv` applies `Wrench.coordinates` (MLS printed p. 61, force first). -/
+@[simp] theorem coordinatesEquiv_apply (F : Wrench) : coordinatesEquiv F = F.coordinates := rfl
+
 /-- The independently specified matrix of wrench transfer from B to A,
 MLS printed p. 62, equation (2.66). -/
 def transformMatrix (g : RigidTransform) : Matrix (Fin 3 ⊕ Fin 3) (Fin 3 ⊕ Fin 3) ℝ :=
