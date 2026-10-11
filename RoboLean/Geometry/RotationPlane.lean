@@ -17,6 +17,9 @@ the right-handed one of MLS p. 26, equations (2.4)–(2.5), and the third basis
 vector `ω × u` makes the frame right-handed in the sense of MLS pp. 23–24
 (`r₂ × r₃ = r₁`, equivalently `r₁ × r₂ = r₃`). Coordinates follow
 `research/reports/geometry-conventions.md`.
+
+The file also holds `perp`, the projection onto the plane perpendicular to an axis
+(MLS pp. 100 and 102), moved here from `RoboLean.Kinematics.PadenKahan` on 2026-10-11.
 -/
 
 noncomputable section
@@ -129,5 +132,10 @@ theorem adapted_decomposition (ω u : Vec3)
       inner ℝ (cross ω u) v • cross ω u := by
   have h := (adaptedBasis ω u hω hu hperp).sum_repr' v
   simpa [OrthonormalBasis.repr_apply_apply, Fin.sum_univ_succ, add_assoc] using h.symm
+
+/-- The projection `u′ = u - ω ωᵀ u` of a vector onto the plane perpendicular to the axis
+direction `ω`, MLS p. 100 (Subproblem 1) and p. 102 (Subproblem 3). It is the orthogonal
+projection when `ω` is a unit vector. -/
+def perp (ω u : Vec3) : Vec3 := u - inner ℝ ω u • ω
 
 end RoboLean.Vec3

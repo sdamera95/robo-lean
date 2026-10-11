@@ -10,6 +10,10 @@ import Mathlib.Analysis.SpecialFunctions.Complex.Arg
 MLS Proposition 2.5 and Theorem 2.6, printed pp. 29–31. The fixed-axis
 construction and the planar angle are independent of division by `sin θ`.
 In particular, identity and half-turn cases remain in the domain.
+
+The action of `exp ω θ` split along a unit axis (`exp_act_eq`) and the invariance of the axial
+component (`inner_exp_act_axis`) moved here from `RoboLean.Kinematics.PadenKahan` on
+2026-10-11.
 -/
 
 noncomputable section
@@ -66,6 +70,27 @@ theorem exp_act_of_inner_eq_zero (ω u : Vec3) (hω : ‖ω‖ = 1)
   simp only [Matrix.add_mulVec, Matrix.smul_mulVec, Matrix.one_mulVec,
     Matrix.sub_mulVec, ho, Vec3.hat_mulVec]
   module
+
+/-- **Rodrigues' formula on vectors, split along a unit axis** (MLS eq. (2.14), p. 28, applied
+to `u = (ωᵀu) ω + u′`): `e^{ω̂θ} u = (ωᵀu) ω + cos θ u′ + sin θ (ω × u′)`. -/
+theorem exp_act_eq {ω : Vec3} (hω : ‖ω‖ = 1) (θ : ℝ) (u : Vec3) :
+    (Rotation.exp ω θ).act u =
+      inner ℝ ω u • ω + Real.cos θ • Vec3.perp ω u +
+        Real.sin θ • Vec3.cross ω (Vec3.perp ω u) := by
+  have hu : u = inner ℝ ω u • ω + Vec3.perp ω u := by simp [Vec3.perp]
+  have hp : inner ℝ ω (Vec3.perp ω u) = 0 := by
+    simp [Vec3.perp, inner_sub_right, inner_smul_right, hω]
+  conv_lhs => rw [hu]
+  rw [map_add, map_smul, exp_act_unit_axis ω hω, exp_act_of_inner_eq_zero ω _ hω hp, add_assoc]
+
+/-- A rotation about a unit axis `ω` preserves the component along `ω`: `ωᵀ(e^{ω̂θ} x) = ωᵀx`
+(used for eq. (3.23), p. 101, and eq. (3.19), p. 100). -/
+theorem inner_exp_act_axis {ω : Vec3} (hω : ‖ω‖ = 1) (θ : ℝ) (x : Vec3) :
+    inner ℝ ω ((Rotation.exp ω θ).act x) = inner ℝ ω x := by
+  calc inner ℝ ω ((Rotation.exp ω θ).act x)
+      = inner ℝ ((Rotation.exp ω θ).act ω) ((Rotation.exp ω θ).act x) := by
+        rw [exp_act_unit_axis ω hω θ]
+    _ = inner ℝ ω x := inner_act _ ω x
 
 /-- A fixed unit axis admits an angle in `(-π,π]` giving the whole rotation.
 Cross-product covariance fixes the action on the third adapted basis vector;

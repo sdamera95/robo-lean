@@ -361,15 +361,15 @@ theorem elbowManipulator_elbow_angle {l₀ l₁ l₂ : ℝ} (hl₁ : l₁ ≠ 0)
             ‖(g * (elbowManipulator l₀ l₁ l₂).toolRef⁻¹).applyPoint (elbowWrist l₀ l₁ l₂) -
               elbowShoulder l₀‖) + k * (2 * Real.pi) := by
   have hsub := elbowManipulator_subproblemThree h
-  have hu : PadenKahan.perp (-xAxis) (elbowWrist l₀ l₁ l₂ - vec 0 l₁ l₀) ≠ 0 := by
+  have hu : Vec3.perp (-xAxis) (elbowWrist l₀ l₁ l₂ - vec 0 l₁ l₀) ≠ 0 := by
     intro h0
     have h1 := congrArg (fun v : Vec3 => v 1) h0
-    simp [PadenKahan.perp, elbowWrist, vec, xAxis, PiLp.inner_apply, Fin.sum_univ_three] at h1
+    simp [Vec3.perp, elbowWrist, vec, xAxis, PiLp.inner_apply, Fin.sum_univ_three] at h1
     exact hl₂ h1
-  have hv : PadenKahan.perp (-xAxis) (elbowShoulder l₀ - vec 0 l₁ l₀) ≠ 0 := by
+  have hv : Vec3.perp (-xAxis) (elbowShoulder l₀ - vec 0 l₁ l₀) ≠ 0 := by
     intro h0
     have h1 := congrArg (fun v : Vec3 => v 1) h0
-    simp [PadenKahan.perp, elbowShoulder, vec, xAxis, PiLp.inner_apply, Fin.sum_univ_three] at h1
+    simp [Vec3.perp, elbowShoulder, vec, xAxis, PiLp.inner_apply, Fin.sum_univ_three] at h1
     exact hl₁ h1
   have hcos := (PadenKahan.subproblemThree_iff_cos norm_neg_xAxis (norm_nonneg _) hu hv
     (θ 2)).mp hsub

@@ -20,7 +20,7 @@ Conventions.
 * Angles are real numbers; solutions are described up to integer multiples of `2π` (ledger
   K01). `atan2 y x` is the library's `Rotation.atan2` (Euler-angle module), the argument of
   `x + i y` in `(-π, π]`, with `atan2 0 0 = 0`.
-* `perp ω u` is the projection `u′ = u - ω ωᵀ u` onto the plane perpendicular to `ω`, and
+* `Vec3.perp ω u` is the projection `u′ = u - ω ωᵀ u` onto the plane perpendicular to `ω`, and
   `planeAngle ω u v` is the angle `atan2(ωᵀ(u′ × v′), u′ᵀv′)` of eq. (3.28).
 
 Contents.
@@ -91,52 +91,44 @@ lemmas `Rotation.sqrt_mul_cos_atan2` and `Rotation.sqrt_mul_sin_atan2` live next
 
 /-! ### Projection onto the plane perpendicular to an axis -/
 
-/-- The projection `u′ = u - ω ωᵀ u` of a vector onto the plane perpendicular to the axis
-direction `ω`, MLS p. 100 (Subproblem 1) and p. 102 (Subproblem 3). It is the orthogonal
-projection when `ω` is a unit vector. -/
-def perp (ω u : Vec3) : Vec3 := u - inner ℝ ω u • ω
+@[deprecated Vec3.perp (since := "2026-10-11")]
+alias perp := Vec3.perp
 
 /-- The projected vector `u′` of MLS p. 100 is perpendicular to the unit axis `ω`. -/
-theorem inner_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u : Vec3) : inner ℝ ω (perp ω u) = 0 := by
-  simp [perp, inner_sub_right, inner_smul_right, hω]
+theorem inner_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u : Vec3) : inner ℝ ω (Vec3.perp ω u) = 0 := by
+  simp [Vec3.perp, inner_sub_right, inner_smul_right, hω]
 
 /-- Pythagoras for the projection of MLS p. 100: `‖u′‖² = ‖u‖² - (ωᵀu)²` for a unit axis. -/
 theorem norm_perp_sq {ω : Vec3} (hω : ‖ω‖ = 1) (u : Vec3) :
-    ‖perp ω u‖ ^ 2 = ‖u‖ ^ 2 - inner ℝ ω u ^ 2 := by
+    ‖Vec3.perp ω u‖ ^ 2 = ‖u‖ ^ 2 - inner ℝ ω u ^ 2 := by
   rw [← real_inner_self_eq_norm_sq, ← real_inner_self_eq_norm_sq]
-  simp only [perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
+  simp only [Vec3.perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
     real_inner_self_eq_norm_sq, hω, real_inner_comm u ω, RCLike.conj_to_real]
   ring
 
 /-- The inner product of two projections (MLS p. 100): `u′ᵀv′ = uᵀv - (ωᵀu)(ωᵀv)` for a unit
 axis. -/
 theorem inner_perp_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) :
-    inner ℝ (perp ω u) (perp ω v) = inner ℝ u v - inner ℝ ω u * inner ℝ ω v := by
-  simp only [perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
+    inner ℝ (Vec3.perp ω u) (Vec3.perp ω v) = inner ℝ u v - inner ℝ ω u * inner ℝ ω v := by
+  simp only [Vec3.perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
     real_inner_self_eq_norm_sq, hω, real_inner_comm u ω, real_inner_comm v ω,
     RCLike.conj_to_real]
   ring
 
 /-- Supporting lemma: the cross product with the axis does not see the axial component,
 `ω × u′ = ω × u`. -/
-theorem cross_perp (ω u : Vec3) : Vec3.cross ω (perp ω u) = Vec3.cross ω u := by
-  simp [perp, sub_eq_add_neg, Vec3.cross_add, cross_self']
+theorem cross_perp (ω u : Vec3) : Vec3.cross ω (Vec3.perp ω u) = Vec3.cross ω u := by
+  simp [Vec3.perp, sub_eq_add_neg, Vec3.cross_add, cross_self']
 
-/-- **Rodrigues' formula on vectors, split along a unit axis** (MLS eq. (2.14), p. 28, applied
-to `u = (ωᵀu) ω + u′`): `e^{ω̂θ} u = (ωᵀu) ω + cos θ u′ + sin θ (ω × u′)`. -/
-theorem exp_act_eq {ω : Vec3} (hω : ‖ω‖ = 1) (θ : ℝ) (u : Vec3) :
-    (Rotation.exp ω θ).act u =
-      inner ℝ ω u • ω + Real.cos θ • perp ω u + Real.sin θ • Vec3.cross ω (perp ω u) := by
-  have hu : u = inner ℝ ω u • ω + perp ω u := by simp [perp]
-  conv_lhs => rw [hu]
-  rw [map_add, map_smul, Rotation.exp_act_unit_axis ω hω,
-    Rotation.exp_act_of_inner_eq_zero ω _ hω (inner_perp hω u), add_assoc]
+@[deprecated Rotation.exp_act_eq (since := "2026-10-11")]
+alias exp_act_eq := Rotation.exp_act_eq
 
 /-- The angle `θ₀ = atan2(ωᵀ(u′ × v′), u′ᵀv′)` between the projections `u′` and `v′` of `u`
 and `v` onto the plane perpendicular to `ω`, measured about `ω`: MLS eq. (3.28), p. 103, and
 the solution formula of Subproblem 1, p. 100. -/
 def planeAngle (ω u v : Vec3) : ℝ :=
-  Rotation.atan2 (inner ℝ ω (Vec3.cross (perp ω u) (perp ω v))) (inner ℝ (perp ω u) (perp ω v))
+  Rotation.atan2 (inner ℝ ω (Vec3.cross (Vec3.perp ω u) (Vec3.perp ω v)))
+    (inner ℝ (Vec3.perp ω u) (Vec3.perp ω v))
 
 /-- **The law-of-cosines identity behind Subproblems 1 and 3** (MLS eqs. (3.27)–(3.29),
 pp. 102–103). For a unit axis `ω`, every pair of vectors `u, v` and every angle `θ`,
@@ -146,40 +138,40 @@ rest is the law of cosines in the perpendicular plane. No nondegeneracy is assum
 `u′ = 0` or `v′ = 0` the cosine term vanishes. -/
 theorem norm_sub_exp_act_sq {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) (θ : ℝ) :
     ‖v - (Rotation.exp ω θ).act u‖ ^ 2 =
-      inner ℝ ω (v - u) ^ 2 + ‖perp ω u‖ ^ 2 + ‖perp ω v‖ ^ 2 -
-        2 * ‖perp ω u‖ * ‖perp ω v‖ * Real.cos (planeAngle ω u v - θ) := by
-  set x := inner ℝ (perp ω u) (perp ω v) with hx
-  set y := inner ℝ ω (Vec3.cross (perp ω u) (perp ω v)) with hy
+      inner ℝ ω (v - u) ^ 2 + ‖Vec3.perp ω u‖ ^ 2 + ‖Vec3.perp ω v‖ ^ 2 -
+        2 * ‖Vec3.perp ω u‖ * ‖Vec3.perp ω v‖ * Real.cos (planeAngle ω u v - θ) := by
+  set x := inner ℝ (Vec3.perp ω u) (Vec3.perp ω v) with hx
+  set y := inner ℝ ω (Vec3.cross (Vec3.perp ω u) (Vec3.perp ω v)) with hy
   -- the plane vectors are perpendicular to the axis, so `u′ × v′ = y ω`
-  have hpar : Vec3.cross (perp ω u) (perp ω v) = y • ω := by
+  have hpar : Vec3.cross (Vec3.perp ω u) (Vec3.perp ω v) = y • ω := by
     apply eq_inner_smul_of_cross_eq_zero hω
     rw [cross_cross_right, inner_perp hω, inner_perp hω, zero_smul, zero_smul, sub_zero]
-  have hxy : x ^ 2 + y ^ 2 = (‖perp ω u‖ * ‖perp ω v‖) ^ 2 := by
-    have h := Vec3.norm_cross_sq (perp ω u) (perp ω v)
+  have hxy : x ^ 2 + y ^ 2 = (‖Vec3.perp ω u‖ * ‖Vec3.perp ω v‖) ^ 2 := by
+    have h := Vec3.norm_cross_sq (Vec3.perp ω u) (Vec3.perp ω v)
     rw [hpar, norm_smul, Real.norm_eq_abs, hω, mul_one, sq_abs, ← hx] at h
     rw [mul_pow]
     linarith
-  have hm : √(x ^ 2 + y ^ 2) = ‖perp ω u‖ * ‖perp ω v‖ := by
+  have hm : √(x ^ 2 + y ^ 2) = ‖Vec3.perp ω u‖ * ‖Vec3.perp ω v‖ := by
     rw [hxy, Real.sqrt_sq (by positivity)]
   have hc := Rotation.sqrt_mul_cos_atan2 y x
   have hs := Rotation.sqrt_mul_sin_atan2 y x
   rw [hm] at hc hs
   -- the inner product of `v` with the rotated `u`
-  have hv : v = inner ℝ ω v • ω + perp ω v := by simp [perp]
-  have hwv : inner ℝ (Vec3.cross ω (perp ω u)) v =
-      inner ℝ (Vec3.cross ω (perp ω u)) (perp ω v) := by
+  have hv : v = inner ℝ ω v • ω + Vec3.perp ω v := by simp [Vec3.perp]
+  have hwv : inner ℝ (Vec3.cross ω (Vec3.perp ω u)) v =
+      inner ℝ (Vec3.cross ω (Vec3.perp ω u)) (Vec3.perp ω v) := by
     conv_lhs => rw [hv]
-    rw [inner_add_right, inner_smul_right, real_inner_comm ω (Vec3.cross ω (perp ω u)),
+    rw [inner_add_right, inner_smul_right, real_inner_comm ω (Vec3.cross ω (Vec3.perp ω u)),
       Vec3.inner_cross_left, mul_zero, zero_add]
-  have hy' : inner ℝ v (Vec3.cross ω (perp ω u)) = y := by
-    rw [real_inner_comm (Vec3.cross ω (perp ω u)) v, hwv, inner_cross_eq]
-  have hvu : inner ℝ v (perp ω u) = inner ℝ u v - inner ℝ ω u * inner ℝ ω v := by
-    simp only [perp, inner_sub_right, inner_smul_right, real_inner_comm v ω,
+  have hy' : inner ℝ v (Vec3.cross ω (Vec3.perp ω u)) = y := by
+    rw [real_inner_comm (Vec3.cross ω (Vec3.perp ω u)) v, hwv, inner_cross_eq]
+  have hvu : inner ℝ v (Vec3.perp ω u) = inner ℝ u v - inner ℝ ω u * inner ℝ ω v := by
+    simp only [Vec3.perp, inner_sub_right, inner_smul_right, real_inner_comm v ω,
       real_inner_comm v u]
   have hin : inner ℝ v ((Rotation.exp ω θ).act u) =
       inner ℝ ω u * inner ℝ ω v + Real.cos θ * x + Real.sin θ * y := by
-    rw [exp_act_eq hω, inner_add_right, inner_add_right, inner_smul_right, inner_smul_right,
-      inner_smul_right, hy', hvu, real_inner_comm ω v, hx, inner_perp_perp hω]
+    rw [Rotation.exp_act_eq hω, inner_add_right, inner_add_right, inner_smul_right,
+      inner_smul_right, inner_smul_right, hy', hvu, real_inner_comm ω v, hx, inner_perp_perp hω]
   have hu2 := norm_perp_sq hω u
   have hv2 := norm_perp_sq hω v
   rw [norm_sub_sq_real, Rotation.norm_act, hin, Real.cos_sub, inner_sub_right]
@@ -207,8 +199,8 @@ equation `e^{ξ̂θ} p = q` of (3.17) holds exactly when
 nonnegative terms, with `θ₀ = planeAngle ω u v`. -/
 theorem subproblemOne_iff_sum_eq_zero {ω : Vec3} (hω : ‖ω‖ = 1) (r p q : Vec3) (θ : ℝ) :
     (Twist.exp (Twist.revolute ω r) θ).applyPoint p = q ↔
-      inner ℝ ω ((q - r) - (p - r)) ^ 2 + (‖perp ω (p - r)‖ - ‖perp ω (q - r)‖) ^ 2 +
-        2 * ‖perp ω (p - r)‖ * ‖perp ω (q - r)‖ *
+      inner ℝ ω ((q - r) - (p - r)) ^ 2 + (‖Vec3.perp ω (p - r)‖ - ‖Vec3.perp ω (q - r)‖) ^ 2 +
+        2 * ‖Vec3.perp ω (p - r)‖ * ‖Vec3.perp ω (q - r)‖ *
           (1 - Real.cos (planeAngle ω (p - r) (q - r) - θ)) = 0 := by
   rw [applyPoint_exp_revolute_eq_iff hω, eq_iff_norm_sub_sq_eq_zero, norm_sub_exp_act_sq hω]
   constructor <;> intro h <;> linear_combination h
@@ -219,11 +211,11 @@ equal projections onto the axis, `ωᵀu = ωᵀv`, and equal projections onto t
 plane, `‖u′‖ = ‖v′‖`. -/
 theorem subproblemOne_necessary {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3} {θ : ℝ}
     (h : (Twist.exp (Twist.revolute ω r) θ).applyPoint p = q) :
-    inner ℝ ω (p - r) = inner ℝ ω (q - r) ∧ ‖perp ω (p - r)‖ = ‖perp ω (q - r)‖ := by
+    inner ℝ ω (p - r) = inner ℝ ω (q - r) ∧ ‖Vec3.perp ω (p - r)‖ = ‖Vec3.perp ω (q - r)‖ := by
   rw [subproblemOne_iff_sum_eq_zero hω] at h
   set A := inner ℝ ω ((q - r) - (p - r))
-  set P := ‖perp ω (p - r)‖
-  set Q := ‖perp ω (q - r)‖
+  set P := ‖Vec3.perp ω (p - r)‖
+  set Q := ‖Vec3.perp ω (q - r)‖
   have hc : 0 ≤ 1 - Real.cos (planeAngle ω (p - r) (q - r) - θ) := by
     linarith [Real.cos_le_one (planeAngle ω (p - r) (q - r) - θ)]
   have h3 : 0 ≤ 2 * P * Q * (1 - Real.cos (planeAngle ω (p - r) (q - r) - θ)) := by
@@ -242,7 +234,8 @@ angle `θ = atan2(ωᵀ(u′ × v′), u′ᵀv′)` (`planeAngle ω u v`, with 
 solves `e^{ξ̂θ} p = q`. This direction needs no nondegeneracy: when `u′ = 0` every angle is a
 solution, this one included. -/
 theorem subproblemOne_planeAngle {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3}
-    (h₁ : inner ℝ ω (p - r) = inner ℝ ω (q - r)) (h₂ : ‖perp ω (p - r)‖ = ‖perp ω (q - r)‖) :
+    (h₁ : inner ℝ ω (p - r) = inner ℝ ω (q - r))
+    (h₂ : ‖Vec3.perp ω (p - r)‖ = ‖Vec3.perp ω (q - r)‖) :
     (Twist.exp (Twist.revolute ω r) (planeAngle ω (p - r) (q - r))).applyPoint p = q := by
   rw [subproblemOne_iff_sum_eq_zero hω, inner_sub_right, h₁, h₂]
   simp
@@ -252,7 +245,7 @@ axis `ω`, some angle `θ` satisfies `e^{ξ̂θ} p = q` if and only if the condi
 `ωᵀu = ωᵀv` and `‖u′‖ = ‖v′‖`, with `u = p - r`, `v = q - r`. -/
 theorem subproblemOne_exists_iff {ω : Vec3} (hω : ‖ω‖ = 1) (r p q : Vec3) :
     (∃ θ : ℝ, (Twist.exp (Twist.revolute ω r) θ).applyPoint p = q) ↔
-      inner ℝ ω (p - r) = inner ℝ ω (q - r) ∧ ‖perp ω (p - r)‖ = ‖perp ω (q - r)‖ := by
+      inner ℝ ω (p - r) = inner ℝ ω (q - r) ∧ ‖Vec3.perp ω (p - r)‖ = ‖Vec3.perp ω (q - r)‖ := by
   constructor
   · rintro ⟨θ, h⟩
     exact subproblemOne_necessary hω h
@@ -264,19 +257,20 @@ theorem subproblemOne_exists_iff {ω : Vec3} (hω : ‖ω‖ = 1) (r p q : Vec3)
 angles `θ₀ + 2πk`, `k ∈ ℤ`, with `θ₀ = atan2(ωᵀ(u′ × v′), u′ᵀv′)`. The book determines `θ` by
 the atan2 formula and leaves the `2π` ambiguity implicit (real-lift convention, ledger K01). -/
 theorem subproblemOne_iff {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3}
-    (h₁ : inner ℝ ω (p - r) = inner ℝ ω (q - r)) (h₂ : ‖perp ω (p - r)‖ = ‖perp ω (q - r)‖)
-    (hu : perp ω (p - r) ≠ 0) (θ : ℝ) :
+    (h₁ : inner ℝ ω (p - r) = inner ℝ ω (q - r))
+    (h₂ : ‖Vec3.perp ω (p - r)‖ = ‖Vec3.perp ω (q - r)‖)
+    (hu : Vec3.perp ω (p - r) ≠ 0) (θ : ℝ) :
     (Twist.exp (Twist.revolute ω r) θ).applyPoint p = q ↔
       ∃ k : ℤ, θ = planeAngle ω (p - r) (q - r) + k * (2 * Real.pi) := by
   rw [subproblemOne_iff_sum_eq_zero hω, inner_sub_right, h₁, ← h₂, sub_self, sub_self]
-  have hP : 0 < ‖perp ω (p - r)‖ := norm_pos_iff.mpr hu
+  have hP : 0 < ‖Vec3.perp ω (p - r)‖ := norm_pos_iff.mpr hu
   constructor
   · intro h
     have hcos : Real.cos (planeAngle ω (p - r) (q - r) - θ) = 1 := by
-      have h' : 2 * ‖perp ω (p - r)‖ ^ 2 *
+      have h' : 2 * ‖Vec3.perp ω (p - r)‖ ^ 2 *
           (1 - Real.cos (planeAngle ω (p - r) (q - r) - θ)) = 0 := by
         linear_combination h
-      have hP2 : 2 * ‖perp ω (p - r)‖ ^ 2 ≠ 0 := by positivity
+      have hP2 : 2 * ‖Vec3.perp ω (p - r)‖ ^ 2 ≠ 0 := by positivity
       have := (mul_eq_zero.mp h').resolve_left hP2
       linarith
     obtain ⟨n, hn⟩ := (Real.cos_eq_one_iff _).mp hcos
@@ -292,16 +286,17 @@ theorem subproblemOne_iff {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3}
 `u′ = 0`, then `p = q`, the point `p` lies on the axis through `r` with direction `ω`, and every
 angle `θ` solves `e^{ξ̂θ} p = q` ("an infinite number of solutions"). -/
 theorem subproblemOne_of_perp_eq_zero {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3}
-    (h₁ : inner ℝ ω (p - r) = inner ℝ ω (q - r)) (h₂ : ‖perp ω (p - r)‖ = ‖perp ω (q - r)‖)
-    (hu : perp ω (p - r) = 0) :
+    (h₁ : inner ℝ ω (p - r) = inner ℝ ω (q - r))
+    (h₂ : ‖Vec3.perp ω (p - r)‖ = ‖Vec3.perp ω (q - r)‖)
+    (hu : Vec3.perp ω (p - r) = 0) :
     p = q ∧ p ∈ axisLine r ω ∧
       ∀ θ : ℝ, (Twist.exp (Twist.revolute ω r) θ).applyPoint p = q := by
-  have hv : perp ω (q - r) = 0 := by
+  have hv : Vec3.perp ω (q - r) = 0 := by
     rw [← norm_eq_zero, ← h₂, hu, norm_zero]
   have hpu : p - r = inner ℝ ω (p - r) • ω := by
-    simpa [perp, sub_eq_zero] using hu
+    simpa [Vec3.perp, sub_eq_zero] using hu
   have hqv : q - r = inner ℝ ω (q - r) • ω := by
-    simpa [perp, sub_eq_zero] using hv
+    simpa [Vec3.perp, sub_eq_zero] using hv
   have hpq : p = q := by
     have : p - r = q - r := by rw [hpu, hqv, h₁]
     simpa using this
@@ -321,8 +316,8 @@ revolute twist through `r` with axis `ω`, every angle `θ` gives
 distance `δ′² = δ² - |ωᵀ(p - q)|²` and its law of cosines with `φ = θ₀ - θ`. -/
 theorem subproblemThree_norm_sq {ω : Vec3} (hω : ‖ω‖ = 1) (r p q : Vec3) (θ : ℝ) :
     ‖q - (Twist.exp (Twist.revolute ω r) θ).applyPoint p‖ ^ 2 =
-      inner ℝ ω (p - q) ^ 2 + ‖perp ω (p - r)‖ ^ 2 + ‖perp ω (q - r)‖ ^ 2 -
-        2 * ‖perp ω (p - r)‖ * ‖perp ω (q - r)‖ *
+      inner ℝ ω (p - q) ^ 2 + ‖Vec3.perp ω (p - r)‖ ^ 2 + ‖Vec3.perp ω (q - r)‖ ^ 2 -
+        2 * ‖Vec3.perp ω (p - r)‖ * ‖Vec3.perp ω (q - r)‖ *
           Real.cos (planeAngle ω (p - r) (q - r) - θ) := by
   have h : q - (Twist.exp (Twist.revolute ω r) θ).applyPoint p =
       (q - r) - (Rotation.exp ω θ).act (p - r) := by
@@ -336,8 +331,8 @@ theorem subproblemThree_norm_sq {ω : Vec3} (hω : ‖ω‖ = 1) (r p q : Vec3) 
 `(‖u′‖² + ‖v′‖² - δ′²) / (2 ‖u′‖ ‖v′‖)` with `δ′² = δ² - |ωᵀ(p - q)|²`, `u = p - r` and
 `v = q - r`. The book's `δ′²` may be negative; the formula uses it only through `δ′²`. -/
 def subproblemThreeCos (ω r p q : Vec3) (δ : ℝ) : ℝ :=
-  (‖perp ω (p - r)‖ ^ 2 + ‖perp ω (q - r)‖ ^ 2 - (δ ^ 2 - inner ℝ ω (p - q) ^ 2)) /
-    (2 * ‖perp ω (p - r)‖ * ‖perp ω (q - r)‖)
+  (‖Vec3.perp ω (p - r)‖ ^ 2 + ‖Vec3.perp ω (q - r)‖ ^ 2 - (δ ^ 2 - inner ℝ ω (p - q) ^ 2)) /
+    (2 * ‖Vec3.perp ω (p - r)‖ * ‖Vec3.perp ω (q - r)‖)
 
 /-- **MLS p. 103: Subproblem 3 reduced to one cosine equation.** For the unit revolute twist
 through `r` with axis `ω` and `δ ≥ 0` (the book takes `δ > 0`), if neither `p` nor `q` lies on
@@ -345,12 +340,12 @@ the axis (`u′ ≠ 0`, `v′ ≠ 0`, nondegeneracy hypotheses the book does not
 `‖q - e^{ξ̂θ} p‖ = δ` holds exactly when `cos(θ - θ₀) = κ`, with `θ₀` of eq. (3.28) and `κ` the
 argument of `cos⁻¹` in eq. (3.29) (`subproblemThreeCos`). -/
 theorem subproblemThree_iff_cos {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3} {δ : ℝ}
-    (hδ : 0 ≤ δ) (hu : perp ω (p - r) ≠ 0) (hv : perp ω (q - r) ≠ 0) (θ : ℝ) :
+    (hδ : 0 ≤ δ) (hu : Vec3.perp ω (p - r) ≠ 0) (hv : Vec3.perp ω (q - r) ≠ 0) (θ : ℝ) :
     ‖q - (Twist.exp (Twist.revolute ω r) θ).applyPoint p‖ = δ ↔
       Real.cos (θ - planeAngle ω (p - r) (q - r)) = subproblemThreeCos ω r p q δ := by
-  have hP : 0 < ‖perp ω (p - r)‖ := norm_pos_iff.mpr hu
-  have hQ : 0 < ‖perp ω (q - r)‖ := norm_pos_iff.mpr hv
-  have hden : 2 * ‖perp ω (p - r)‖ * ‖perp ω (q - r)‖ ≠ 0 := by positivity
+  have hP : 0 < ‖Vec3.perp ω (p - r)‖ := norm_pos_iff.mpr hu
+  have hQ : 0 < ‖Vec3.perp ω (q - r)‖ := norm_pos_iff.mpr hv
+  have hden : 2 * ‖Vec3.perp ω (p - r)‖ * ‖Vec3.perp ω (q - r)‖ ≠ 0 := by positivity
   rw [← sq_eq_sq₀ (norm_nonneg _) hδ, subproblemThree_norm_sq hω, subproblemThreeCos,
     eq_div_iff hden, ← Real.cos_neg, neg_sub]
   constructor <;> intro h <;> linear_combination -h
@@ -359,7 +354,7 @@ theorem subproblemThree_iff_cos {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3} 
 `subproblemThree_iff_cos` and `-1 ≤ κ ≤ 1` for the argument `κ` of `cos⁻¹`, the solutions of
 `‖q - e^{ξ̂θ} p‖ = δ` are exactly `θ = θ₀ ± cos⁻¹ κ` up to integer multiples of `2π`. -/
 theorem subproblemThree_iff {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3} {δ : ℝ}
-    (hδ : 0 ≤ δ) (hu : perp ω (p - r) ≠ 0) (hv : perp ω (q - r) ≠ 0)
+    (hδ : 0 ≤ δ) (hu : Vec3.perp ω (p - r) ≠ 0) (hv : Vec3.perp ω (q - r) ≠ 0)
     (hκ₁ : -1 ≤ subproblemThreeCos ω r p q δ) (hκ₂ : subproblemThreeCos ω r p q δ ≤ 1)
     (θ : ℝ) :
     ‖q - (Twist.exp (Twist.revolute ω r) θ).applyPoint p‖ = δ ↔
@@ -377,7 +372,7 @@ theorem subproblemThree_iff {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3} {δ 
 `subproblemThree_iff_cos`, if the argument `κ` of `cos⁻¹` in eq. (3.29) has `|κ| > 1` (the circle
 of radius `‖u′‖` misses the circle of radius `δ′`), no angle gives `‖q - e^{ξ̂θ} p‖ = δ`. -/
 theorem subproblemThree_no_solution {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3} {δ : ℝ}
-    (hδ : 0 ≤ δ) (hu : perp ω (p - r) ≠ 0) (hv : perp ω (q - r) ≠ 0)
+    (hδ : 0 ≤ δ) (hu : Vec3.perp ω (p - r) ≠ 0) (hv : Vec3.perp ω (q - r) ≠ 0)
     (hκ : 1 < |subproblemThreeCos ω r p q δ|) (θ : ℝ) :
     ‖q - (Twist.exp (Twist.revolute ω r) θ).applyPoint p‖ ≠ δ := by
   rw [Ne, subproblemThree_iff_cos hω hδ hu hv]
@@ -414,7 +409,7 @@ theorem subproblemThree_branches_ne_of_abs_lt_one (θ₀ κ : ℝ) (hκ₁ : -1 
 (`u′ = 0` or `v′ = 0`), the distance `‖q - e^{ξ̂θ} p‖` does not depend on `θ`, so every angle or
 no angle is a solution; the formula (3.29) divides by zero in this case. -/
 theorem subproblemThree_norm_eq_of_perp_eq_zero {ω : Vec3} (hω : ‖ω‖ = 1) {r p q : Vec3}
-    (h : perp ω (p - r) = 0 ∨ perp ω (q - r) = 0) (θ θ' : ℝ) :
+    (h : Vec3.perp ω (p - r) = 0 ∨ Vec3.perp ω (q - r) = 0) (θ θ' : ℝ) :
     ‖q - (Twist.exp (Twist.revolute ω r) θ).applyPoint p‖ =
       ‖q - (Twist.exp (Twist.revolute ω r) θ').applyPoint p‖ := by
   rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), subproblemThree_norm_sq hω,
@@ -428,7 +423,7 @@ carries `u` to `v` if and only if `ωᵀu = ωᵀv` and `‖u′‖ = ‖v′‖
 `subproblemOne_exists_iff` with the axis through the origin. -/
 theorem exists_exp_act_eq_iff {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) :
     (∃ θ : ℝ, (Rotation.exp ω θ).act u = v) ↔
-      inner ℝ ω u = inner ℝ ω v ∧ ‖perp ω u‖ = ‖perp ω v‖ := by
+      inner ℝ ω u = inner ℝ ω v ∧ ‖Vec3.perp ω u‖ = ‖Vec3.perp ω v‖ := by
   have h := subproblemOne_exists_iff hω 0 u v
   simp only [applyPoint_exp_revolute_eq_iff hω, sub_zero] at h
   exact h
@@ -565,14 +560,8 @@ theorem eq_subproblemTwoPoint {ω₁ ω₂ : Vec3} (hω₁ : ‖ω₁‖ = 1) (h
   rw [hw, sub_eq_zero] at hw0
   exact hw0
 
-/-- A rotation about a unit axis `ω` preserves the component along `ω`: `ωᵀ(e^{ω̂θ} x) = ωᵀx`
-(used for eq. (3.23), p. 101, and eq. (3.19), p. 100). -/
-theorem inner_exp_act_axis {ω : Vec3} (hω : ‖ω‖ = 1) (θ : ℝ) (x : Vec3) :
-    inner ℝ ω ((Rotation.exp ω θ).act x) = inner ℝ ω x := by
-  calc inner ℝ ω ((Rotation.exp ω θ).act x)
-      = inner ℝ ((Rotation.exp ω θ).act ω) ((Rotation.exp ω θ).act x) := by
-        rw [Rotation.exp_act_unit_axis ω hω θ]
-    _ = inner ℝ ω x := Rotation.inner_act _ ω x
+@[deprecated Rotation.inner_exp_act_axis (since := "2026-10-11")]
+alias inner_exp_act_axis := Rotation.inner_exp_act_axis
 
 /-- **MLS pp. 101–102: every solution of Subproblem 2 passes through a candidate point.** For
 unit revolute twists whose axes meet at `r` and are not parallel (`ω₁ × ω₂ ≠ 0`), `(θ₁, θ₂)`
@@ -590,9 +579,9 @@ theorem subproblemTwo_iff {ω₁ ω₂ : Vec3} (hω₁ : ‖ω₁‖ = 1) (hω�
   constructor
   · intro h
     set z := (Rotation.exp ω₂ θ₂).act (p - r) with hz
-    have h₂ : inner ℝ ω₂ z = inner ℝ ω₂ (p - r) := inner_exp_act_axis hω₂ θ₂ _
+    have h₂ : inner ℝ ω₂ z = inner ℝ ω₂ (p - r) := Rotation.inner_exp_act_axis hω₂ θ₂ _
     have h₁ : inner ℝ ω₁ z = inner ℝ ω₁ (q - r) := by
-      rw [← h, inner_exp_act_axis hω₁]
+      rw [← h, Rotation.inner_exp_act_axis hω₁]
     have hzeq := eq_subproblemTwoPoint hω₁ hω₂ hn h₁ h₂
     set γ := inner ℝ (Vec3.cross ω₁ ω₂) z / ‖Vec3.cross ω₁ ω₂‖ ^ 2
     refine ⟨γ, ?_, hzeq, hzeq ▸ h⟩

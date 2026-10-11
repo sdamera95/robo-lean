@@ -493,7 +493,7 @@ theorem scaraArm_massMatrix (θ : Fin 4 → ℝ) :
         sc_jac_one_zero, sc_jac_one_one, sc_jac_two_zero, sc_jac_two_one, sc_jac_two_two,
         sc_jac_three_zero, sc_jac_three_one, sc_jac_three_two, sc_jac_three_three, sc_jac_zero_one,
         sc_jac_zero_two, sc_jac_zero_three, sc_jac_one_two, sc_jac_one_three, sc_jac_two_three,
-        sc_revolute_coordinates, sc_prismatic_coordinates, sc_pairing, RigidBody.coordinates_zero,
+        sc_revolute_coordinates, sc_prismatic_coordinates, sc_pairing, Twist.coordinates_zero,
         Matrix.mulVec_zero, dotProduct_zero, zero_dotProduct, Matrix.of_apply, Matrix.cons_val,
         scaraAlpha, scaraBeta, scaraGamma, scaraDelta]
   all_goals first | ring1 | (ring_nf; simp only [Real.cos_sq']; ring_nf)

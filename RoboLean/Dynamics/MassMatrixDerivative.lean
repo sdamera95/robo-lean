@@ -146,7 +146,7 @@ theorem differentiable_linkBodyJacobian_coordinates (k j : Fin n) (r : Fin 3 ⊕
     exact (entryCLM a b).differentiableAt.comp θ (((hinv.mul_const _).mul (hG θ)))
   · have e : (fun θ => (ch.linkBodyJacobian k θ j).coordinates r) = fun _ => 0 := by
       funext θ
-      rw [ch.linkBodyJacobian_of_lt k θ (not_le.mp hj), RigidBody.coordinates_zero]
+      rw [ch.linkBodyJacobian_of_lt k θ (not_le.mp hj), Twist.coordinates_zero]
       rfl
     rw [e]
     exact differentiable_const 0
@@ -307,9 +307,9 @@ theorem massMatrix_apply_relativeMotion (θ : Fin n → ℝ) (i j : Fin n) :
       ← ch.linkBodyJacobian_eq_adjoint_relativeMotion θ h.2]
   · rw [ite_eq_right h]
     rcases not_and_or.mp h with hi | hj
-    · rw [ch.linkBodyJacobian_of_lt l θ (not_le.mp hi), RigidBody.coordinates_zero,
+    · rw [ch.linkBodyJacobian_of_lt l θ (not_le.mp hi), Twist.coordinates_zero,
         zero_dotProduct]
-    · rw [ch.linkBodyJacobian_of_lt l θ (not_le.mp hj), RigidBody.coordinates_zero,
+    · rw [ch.linkBodyJacobian_of_lt l θ (not_le.mp hj), Twist.coordinates_zero,
         Matrix.mulVec_zero, dotProduct_zero]
 
 /-- The joint motions with Lean indices in `[a, b)`, multiplied in order: the product
@@ -517,14 +517,14 @@ theorem hasDerivAt_relativeAdjoint_coordinates (θ : Fin n → ℝ) (l j k : Fin
       rcases not_and_or.mp hm with hjk | hkl
       · rcases (not_lt.mp hjk).lt_or_eq with hlt | heq
         · rw [relativeAdjoint_of_lt _ hlt, Twist.bracket_zero_left, relativeAdjoint_zero,
-            RigidBody.coordinates_zero]
+            Twist.coordinates_zero]
           rfl
         · subst heq
           rw [relativeAdjoint_self, Twist.bracket_self, relativeAdjoint_zero,
-            RigidBody.coordinates_zero]
+            Twist.coordinates_zero]
           rfl
       · unfold relativeAdjoint
-        rw [ite_eq_right hkl, RigidBody.coordinates_zero]
+        rw [ite_eq_right hkl, Twist.coordinates_zero]
         rfl
     rw [e, h0]
     exact hasDerivAt_const _ _

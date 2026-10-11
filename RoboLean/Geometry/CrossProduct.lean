@@ -19,6 +19,10 @@ namespace Vec3
 noncomputable def cross (u v : Vec3) : Vec3 :=
   WithLp.toLp 2 (crossProduct (WithLp.ofLp u) (WithLp.ofLp v))
 
+/-- The coordinates of `u × v` are Mathlib's `crossProduct` of the coordinates of `u` and `v`:
+MLS p. 26, the componentwise formula `a × b = (a₂b₃ − a₃b₂, a₃b₁ − a₁b₃, a₁b₂ − a₂b₁)` printed
+before eq. (2.4), which eqs. (2.4)–(2.5) write as `a × b = â b`. Coordinates are read through
+`WithLp.ofLp`, indexed `0, 1, 2` for the book's `1, 2, 3`. -/
 theorem cross_coordinates (u v : Vec3) :
     WithLp.ofLp (cross u v) = crossProduct (WithLp.ofLp u) (WithLp.ofLp v) := rfl
 

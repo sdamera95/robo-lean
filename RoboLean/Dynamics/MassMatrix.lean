@@ -173,10 +173,10 @@ def linkJacobianMatrix (k : Fin n) (θ : Fin n → ℝ) : Matrix (Fin 3 ⊕ Fin 
 (MLS p. 168, `Vᵇ_{sl_k} = J_k θ̇`). -/
 theorem linkJacobianMatrix_mulVec (k : Fin n) (θ θ' : Fin n → ℝ) :
     ch.linkJacobianMatrix k θ *ᵥ θ' = (∑ j, θ' j • ch.linkBodyJacobian k θ j).coordinates := by
-  rw [RigidBody.coordinates_sum]
+  rw [Twist.coordinates_sum]
   funext r
   simp only [linkJacobianMatrix, Matrix.mulVec, dotProduct, Matrix.of_apply,
-    RigidBody.coordinates_smul, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, mul_comm]
+    Twist.coordinates_smul, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, mul_comm]
 
 /-- The link Jacobian matrix of MLS p. 168 is the E011 body Jacobian matrix (MLS p. 117,
 eq. (3.55)) of the chain `linkChain k` that carries the frame of link `k`; the two definitions
@@ -318,7 +318,7 @@ theorem stackedJacobianInjective_of_twist_ne_zero (h : ∀ j, ch.chain.twist j �
     rcases Nat.lt_succ_iff_lt_or_eq.mp hj with hlt | heq
     · exact ih j hlt
     · have hsum : (∑ i, x i • ch.linkBodyJacobian j θ i) = 0 := by
-        rw [← RigidBody.coordinates_eq_zero_iff, ← linkJacobianMatrix_mulVec]
+        rw [← Twist.coordinates_eq_zero_iff, ← linkJacobianMatrix_mulVec]
         exact hx j
       rw [Finset.sum_eq_single j] at hsum
       · have hcol : ch.linkBodyJacobian j θ j ≠ 0 := by

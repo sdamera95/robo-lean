@@ -219,6 +219,30 @@ def coordinatesEquiv : Twist ≃ₗ[ℝ] (Fin 3 ⊕ Fin 3 → ℝ) where
 /-- `coordinatesEquiv` applies `Twist.coordinates` (MLS eq. (2.30), p. 41). -/
 @[simp] theorem coordinatesEquiv_apply (ξ : Twist) : coordinatesEquiv ξ = ξ.coordinates := rfl
 
+/-- Six coordinates of a sum of twists (MLS eq. (2.30), p. 41, twist coordinates). -/
+theorem coordinates_add (ξ η : Twist) :
+    (ξ + η).coordinates = ξ.coordinates + η.coordinates :=
+  coordinatesEquiv.map_add ξ η
+
+/-- Six coordinates of a scaled twist (MLS eq. (2.30), p. 41, twist coordinates). -/
+theorem coordinates_smul (c : ℝ) (ξ : Twist) :
+    (c • ξ).coordinates = c • ξ.coordinates :=
+  coordinatesEquiv.map_smul c ξ
+
+/-- The zero twist has zero coordinates (MLS eq. (2.30), p. 41, twist coordinates). -/
+@[simp] theorem coordinates_zero : (0 : Twist).coordinates = 0 :=
+  coordinatesEquiv.map_zero
+
+/-- Six coordinates of a finite sum of twists, for example `J θ̇ = ∑ᵢ θ̇ᵢ Jᵢ`
+(MLS p. 168, `Vᵇ = J θ̇`). -/
+theorem coordinates_sum {ι : Type*} (s : Finset ι) (f : ι → Twist) :
+    (∑ i ∈ s, f i).coordinates = ∑ i ∈ s, (f i).coordinates :=
+  map_sum coordinatesEquiv f s
+
+/-- A twist vanishes exactly when its six coordinates do (MLS eq. (2.30), p. 41). -/
+theorem coordinates_eq_zero_iff (ξ : Twist) : ξ.coordinates = 0 ↔ ξ = 0 :=
+  coordinatesEquiv.map_eq_zero_iff
+
 /-- MLS equation (2.58), now as an explicit six-by-six block matrix. -/
 def adjointMatrix (g : RigidTransform) : Matrix (Fin 3 ⊕ Fin 3) (Fin 3 ⊕ Fin 3) ℝ :=
   Matrix.fromBlocks g.rotation.val (Vec3.hat g.translation * g.rotation.val)

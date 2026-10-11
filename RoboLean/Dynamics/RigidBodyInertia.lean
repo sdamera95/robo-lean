@@ -72,33 +72,23 @@ def coordinatesLinearMap : Twist →ₗ[ℝ] (Fin 3 ⊕ Fin 3 → ℝ) where
 @[simp] theorem coordinatesLinearMap_apply (ξ : Twist) :
     coordinatesLinearMap ξ = ξ.coordinates := rfl
 
-/-- Six coordinates of a sum of twists (MLS eq. (2.30), p. 41, twist coordinates). -/
-theorem coordinates_add (ξ η : Twist) :
-    (ξ + η).coordinates = ξ.coordinates + η.coordinates :=
-  coordinatesLinearMap.map_add ξ η
+/-! The coordinate lemmas below moved to the `Twist` namespace
+(`RoboLean.Geometry.TwistAdjoint`) on 2026-10-11; the old names remain as deprecated aliases. -/
 
-/-- Six coordinates of a scaled twist (MLS eq. (2.30), p. 41, twist coordinates). -/
-theorem coordinates_smul (c : ℝ) (ξ : Twist) :
-    (c • ξ).coordinates = c • ξ.coordinates :=
-  coordinatesLinearMap.map_smul c ξ
+@[deprecated Twist.coordinates_add (since := "2026-10-11")]
+alias coordinates_add := Twist.coordinates_add
 
-/-- The zero twist has zero coordinates (MLS eq. (2.30), p. 41, twist coordinates). -/
-@[simp] theorem coordinates_zero : (0 : Twist).coordinates = 0 :=
-  coordinatesLinearMap.map_zero
+@[deprecated Twist.coordinates_smul (since := "2026-10-11")]
+alias coordinates_smul := Twist.coordinates_smul
 
-/-- Six coordinates of a finite sum of twists, for example `J θ̇ = ∑ᵢ θ̇ᵢ Jᵢ`
-(MLS p. 168, `Vᵇ = J θ̇`). -/
-theorem coordinates_sum {ι : Type*} (s : Finset ι) (f : ι → Twist) :
-    (∑ i ∈ s, f i).coordinates = ∑ i ∈ s, (f i).coordinates :=
-  map_sum coordinatesLinearMap f s
+@[deprecated Twist.coordinates_zero (since := "2026-10-11")]
+alias coordinates_zero := Twist.coordinates_zero
 
-/-- A twist vanishes exactly when its six coordinates do (MLS eq. (2.30), p. 41). -/
-theorem coordinates_eq_zero_iff (ξ : Twist) : ξ.coordinates = 0 ↔ ξ = 0 := by
-  constructor
-  · intro h
-    exact Twist.coordinates_injective (h.trans coordinates_zero.symm)
-  · rintro rfl
-    exact coordinates_zero
+@[deprecated Twist.coordinates_sum (since := "2026-10-11")]
+alias coordinates_sum := Twist.coordinates_sum
+
+@[deprecated Twist.coordinates_eq_zero_iff (since := "2026-10-11")]
+alias coordinates_eq_zero_iff := Twist.coordinates_eq_zero_iff
 
 /-! ### Generalized inertia and kinetic energy -/
 
@@ -237,7 +227,7 @@ theorem kineticEnergy_eq_zero_iff {𝓜 : Matrix (Fin 3 ⊕ Fin 3) (Fin 3 ⊕ Fi
   constructor
   · intro h0
     by_contra hV
-    have hc : V.coordinates ≠ 0 := fun hc => hV ((coordinates_eq_zero_iff V).mp hc)
+    have hc : V.coordinates ≠ 0 := fun hc => hV ((Twist.coordinates_eq_zero_iff V).mp hc)
     have h := h𝓜.dotProduct_mulVec_pos hc
     simp only [star_trivial] at h
     rw [kineticEnergy] at h0

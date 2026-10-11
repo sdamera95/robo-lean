@@ -388,7 +388,7 @@ theorem threeLinkArm_massMatrix (θ : Fin 3 → ℝ) :
       threeLinkArm_linkBodyJacobian_zero_zero, threeLinkArm_linkBodyJacobian_one_zero,
       threeLinkArm_linkBodyJacobian_one_one, threeLinkArm_linkBodyJacobian_two_zero,
       threeLinkArm_linkBodyJacobian_two_one, threeLinkArm_linkBodyJacobian_two_two,
-      tl_jac_zero_one, tl_jac_zero_two, tl_jac_one_two, tl_pairing, RigidBody.coordinates_zero,
+      tl_jac_zero_one, tl_jac_zero_two, tl_jac_one_two, tl_pairing, Twist.coordinates_zero,
       Matrix.mulVec_zero, dotProduct_zero, zero_dotProduct, Matrix.of_apply, Matrix.cons_val]
   · ring
   · ring
