@@ -96,3 +96,10 @@ import RoboLean.Dynamics.InertiaTensor
 import RoboLean.Examples.ThreeLinkDynamics
 import RoboLean.Examples.ScaraDynamics
 import RoboLean.Design.PlanarArmTimeoutSupervisor
+import RoboLean.Control.GlobalFlow
+import RoboLean.Control.LyapunovFlow
+import RoboLean.Control.LaSalleLocal
+import RoboLean.Control.ConverseLyapunov
+import RoboLean.Control.AugmentedPD
+import RoboLean.Control.PDFlow
+import RoboLean.Examples.NonlinearSpring

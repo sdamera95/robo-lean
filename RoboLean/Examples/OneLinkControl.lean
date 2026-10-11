@@ -1,4 +1,5 @@
 import RoboLean.Control.PDAsymptotic
+import RoboLean.Control.AugmentedPD
 import RoboLean.Examples.RigidTransform
 
 /-!
@@ -18,7 +19,10 @@ every `t₀ ≥ 0` (`oneLinkModel_globallyAsymptoticallyStableAt_pdCompensatedTo
 Proposition 4.9, printed p. 193, as formalized in `RoboLean.Control.PDAsymptotic`). Here every
 hypothesis of the general theorem is discharged, the solution flow of the closed loop included:
 the inertia is constant, so the closed loop is affine and its flow is the matrix exponential
-constructed in `ManipulatorModel.hasFlow_pdClosedLoop_of_const`.
+constructed in `ManipulatorModel.hasFlow_pdClosedLoop_of_const`. Under the augmented PD law (4.53)
+with `K_p = K_v = 1` every twice-differentiable desired trajectory is tracked exponentially, from
+every initial error (`oneLinkModel_augmentedPD_tracking`, MLS Proposition 4.10, printed p. 194, as
+formalized in `RoboLean.Control.AugmentedPD`): the inertia is constant, so `C = 0`.
 
 Conventions: the state is `(θ, θ̇) ∈ ℝ¹ × ℝ¹` with the sup norm of the product; Lean joint `0` is
 the book's joint 1; `I = ![I_x, I_y, I_z]`, so `I_z = I 2`; the tool pose is not used and is set to
@@ -219,5 +223,26 @@ theorem oneLinkModel_globallyAsymptoticallyStableAt_pdCompensatedTorque {m r : �
   exact ManipulatorModel.globallyAsymptoticallyStableAt_pdCompensatedTorque_of_const _
     (oneLinkArm_linkInertia_isSymm m r I) hM0 (oneLink_posDef_of_pos hpos) Matrix.PosDef.one
     Matrix.PosDef.one θd ht₀
+
+/-- **MLS Proposition 4.10 (printed p. 194) as formalized, for the one-link arm: global
+exponential tracking.** With `m ≥ 0` and `I_z = I 2 > 0`, any `r`, any gravity data and further
+joint forces, and `K_p = K_v = 1`, there are `m', α > 0` such that for every desired trajectory
+with `θ̇_d = θ_d'` and `θ̈_d = θ_d''` every closed-loop solution under the augmented PD law (4.53)
+from `t₀ ≥ 0` has tracking error at most `m' e^{−α(t − t₀)}` times the initial error (state
+`(θ, θ̇)`, sup norm). The inertia `[I_z + m r²]` is constant, so `C = 0` and
+`ManipulatorModel.augmentedPD_tracking_of_const` applies with no bound on the trajectory. -/
+theorem oneLinkModel_augmentedPD_tracking {m r : ℝ} {I : Fin 3 → ℝ} (hm : 0 ≤ m) (hI : 0 < I 2)
+    (g : ℝ) (up : Vec3) (Ne : (Fin 1 → ℝ) → (Fin 1 → ℝ) → Fin 1 → ℝ) :
+    ∃ m' > 0, ∃ α > 0, ∀ {θd θd' θd'' : ℝ → Fin 1 → ℝ}, (∀ t, HasDerivAt θd (θd' t) t) →
+      (∀ t, HasDerivAt θd' (θd'' t) t) → ∀ t₀, 0 ≤ t₀ → ∀ x : ℝ → (Fin 1 → ℝ) × (Fin 1 → ℝ),
+      Stability.IsSolution ((oneLinkModel m r I g up Ne).field
+        ((oneLinkModel m r I g up Ne).augmentedPDTorque 1 1 θd θd' θd'')) t₀ x →
+      ∀ t, t₀ ≤ t → ‖((x t).1 - θd t, (x t).2 - θd' t)‖ ≤
+        m' * Real.exp (-α * (t - t₀)) * ‖((x t₀).1 - θd t₀, (x t₀).2 - θd' t₀)‖ := by
+  have hM0 : ∀ q, (oneLinkModel m r I g up Ne).M q = !![I 2 + m * r ^ 2] := fun q =>
+    oneLinkArm_massMatrix m r I q
+  have hpos : 0 < I 2 + m * r ^ 2 := by positivity
+  exact ManipulatorModel.augmentedPD_tracking_of_const _ (oneLinkArm_linkInertia_isSymm m r I) hM0
+    (oneLink_posDef_of_pos hpos) Matrix.PosDef.one Matrix.PosDef.one
 
 end RoboLean.Examples
