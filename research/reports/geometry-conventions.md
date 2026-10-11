@@ -926,6 +926,29 @@ the end-effector xy position in the frame of the dynamic arm `planarTwoLinkArm` 
 `θ = 0`, joint 2 at `(l₁, 0, 0)`, `l₂` the distance from joint 2 to the end effector); the kinematic
 arm `planarTwoLink` of Chapter 3 (along `+y`) is a different convention and is not used.
 
+**Linearization and the eigenvalue criterion (Theorem 4.6, pp. 184–185; E026).** The uniform
+linearization (4.39) is `Stability.IsUniformLinearization f A` with `A : ℝ → (E →L[ℝ] E)`, time
+first: for every `γ > 0` some `r > 0` gives `‖f(t, x) − A(t)x‖ ≤ γ‖x‖` for all `t ≥ 0` and
+`‖x‖ ≤ r`; it implies `f(t, 0) = 0` for `t ≥ 0`, MLS's assumption on (4.37). MLS's
+`∂f/∂x|_{x=0}` is the Fréchet derivative at `0` (`HasFDerivAt`); for an autonomous `F` with
+`F(0) = 0` this is exactly (4.39) (`isUniformLinearization_of_hasFDerivAt`). The linear map of a
+real `n × n` matrix is `LinearMap.toContinuousLinearMap (Matrix.toLin' A)`, `x ↦ A x` on
+`Fin n → ℝ`, with the operator norm of the sup norm; on matrices the same norm is Mathlib's
+`Matrix.Norms.Operator` (largest row sum of absolute values; `Matrix.linfty_opNorm_eq_opNorm`),
+opened only where needed. "All eigenvalues in the open left half plane" is `Control.IsHurwitz A`:
+`Re μ < 0` whenever `A v = μ v` for some `v ∈ ℂⁿ`, `v ≠ 0`, with `A` acting entrywise through
+`ℝ → ℂ` (equivalently, on the complex spectrum); the name is the control-text one, not MLS's. The
+exponential is `NormedSpace.exp`; a matrix statement elaborates `exp` with the plain product
+topology and the normed lemmas meet it by definitional unfolding (`exact`), not by `rw`. Theorem
+4.6 is formalized for a constant linearization `A(t) ≡ L` (with `f` allowed to depend on `t`), on
+`ℝⁿ`, with the conclusion exponential stability (Definition 4.3), from which the printed local
+uniform asymptotic stability follows; a time-varying `A(t)` is open. Other finite-dimensional
+state spaces, such as `ℝ × ℝ`, are reached by `ExponentiallyStable.of_continuousLinearEquiv`
+(constants change by `‖e‖‖e⁻¹‖`). No continuity of `f`, no Lipschitz condition (p. 179) and no
+existence of solutions is assumed. The Lyapunov function of the proof is `xᵀPx` with `P` twice the
+finite-horizon Gramian `∫₀^T exp(sL)ᵀ exp(sL) ds` in the Euclidean dot product, compared with the
+sup norm through `‖x‖² ≤ x ⬝ x ≤ n‖x‖²` and `QuadraticBounds`.
+
 ## Grasp and contact conventions
 
 Recorded 2026-10-11 14:31 UTC for increment E025 (root applied the lead's proposal; integrated gate
