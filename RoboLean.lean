@@ -119,3 +119,6 @@ import RoboLean.Examples.ScaraHand
 import RoboLean.Kinematics.MapJacobian
 import RoboLean.Control.WorkspaceControl
 import RoboLean.Examples.WorkspaceControl
+import RoboLean.Control.MatrixExponentialSpectrum
+import RoboLean.Control.Linearization
+import RoboLean.Examples.Linearization
