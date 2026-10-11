@@ -801,10 +801,12 @@ applications), it is the hypothesis `Stability.HasFlow F φ` for an autonomous f
 it from every `t₀`; every solution from `t₀ ≥ 0` equals `t ↦ φ (t − t₀) (x t₀)` on `[t₀, ∞)`; each
 `φ t` with `t ≥ 0` is continuous. Only forward time is used; joint continuity in `(t, x)` and
 backward solutions are not required, so Mathlib's two-sided `Flow ℝ E` is not used. The interface
-presupposes solutions for all forward time. For a globally Lipschitz `F` uniqueness and
-continuous dependence are proved, so a flow is forward existence (`HasFlow.of_lipschitzWith`);
-linear fields have the flow `exp(t A)` (`hasFlow_linear`); shifting the state shifts the flow
-(`HasFlow.comp_sub_const`).
+presupposes solutions for all forward time. A flow is constructed for every globally Lipschitz `F`
+on a Banach space (`exists_hasFlow_of_lipschitzWith`, E023), for every locally Lipschitz `F` on a
+proper space with a Lyapunov function whose sublevel sets are compact and which does not increase
+along local solutions (`exists_hasFlow_of_lyapunov`, E023), and explicitly for linear fields
+(`exp(t A)`, `hasFlow_linear`); shifting the state shifts the flow (`HasFlow.comp_sub_const`).
+"Local solution" means Mathlib's form: `HasDerivWithinAt γ (F (γ s)) (Icc 0 T) s` for `s ∈ [0, T]`.
 
 **ω-limit and invariant sets (Definitions 4.7–4.8, p. 188).** The ω-limit set of the trajectory
 from `x₀` is Mathlib's `omegaLimit atTop φ {x₀}`, equal to MLS's set of limits along strictly
@@ -820,6 +822,35 @@ derivative along solutions (E016's `HasDerivAlongSolutions` with `fun _ => V`), 
 `Ω_c`, and `Ω_c = {V ≤ c}` is compact (`IsCompact`). The principle is proved for compact
 positively invariant sets and, in MLS's sublevel form, for trajectories starting in `{V < c}`:
 a trajectory starting on the level `{V = c}` may leave `Ω_c` when `V̇ ≤ 0` holds only on `Ω_c`.
+
+**Tracking errors (§5, p. 190).** For a reference `x_d` with derivative `x_d'`, the error system is
+`Stability.errorSystem f x_d x_d'`, `ż = f(t, z + x_d(t)) − x_d'(t)`; its solutions are exactly
+`x − x_d` for the solutions `x` of `f`. Exponential trajectory tracking is exponential stability
+of its origin (Definition 4.3) or the explicit bound
+`‖(e(t), ė(t))‖ ≤ m e^{−α(t − t₀)} ‖(e(t₀), ė(t₀))‖` on the closed-loop state.
+
+**Local Lasalle (Theorem 4.7, "in particular", p. 188; Example 4.7, p. 189).** Besides the
+sublevel form, `asymptoticallyStableAt_of_lasalle_ball` asks `V` locally positive definite,
+`V̇ ≤ 0` and continuous on a ball, and the largest invariant set in `{x ∈ ball : V̇ = 0}` inside
+`{0}`; it needs no compact sublevel set (a proper state space suffices). Example 4.7 uses it on
+the ball of radius `σ₀` in place of MLS's `Ω_c`.
+
+**Passivity (Example 4.6, p. 187).** `IsPassiveOn h σ₀`: `σ h(σ) ≥ 0` for `|σ| ≤ σ₀`, with equality
+there only at `σ = 0`. With continuity it gives `h(0) = 0`. MLS's "smooth" is read as continuous.
+
+**Proposition 4.10 (p. 194).** The augmented PD law (4.53) is `augmentedPDTorque`; the closed loop
+is (4.54) at each time. `V = ½ ėᵀM(θ)ė + ½ eᵀK_pe + ε eᵀM(θ)ė` with `θ = θ_d(t) + e`;
+`Ṁ(θ, θ̇) = ∑ₖ θ̇ₖ ∂M/∂θₖ` (`Mdot`) from E013's actual partial derivatives; the derivative along
+(4.54) is `−ėᵀ(K_v − εM)ė − ε eᵀK_pe + ε eᵀ(−K_v + Ṁ − C)ė`, not the printed `½Ṁ` in the last
+term. Bounds are stated with the sup norm, on the tube `‖(e, ė)‖ ≤ R` around `(θ_d, θ̇_d)`; the
+smallness of `ε` is the pair of explicit inequalities `2εμ ≤ min(λ, k_p)` and
+`ε(2k_pμ + (κ_v + c)²) ≤ k_p k_v`. The formal conclusion is semiglobal (rate depending on the
+bound of initial errors), global for constant inertia.
+
+**Converse of Theorem 4.5 (p. 183).** For an autonomous system with a globally Lipschitz field on a
+Banach space, exponential stability is equivalent to a continuous time-invariant `V` with the
+first three bounds of the theorem on a ball (`exponentiallyStable_iff_exists_quadratic_lyapunov`);
+`V(x) = ∫₀^T ‖φ(τ, x)‖² dτ`. The fourth bound is not part of the formal statement.
 
 **Global notions and Theorem 4.4(4) (pp. 180, 183).** `GloballyAsymptoticallyStableAt f xe t₀`:
 stable at `t₀` and every solution from `t₀` converges to `xe`. `GloballyUniformlyAsymptoticallyStable`:
@@ -856,5 +887,7 @@ set-point law formalized is `τ = N(θ, θ̇) − K_v θ̇ − K_p(θ − θ_d)`
 actuator limits and model error are outside these statements. For the asymptotic stability of the compensated PD law (Proposition 4.9 as formalized), `M` is
 uniformly positive definite, `λ‖v‖² ≤ vᵀ M(q) v` for one `λ > 0` and all `q, v` (MLS p. 191's
 phrase; it makes the sublevel sets of `½ θ̇ᵀ M θ̇ + ½ eᵀ K_p e` compact), `K_v` is positive
-definite, and the closed loop `ManipulatorModel.pdClosedLoop` has a solution flow; for constant
-inertia the closed loop is linear and its flow is constructed.
+definite, and the closed loop `ManipulatorModel.pdClosedLoop` has a solution flow; for constant inertia the closed
+loop is linear and its flow is constructed; since E023 the flow is constructed for every locally
+Lipschitz closed loop with uniformly positive definite `M` (the energy traps the solutions), in
+particular for the planar two-link arm, whose closed loop is `C¹`.
