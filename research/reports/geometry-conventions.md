@@ -905,6 +905,27 @@ loop is linear and its flow is constructed; since E023 the flow is constructed f
 Lipschitz closed loop with uniformly positive definite `M` (the energy traps the solutions), in
 particular for the planar two-link arm, whose closed loop is `C¹`.
 
+**Workspace dynamics (Lemma 4.11).** A workspace parametrization is a map
+`f : ℝⁿ → ℝⁿ` (`(Fin n → ℝ) → Fin n → ℝ`, the book's `n = p`, p. 196) of class `C²` on all of
+`ℝⁿ`; MLS's "smooth and invertible" is replaced by the hypothesis its proofs use, `J(θ)` invertible
+(`IsUnit (jac f θ).det`), assumed only at the configurations where `J⁻¹` is used: at `θ(t)` for the
+pointwise statements and at `θ(s)` for every `s > t₀` along a tracking solution, never globally
+(the planar arm's xy map is singular at `sin θ₂ = 0`). `J = MapJacobian.jac f θ` is the matrix of
+the Fréchet derivative of `f` (column `j` is `Df(θ) e_j`); it is not the manipulator Jacobian of
+Chapter 3. `J̇ = MapJacobian.jacDot f θ θ̇` is the matrix of the second derivative `D²f(θ)(θ̇, ·)`,
+the actual derivative of `J(θ(t))`. Derivatives of matrix-valued curves are stated entry by entry;
+the inverse is `Matrix.inv`. The effective parameters are functions of `(θ, θ̇)`: `M̃ = J⁻ᵀMJ⁻¹`,
+`C̃ = J⁻ᵀ(C − MJ⁻¹J̇)J⁻¹` (equal to the printed `J⁻ᵀ(CJ⁻¹ + M(d/dt)J⁻¹)` along every motion),
+`Ñ = J⁻ᵀN`; (4.55) is read with `ẋ = Jθ̇` and `ẍ = J̇θ̇ + Jθ̈`. `M̃˙` is
+`X'ᵀMX + XᵀṀX + XᵀMX'` with `X = J⁻¹`, `X' = −XJ̇X` (`workspaceMdot`). The workspace computed
+torque law is `τ = Jᵀ(M̃(ẍ_d − K_vė − K_pe) + C̃ẋ + Ñ)` with `e = f(θ) − x_d`, `ė = Jθ̇ − ẋ_d`
+(MLS prints `Cẋ + N`, for which the error equation fails); exponential tracking is the bound on
+`‖(e, ė)‖` (sup norm) for every closed-loop solution on the joint state `(θ, θ̇)` along which `J`
+stays invertible. The workspace PD law is not formalized. In the planar example the workspace map is
+the end-effector xy position in the frame of the dynamic arm `planarTwoLinkArm` (arm along `+x` at
+`θ = 0`, joint 2 at `(l₁, 0, 0)`, `l₂` the distance from joint 2 to the end effector); the kinematic
+arm `planarTwoLink` of Chapter 3 (along `+y`) is a different convention and is not used.
+
 ## Grasp and contact conventions
 
 Recorded 2026-10-11 14:31 UTC for increment E025 (root applied the lead's proposal; integrated gate
@@ -975,3 +996,56 @@ nonnegative coefficients, the form used in proofs.
 conditions of Theorem 5.6 (p232; per the E025 scout digest, not read by the lead, the printed
 conditions are strict inequalities while the statement says the line "lies inside" the closed
 cones) are not settled here; neither is used by E025.
+
+### Hands, finger kinematics and manipulability
+
+Recorded 2026-10-11 15:46 UTC for increment E028 (root applied the lead's proposal; integrated gate
+[E028/20261011T154334Z](../../docs/implogs/gates/E028/20261011T154334Z/)). Source: MLS Chapter 5 §5, printed pp. 234–242, read by
+the E028 lead as text with the formula pages inspected as renders
+([E028 gate](../../docs/implogs/gates/E028/20261011T150120Z/source/)).
+
+**Hand frames.** The palm frame `P` is fixed and the object configuration is `x_o = g_{po}` (p215,
+p237). Finger `i` is a serial chain (`SerialChain`) from its base frame `Sᵢ`, fixed in the palm, to
+its fingertip frame `Fᵢ`, which moves with the fingertip: its joint twists are written in `Sᵢ` at
+the reference configuration and `g_{sᵢfᵢ}(θ) = fk θ` (MLS Chapter 3, product of exponentials). The
+library stores the base pose `g_{psᵢ}` (`HandGrasp.base`); MLS writes `g_{sᵢp} = g_{psᵢ}⁻¹`. The
+contact frame `Cᵢ` is fixed on the object (`g_{ocᵢ}` constant, the fixed-contact assumption of p234)
+and `g_{sᵢcᵢ} = g_{sᵢp} g_{po} g_{ocᵢ}` (`HandGrasp.contactFrame`, pp236, 240). `Fᵢ` and `Cᵢ` are both
+"located at the contact point" (p234), but no result uses that they coincide.
+
+**Velocities.** As MLS does from p235 on, all velocities are body velocities. `V^b_{fᵢcᵢ}` is the
+body velocity of `g_{fᵢcᵢ} = g_{pfᵢ}⁻¹ g_{pcᵢ}`, with `g_{pfᵢ} = g_{psᵢ} g_{sᵢfᵢ}(θᵢ)` and
+`g_{pcᵢ} = g_{po} g_{ocᵢ}` (`HandGrasp.fingertipContact`); `V^b_{po}` is the body velocity of the object
+relative to the palm. The relations (5.8), (5.10)–(5.12) are proved along trajectories with actual
+derivatives (`bodyVelocity_fingertipContact`); the contact constraint (5.9), `B_{cᵢ}ᵀ V^b_{fᵢcᵢ} = 0`,
+is the hypothesis of a maintained contact (`ContactConstraint`), equivalent to (5.13). `B_cᵀ` and
+`Gᵀ` act on twists through the pairing `f·v + τ·ω` of MLS p61 (`ContactModel.constraint`,
+`SpatialGrasp.graspTranspose`): `(Gᵀ V)·f_c = (G f_c)·V`; in six coordinates, wrench rows force
+first against twist rows linear first, they are matrix transposes.
+
+**Hand Jacobian.** Joint rates are `(i : ι) → Fin (n i) → ℝ` (the book's stacked `θ ∈ ℝⁿ`), contact
+velocities and forces `(i : ι) → Fin (m i) → ℝ`; matrices use the stacked indices
+`Σ i, Fin (n i)` and `Σ i, Fin (m i)` of `ContactGrasp.stack`. `J_h(θ, x_o)` is block diagonal by
+construction, with blocks `B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ})` and `J^s` the library's spatial
+Jacobian (3.54) in the finger base frame. The display defining `J_h` on p236 carries no printed
+number (the label "(5.14)" is overprinted on "(5.13)" in the next sentence); the library calls it
+(5.14).
+
+**Joint torques (5.16).** MLS obtains `τ = J_hᵀ f_c` "by equating the work done by the joints and
+contacts" (p238). The library defines `τ` as the transpose itself (for a hand, `handTorque`; for a
+general multifingered grasp, the linear form `θ̇ ↦ f_c·(J_h θ̇)` on joint rates) and proves only the
+instantaneous power identity and its uniqueness step; the work premise, as for (3.59)–(3.60), is
+not formalized. `f_c ∈ FC` is not imposed by the definition.
+
+**Multifingered grasps and manipulability.** Definition 5.4 is bundled at one configuration as a
+hand Jacobian from any real joint-rate space and a spatial grasp (`MultifingeredGrasp`), so the
+object side is `Wrench`/`Twist` (`p = 6`). Manipulability (Definition 5.5) quantifies over every
+object twist and unbounded joint rates at maintained contacts; like force-closure it says nothing
+about actuator limits, contact persistence or a physical hand. Table 5.4's "internal forces" are
+Definition 5.3's strictly internal forces (E025); its "structural forces" row (`G⁺`) is not used;
+"structurally dependent forces" are contact forces with `J_hᵀ f_c = 0` (p239).
+
+**Summary item 6 (p257).** For a general multifingered grasp, manipulable and surjective `J_h` are
+not equivalent under force-closure (`Examples.summaryItem6_counterexample`); for hands with onto
+contact constraint maps (every Table 5.2 model) they are equivalent without force-closure
+(`HandGrasp.isManipulable_iff_surjective`). Statements about "the" hand Jacobian use the latter.
