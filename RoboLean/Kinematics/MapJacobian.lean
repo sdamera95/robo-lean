@@ -8,6 +8,7 @@ import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import Mathlib.Analysis.Matrix.Normed
 import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 import Mathlib.Topology.Instances.Matrix
+import RoboLean.Control.MatrixAnalysis
 
 /-!
 # The Jacobian matrix of a coordinate map and its rate (MLS §5.4, p. 196)
@@ -27,9 +28,11 @@ to workspace variables and writes `ẋ = J(θ) θ̇` with `J(θ) = ∂f/∂θ`, 
   velocity `θ̇` it is the actual derivative `J̇` of `t ↦ J(θ(t))` (`hasDerivAt_jac_comp`), and
   `ẍ = J̇ θ̇ + J θ̈` (`hasDerivAt_jac_mulVec_comp`);
 * the derivatives of matrix products, transposes and inverses along a curve are stated entry by
-  entry (`hasDerivAt_matrix_mul`, `hasDerivAt_matrix_transpose`, `hasDerivAt_matrix_inv`), the
-  library's convention since E013; `hasDerivAt_matrix_iff` is the bridge to Mathlib's `HasDerivAt`
-  for matrix-valued curves (product topology);
+  entry (`Control.hasDerivAt_matrix_mul`, `Control.hasDerivAt_matrix_transpose`,
+  `Control.hasDerivAt_matrix_inv`), the library's convention since E013;
+  `Control.hasDerivAt_matrix_iff` is the bridge to Mathlib's `HasDerivAt` for matrix-valued curves
+  (product topology). These four live in `RoboLean.Control.MatrixAnalysis` since E030; the
+  `MapJacobian.*` names are deprecated aliases;
 * `(d/dt)(J⁻¹) = −J⁻¹ J̇ J⁻¹` (`hasDerivAt_jac_inv_comp`) and the two formulas of p. 196
   (`velocity_eq_inv_mulVec`, `acceleration_eq_inv_mulVec`) hold where `J(θ(t))` is invertible;
 * an invertible `J(a)` makes `f` a homeomorphism between open neighborhoods of `a` and `f(a)`
@@ -157,64 +160,20 @@ theorem hasDerivAt_jac_mulVec_comp {f : (Fin n → ℝ) → Fin m → ℝ} (hf :
   simp only [jac_mulVec, jacDot_mulVec]
   exact (hasDerivAt_fderiv_comp hf hθ).clm_apply hθ'
 
-/-! ### Matrix-valued curves, entry by entry -/
+/-! The entry-by-entry derivatives of matrix-valued curves moved to the `Control` namespace
+(`RoboLean.Control.MatrixAnalysis`) on 2026-10-13; the old names remain as deprecated aliases. -/
 
-/-- **Matrix-valued curves, entry by entry** (for `(d/dt) J` and `(d/dt)(J⁻¹)`, MLS p. 196): a
-matrix-valued curve has a derivative (Mathlib's `HasDerivAt`, product topology on matrices) exactly
-when every entry has the corresponding derivative. -/
-theorem hasDerivAt_matrix_iff {a b : ℕ} {A : ℝ → Matrix (Fin a) (Fin b) ℝ}
-    {A' : Matrix (Fin a) (Fin b) ℝ} {t : ℝ} :
-    HasDerivAt A A' t ↔ ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t := by
-  refine ⟨fun h i j => hasDerivAt_pi.mp (hasDerivAt_pi.mp h i) j,
-    fun h => hasDerivAt_pi.mpr fun i => hasDerivAt_pi.mpr fun j => h i j⟩
+@[deprecated Control.hasDerivAt_matrix_iff (since := "2026-10-13")]
+alias hasDerivAt_matrix_iff := Control.hasDerivAt_matrix_iff
 
-/-- **Product rule for matrix-valued curves, entry by entry** (used for `(d/dt)(J⁻ᵀ M J⁻¹)` in the
-proof of MLS Lemma 4.11(2), p. 197): `d/dt (A B) = A' B + A B'`. -/
-theorem hasDerivAt_matrix_mul {a b c : ℕ} {A : ℝ → Matrix (Fin a) (Fin b) ℝ}
-    {B : ℝ → Matrix (Fin b) (Fin c) ℝ} {A' : Matrix (Fin a) (Fin b) ℝ}
-    {B' : Matrix (Fin b) (Fin c) ℝ} {t : ℝ} (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t)
-    (hB : ∀ i j, HasDerivAt (fun s => B s i j) (B' i j) t) (i : Fin a) (k : Fin c) :
-    HasDerivAt (fun s => (A s * B s) i k) ((A' * B t + A t * B') i k) t := by
-  have h : HasDerivAt (fun s => ∑ j, A s i j * B s j k)
-      (∑ j, (A' i j * B t j k + A t i j * B' j k)) t :=
-    HasDerivAt.fun_sum fun j _ => (hA i j).mul (hB j k)
-  simpa [Matrix.mul_apply, dotProduct, Finset.sum_add_distrib] using h
+@[deprecated Control.hasDerivAt_matrix_mul (since := "2026-10-13")]
+alias hasDerivAt_matrix_mul := Control.hasDerivAt_matrix_mul
 
-/-- **Transpose of a matrix-valued curve, entry by entry** (MLS p. 197, `(d/dt)(J⁻ᵀ)`):
-`d/dt Aᵀ = (A')ᵀ`. -/
-theorem hasDerivAt_matrix_transpose {a b : ℕ} {A : ℝ → Matrix (Fin a) (Fin b) ℝ}
-    {A' : Matrix (Fin a) (Fin b) ℝ} {t : ℝ}
-    (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t) (i : Fin b) (j : Fin a) :
-    HasDerivAt (fun s => (A s)ᵀ i j) (A'ᵀ i j) t :=
-  hA j i
+@[deprecated Control.hasDerivAt_matrix_transpose (since := "2026-10-13")]
+alias hasDerivAt_matrix_transpose := Control.hasDerivAt_matrix_transpose
 
-open scoped Matrix.Norms.Operator in
-/-- **The derivative of the matrix inverse along a curve** (MLS p. 196, `(d/dt)(J⁻¹)`): if every
-entry of `A` has the derivative `A'` at `t` and `A(t)` is invertible, then every entry of
-`s ↦ A(s)⁻¹` has the derivative `−A(t)⁻¹ A' A(t)⁻¹` at `t`. The inverse is `Matrix.inv`. -/
-theorem hasDerivAt_matrix_inv {A : ℝ → Matrix (Fin n) (Fin n) ℝ} {A' : Matrix (Fin n) (Fin n) ℝ}
-    {t : ℝ} (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t) (hu : IsUnit (A t).det)
-    (i j : Fin n) :
-    HasDerivAt (fun s => (A s)⁻¹ i j) ((-((A t)⁻¹ * A' * (A t)⁻¹)) i j) t := by
-  have hu' : IsUnit (A t) := (Matrix.isUnit_iff_isUnit_det _).mpr hu
-  have hA' : HasDerivAt A A' t := hasDerivAt_matrix_iff.mpr hA
-  have h := (hasFDerivAt_ringInverse (𝕜 := ℝ) hu'.unit).comp_hasDerivAt t (f := A) (by exact hA')
-  have e : (fun s => (A s)⁻¹) = Ring.inverse ∘ A := by
-    funext s
-    exact Matrix.nonsing_inv_eq_ringInverse (A s)
-  have hinv : ((hu'.unit⁻¹ : (Matrix (Fin n) (Fin n) ℝ)ˣ) : Matrix (Fin n) (Fin n) ℝ) =
-      (A t)⁻¹ := by
-    rw [Matrix.nonsing_inv_eq_ringInverse]
-    conv_rhs => rw [← hu'.unit_spec]
-    rw [Ring.inverse_unit]
-  have h2 : HasDerivAt (fun s => (A s)⁻¹) (-((A t)⁻¹ * A' * (A t)⁻¹)) t := by
-    rw [e]
-    convert h using 1
-    case e'_9 =>
-      rw [hinv]
-      simp [ContinuousLinearMap.mulLeftRight_apply]
-    all_goals rfl
-  exact hasDerivAt_matrix_iff.mp h2 i j
+@[deprecated Control.hasDerivAt_matrix_inv (since := "2026-10-13")]
+alias hasDerivAt_matrix_inv := Control.hasDerivAt_matrix_inv
 
 /-- **`(d/dt)(J⁻¹) = −J⁻¹ J̇ J⁻¹` along a motion (MLS p. 196):** for a `C²` map `f`, a motion `θ`
 with velocity `θ'` at `t`, and `J(θ(t))` invertible, every entry of `s ↦ J(θ(s))⁻¹` has the
@@ -225,7 +184,7 @@ theorem hasDerivAt_jac_inv_comp {f : (Fin n → ℝ) → Fin n → ℝ} (hf : Co
     (hJ : IsUnit (jac f (θ t)).det) (i j : Fin n) :
     HasDerivAt (fun s => (jac f (θ s))⁻¹ i j)
       ((-((jac f (θ t))⁻¹ * jacDot f (θ t) θ' * (jac f (θ t))⁻¹)) i j) t :=
-  hasDerivAt_matrix_inv (A := fun s => jac f (θ s)) (hasDerivAt_jac_comp hf hθ) hJ i j
+  Control.hasDerivAt_matrix_inv (A := fun s => jac f (θ s)) (hasDerivAt_jac_comp hf hθ) hJ i j
 
 /-! ### The joint velocity and acceleration from the workspace ones (MLS p. 196) -/
 

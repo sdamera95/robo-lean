@@ -19,7 +19,9 @@ vector `ω × u` makes the frame right-handed in the sense of MLS pp. 23–24
 `research/reports/geometry-conventions.md`.
 
 The file also holds `perp`, the projection onto the plane perpendicular to an axis
-(MLS pp. 100 and 102), moved here from `RoboLean.Kinematics.PadenKahan` on 2026-10-11.
+(MLS pp. 100 and 102), moved here from `RoboLean.Kinematics.PadenKahan` on 2026-10-11, and its
+four lemmas `inner_perp`, `norm_perp_sq`, `inner_perp_perp` and `cross_perp`, moved from there on
+2026-10-13 (the old `PadenKahan` names are deprecated aliases).
 -/
 
 noncomputable section
@@ -137,5 +139,32 @@ theorem adapted_decomposition (ω u : Vec3)
 direction `ω`, MLS p. 100 (Subproblem 1) and p. 102 (Subproblem 3). It is the orthogonal
 projection when `ω` is a unit vector. -/
 def perp (ω u : Vec3) : Vec3 := u - inner ℝ ω u • ω
+
+/-- The projected vector `u′` of MLS p. 100 is perpendicular to the unit axis `ω`. -/
+theorem inner_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u : Vec3) : inner ℝ ω (Vec3.perp ω u) = 0 := by
+  simp [Vec3.perp, inner_sub_right, inner_smul_right, hω]
+
+/-- Pythagoras for the projection of MLS p. 100: `‖u′‖² = ‖u‖² - (ωᵀu)²` for a unit axis. -/
+theorem norm_perp_sq {ω : Vec3} (hω : ‖ω‖ = 1) (u : Vec3) :
+    ‖Vec3.perp ω u‖ ^ 2 = ‖u‖ ^ 2 - inner ℝ ω u ^ 2 := by
+  rw [← real_inner_self_eq_norm_sq, ← real_inner_self_eq_norm_sq]
+  simp only [Vec3.perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
+    real_inner_self_eq_norm_sq, hω, real_inner_comm u ω, RCLike.conj_to_real]
+  ring
+
+/-- The inner product of two projections (MLS p. 100): `u′ᵀv′ = uᵀv - (ωᵀu)(ωᵀv)` for a unit
+axis. -/
+theorem inner_perp_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) :
+    inner ℝ (Vec3.perp ω u) (Vec3.perp ω v) = inner ℝ u v - inner ℝ ω u * inner ℝ ω v := by
+  simp only [Vec3.perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
+    real_inner_self_eq_norm_sq, hω, real_inner_comm u ω, real_inner_comm v ω,
+    RCLike.conj_to_real]
+  ring
+
+/-- Supporting lemma: the cross product with the axis does not see the axial component,
+`ω × u′ = ω × u`. -/
+theorem cross_perp (ω u : Vec3) : Vec3.cross ω (Vec3.perp ω u) = Vec3.cross ω u := by
+  apply WithLp.ofLp_injective
+  simp [Vec3.perp, cross_coordinates, map_sub, map_smul, cross_self]
 
 end RoboLean.Vec3

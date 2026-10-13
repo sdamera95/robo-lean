@@ -72,10 +72,6 @@ private theorem inner_cross_eq (a b c : Vec3) :
   simp only [inner_eq_dot, Vec3.cross_coordinates]
   rw [dotProduct_comm, triple_product_permutation]
 
-private theorem cross_self' (a : Vec3) : Vec3.cross a a = 0 := by
-  apply WithLp.ofLp_injective
-  simp [Vec3.cross_coordinates]
-
 private theorem eq_inner_smul_of_cross_eq_zero {ω z : Vec3} (hω : ‖ω‖ = 1)
     (h : Vec3.cross ω z = 0) : z = inner ℝ ω z • ω := by
   have h2 := cross_cross_right ω ω z
@@ -94,31 +90,17 @@ lemmas `Rotation.sqrt_mul_cos_atan2` and `Rotation.sqrt_mul_sin_atan2` live next
 @[deprecated Vec3.perp (since := "2026-10-11")]
 alias perp := Vec3.perp
 
-/-- The projected vector `u′` of MLS p. 100 is perpendicular to the unit axis `ω`. -/
-theorem inner_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u : Vec3) : inner ℝ ω (Vec3.perp ω u) = 0 := by
-  simp [Vec3.perp, inner_sub_right, inner_smul_right, hω]
+@[deprecated Vec3.inner_perp (since := "2026-10-13")]
+alias inner_perp := Vec3.inner_perp
 
-/-- Pythagoras for the projection of MLS p. 100: `‖u′‖² = ‖u‖² - (ωᵀu)²` for a unit axis. -/
-theorem norm_perp_sq {ω : Vec3} (hω : ‖ω‖ = 1) (u : Vec3) :
-    ‖Vec3.perp ω u‖ ^ 2 = ‖u‖ ^ 2 - inner ℝ ω u ^ 2 := by
-  rw [← real_inner_self_eq_norm_sq, ← real_inner_self_eq_norm_sq]
-  simp only [Vec3.perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
-    real_inner_self_eq_norm_sq, hω, real_inner_comm u ω, RCLike.conj_to_real]
-  ring
+@[deprecated Vec3.norm_perp_sq (since := "2026-10-13")]
+alias norm_perp_sq := Vec3.norm_perp_sq
 
-/-- The inner product of two projections (MLS p. 100): `u′ᵀv′ = uᵀv - (ωᵀu)(ωᵀv)` for a unit
-axis. -/
-theorem inner_perp_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) :
-    inner ℝ (Vec3.perp ω u) (Vec3.perp ω v) = inner ℝ u v - inner ℝ ω u * inner ℝ ω v := by
-  simp only [Vec3.perp, inner_sub_left, inner_sub_right, inner_smul_left, inner_smul_right,
-    real_inner_self_eq_norm_sq, hω, real_inner_comm u ω, real_inner_comm v ω,
-    RCLike.conj_to_real]
-  ring
+@[deprecated Vec3.inner_perp_perp (since := "2026-10-13")]
+alias inner_perp_perp := Vec3.inner_perp_perp
 
-/-- Supporting lemma: the cross product with the axis does not see the axial component,
-`ω × u′ = ω × u`. -/
-theorem cross_perp (ω u : Vec3) : Vec3.cross ω (Vec3.perp ω u) = Vec3.cross ω u := by
-  simp [Vec3.perp, sub_eq_add_neg, Vec3.cross_add, cross_self']
+@[deprecated Vec3.cross_perp (since := "2026-10-13")]
+alias cross_perp := Vec3.cross_perp
 
 @[deprecated Rotation.exp_act_eq (since := "2026-10-11")]
 alias exp_act_eq := Rotation.exp_act_eq
@@ -145,7 +127,7 @@ theorem norm_sub_exp_act_sq {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) (θ : 
   -- the plane vectors are perpendicular to the axis, so `u′ × v′ = y ω`
   have hpar : Vec3.cross (Vec3.perp ω u) (Vec3.perp ω v) = y • ω := by
     apply eq_inner_smul_of_cross_eq_zero hω
-    rw [cross_cross_right, inner_perp hω, inner_perp hω, zero_smul, zero_smul, sub_zero]
+    rw [cross_cross_right, Vec3.inner_perp hω, Vec3.inner_perp hω, zero_smul, zero_smul, sub_zero]
   have hxy : x ^ 2 + y ^ 2 = (‖Vec3.perp ω u‖ * ‖Vec3.perp ω v‖) ^ 2 := by
     have h := Vec3.norm_cross_sq (Vec3.perp ω u) (Vec3.perp ω v)
     rw [hpar, norm_smul, Real.norm_eq_abs, hω, mul_one, sq_abs, ← hx] at h
@@ -171,9 +153,10 @@ theorem norm_sub_exp_act_sq {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) (θ : 
   have hin : inner ℝ v ((Rotation.exp ω θ).act u) =
       inner ℝ ω u * inner ℝ ω v + Real.cos θ * x + Real.sin θ * y := by
     rw [Rotation.exp_act_eq hω, inner_add_right, inner_add_right, inner_smul_right,
-      inner_smul_right, inner_smul_right, hy', hvu, real_inner_comm ω v, hx, inner_perp_perp hω]
-  have hu2 := norm_perp_sq hω u
-  have hv2 := norm_perp_sq hω v
+      inner_smul_right, inner_smul_right, hy', hvu, real_inner_comm ω v, hx,
+      Vec3.inner_perp_perp hω]
+  have hu2 := Vec3.norm_perp_sq hω u
+  have hv2 := Vec3.norm_perp_sq hω v
   rw [norm_sub_sq_real, Rotation.norm_act, hin, Real.cos_sub, inner_sub_right]
   unfold planeAngle
   rw [← hx, ← hy]
@@ -612,11 +595,11 @@ theorem subproblemTwo_exists_of_sq_eq {ω₁ ω₂ : Vec3} (hω₁ : ‖ω₁‖
   have hz₁ := inner_subproblemTwoPoint_left hω₁ hω₂ hn (p - r) (q - r) γ
   have hz₂ := inner_subproblemTwoPoint_right hω₁ hω₂ hn (p - r) (q - r) γ
   obtain ⟨θ₂, h₂⟩ := (exists_exp_act_eq_iff hω₂ (p - r) z).mpr ⟨hz₂.symm, by
-    rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), norm_perp_sq hω₂, norm_perp_sq hω₂, hz,
-      hz₂]⟩
+    rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), Vec3.norm_perp_sq hω₂,
+      Vec3.norm_perp_sq hω₂, hz, hz₂]⟩
   obtain ⟨θ₁, h₁⟩ := (exists_exp_act_eq_iff hω₁ z (q - r)).mpr ⟨hz₁, by
-    rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), norm_perp_sq hω₁, norm_perp_sq hω₁, hz,
-      hz₁, hnorm]⟩
+    rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), Vec3.norm_perp_sq hω₁,
+      Vec3.norm_perp_sq hω₁, hz, hz₁, hnorm]⟩
   exact ⟨θ₁, θ₂, h₂, h₁⟩
 
 /-- **MLS pp. 101–102: existence for Subproblem 2 (non-parallel axes).** For unit revolute

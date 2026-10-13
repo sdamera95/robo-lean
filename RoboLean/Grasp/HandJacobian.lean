@@ -18,7 +18,7 @@ with the fingertip; the contact frame `Cᵢ`, at the same point, moves with the 
 * `contactFrame xo i` is `g_{sᵢcᵢ} = g_{sᵢp} g_{po} g_{ocᵢ}` (MLS pp. 236, 240);
 * `fingerJacobian xo i θᵢ` is the block `B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ})` (eq. (5.13)), with
   the library's spatial Jacobian `SerialChain.spatialJacobian` (MLS eq. (3.54)) and the contact
-  constraint map `ContactModel.constraint` (`B_{cᵢ}ᵀ`, eq. (5.9));
+  constraint map `ContactModel.constraint` (`B_{cᵢ}ᵀ`, eq. (5.9); defined in `Grasp/Contact`);
 * `handJacobian θ xo` is `J_h(θ, x_o)`, block diagonal by construction (`handJacobian_apply`,
   `handJacobian_single`), and `handJacobianMatrix` is the printed block-diagonal matrix of p. 236
   (`Matrix.blockDiagonal'`), bridged by `handJacobianMatrix_mulVec`;

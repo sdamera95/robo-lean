@@ -4,6 +4,10 @@ import Mathlib.Analysis.Calculus.Deriv.Add
 import Mathlib.Analysis.Normed.Group.Constructions
 import Mathlib.LinearAlgebra.Matrix.PosDef
 import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+import Mathlib.Analysis.Calculus.Deriv.Comp
+import Mathlib.Analysis.Calculus.FDeriv.Mul
+import Mathlib.Analysis.Matrix.Normed
+import Mathlib.Topology.Instances.Matrix
 
 /-!
 # Matrix and derivative lemmas shared by the control modules
@@ -18,7 +22,10 @@ Conventions: vectors are `Fin n → ℝ` with Mathlib's dot product `⬝ᵥ` and
 "positive definite" is Mathlib's `Matrix.PosDef`, which includes symmetry.
 
 These lemmas were collected here in E019 from `ManipulatorSystem` and `PDControl` (E016); their
-names are unchanged.
+names are unchanged. E030 added the product rule for a time-varying matrix applied to a curve and
+the bilinear bounds `|vᵀ A w| ≤ κ ‖v‖ ‖w‖` (from `AugmentedPD`, names unchanged), and the
+entry-by-entry derivatives of matrix-valued curves (`hasDerivAt_matrix_iff`, `_mul`, `_transpose`,
+`_inv`, from `MapJacobian`, whose old names are deprecated aliases).
 -/
 
 open Matrix
@@ -83,6 +90,113 @@ theorem sq_norm_prod_le {E F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup
   rw [Prod.norm_def]
   rcases max_choice ‖z.1‖ ‖z.2‖ with h | h <;> rw [h] <;> nlinarith [sq_nonneg ‖z.1‖,
     sq_nonneg ‖z.2‖]
+
+
+/-! ### Time-varying matrices and bilinear bounds -/
+
+/-- **Product rule for a time-varying matrix applied to a curve in `ℝⁿ`** (used for
+`d/dt (M(θ) ė)` in the proof of MLS Proposition 4.10, p. 195): if every entry of `A` has the
+derivative `A'ᵢⱼ` at `t` and `b` has the derivative `b'`, then `s ↦ A(s) b(s)` has the derivative
+`A' b(t) + A(t) b'`. -/
+theorem hasDerivAt_matrix_mulVec {A : ℝ → Matrix (Fin n) (Fin n) ℝ}
+    {A' : Matrix (Fin n) (Fin n) ℝ} {b : ℝ → Fin n → ℝ} {b' : Fin n → ℝ} {t : ℝ}
+    (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t) (hb : HasDerivAt b b' t) :
+    HasDerivAt (fun s => A s *ᵥ b s) (A' *ᵥ b t + A t *ᵥ b') t := by
+  have hb' := hasDerivAt_pi.mp hb
+  refine hasDerivAt_pi.mpr fun i => ?_
+  have h : HasDerivAt (fun s => ∑ j, A s i j * b s j)
+      (∑ j, (A' i j * b t j + A t i j * b' j)) t :=
+    HasDerivAt.fun_sum fun j _ => (hA i j).mul (hb' j)
+  simpa [Matrix.mulVec, dotProduct, Finset.sum_add_distrib] using h
+
+/-- **A bilinear bound for a real square matrix** in the sup norm on `ℝⁿ`:
+`|vᵀ A w| ≤ (∑ᵢⱼ |Aᵢⱼ|) ‖v‖ ‖w‖`; used for the cross terms of the skewed energy in the proof of
+MLS Proposition 4.10 (p. 195) and Example 4.5 (p. 186). -/
+theorem abs_dotProduct_mulVec_le (A : Matrix (Fin n) (Fin n) ℝ) (v w : Fin n → ℝ) :
+    |v ⬝ᵥ (A *ᵥ w)| ≤ (∑ i, ∑ j, |A i j|) * ‖v‖ * ‖w‖ := by
+  have hv : ∀ i, |v i| ≤ ‖v‖ := fun i => by
+    simpa [Real.norm_eq_abs] using norm_le_pi_norm v i
+  have hw : ∀ j, |w j| ≤ ‖w‖ := fun j => by
+    simpa [Real.norm_eq_abs] using norm_le_pi_norm w j
+  have key : v ⬝ᵥ (A *ᵥ w) = ∑ i, ∑ j, v i * A i j * w j := by
+    simp only [dotProduct, Matrix.mulVec, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => ?_
+    ring
+  rw [key, Finset.sum_mul, Finset.sum_mul]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
+  rw [Finset.sum_mul, Finset.sum_mul]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun j _ => ?_)
+  rw [abs_mul, abs_mul]
+  have h1 : |v i| * |A i j| ≤ ‖v‖ * |A i j| := mul_le_mul_of_nonneg_right (hv i) (abs_nonneg _)
+  calc |v i| * |A i j| * |w j| ≤ ‖v‖ * |A i j| * ‖w‖ :=
+        mul_le_mul h1 (hw j) (abs_nonneg _) (mul_nonneg (norm_nonneg _) (abs_nonneg _))
+    _ = |A i j| * ‖v‖ * ‖w‖ := by ring
+
+/-- **A bilinear bound for a real square matrix** (MLS p. 195, the cross terms of `V̇`): some
+`κ ≥ 0` gives `|vᵀ A w| ≤ κ ‖v‖ ‖w‖` for all `v, w` (sup norm on `ℝⁿ`). -/
+theorem exists_abs_dotProduct_mulVec_le (A : Matrix (Fin n) (Fin n) ℝ) :
+    ∃ κ ≥ 0, ∀ v w : Fin n → ℝ, |v ⬝ᵥ (A *ᵥ w)| ≤ κ * ‖v‖ * ‖w‖ :=
+  ⟨∑ i, ∑ j, |A i j|, Finset.sum_nonneg fun _ _ => Finset.sum_nonneg fun _ _ => abs_nonneg _,
+    abs_dotProduct_mulVec_le A⟩
+
+/-! ### Matrix-valued curves, entry by entry -/
+
+/-- **Matrix-valued curves, entry by entry** (for `(d/dt) J` and `(d/dt)(J⁻¹)`, MLS p. 196): a
+matrix-valued curve has a derivative (Mathlib's `HasDerivAt`, product topology on matrices) exactly
+when every entry has the corresponding derivative. -/
+theorem hasDerivAt_matrix_iff {a b : ℕ} {A : ℝ → Matrix (Fin a) (Fin b) ℝ}
+    {A' : Matrix (Fin a) (Fin b) ℝ} {t : ℝ} :
+    HasDerivAt A A' t ↔ ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t := by
+  refine ⟨fun h i j => hasDerivAt_pi.mp (hasDerivAt_pi.mp h i) j,
+    fun h => hasDerivAt_pi.mpr fun i => hasDerivAt_pi.mpr fun j => h i j⟩
+
+/-- **Product rule for matrix-valued curves, entry by entry** (used for `(d/dt)(J⁻ᵀ M J⁻¹)` in the
+proof of MLS Lemma 4.11(2), p. 197): `d/dt (A B) = A' B + A B'`. -/
+theorem hasDerivAt_matrix_mul {a b c : ℕ} {A : ℝ → Matrix (Fin a) (Fin b) ℝ}
+    {B : ℝ → Matrix (Fin b) (Fin c) ℝ} {A' : Matrix (Fin a) (Fin b) ℝ}
+    {B' : Matrix (Fin b) (Fin c) ℝ} {t : ℝ} (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t)
+    (hB : ∀ i j, HasDerivAt (fun s => B s i j) (B' i j) t) (i : Fin a) (k : Fin c) :
+    HasDerivAt (fun s => (A s * B s) i k) ((A' * B t + A t * B') i k) t := by
+  have h : HasDerivAt (fun s => ∑ j, A s i j * B s j k)
+      (∑ j, (A' i j * B t j k + A t i j * B' j k)) t :=
+    HasDerivAt.fun_sum fun j _ => (hA i j).mul (hB j k)
+  simpa [Matrix.mul_apply, dotProduct, Finset.sum_add_distrib] using h
+
+/-- **Transpose of a matrix-valued curve, entry by entry** (MLS p. 197, `(d/dt)(J⁻ᵀ)`):
+`d/dt Aᵀ = (A')ᵀ`. -/
+theorem hasDerivAt_matrix_transpose {a b : ℕ} {A : ℝ → Matrix (Fin a) (Fin b) ℝ}
+    {A' : Matrix (Fin a) (Fin b) ℝ} {t : ℝ}
+    (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t) (i : Fin b) (j : Fin a) :
+    HasDerivAt (fun s => (A s)ᵀ i j) (A'ᵀ i j) t :=
+  hA j i
+
+open scoped Matrix.Norms.Operator in
+/-- **The derivative of the matrix inverse along a curve** (MLS p. 196, `(d/dt)(J⁻¹)`): if every
+entry of `A` has the derivative `A'` at `t` and `A(t)` is invertible, then every entry of
+`s ↦ A(s)⁻¹` has the derivative `−A(t)⁻¹ A' A(t)⁻¹` at `t`. The inverse is `Matrix.inv`. -/
+theorem hasDerivAt_matrix_inv {A : ℝ → Matrix (Fin n) (Fin n) ℝ} {A' : Matrix (Fin n) (Fin n) ℝ}
+    {t : ℝ} (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t) (hu : IsUnit (A t).det)
+    (i j : Fin n) :
+    HasDerivAt (fun s => (A s)⁻¹ i j) ((-((A t)⁻¹ * A' * (A t)⁻¹)) i j) t := by
+  have hu' : IsUnit (A t) := (Matrix.isUnit_iff_isUnit_det _).mpr hu
+  have hA' : HasDerivAt A A' t := hasDerivAt_matrix_iff.mpr hA
+  have h := (hasFDerivAt_ringInverse (𝕜 := ℝ) hu'.unit).comp_hasDerivAt t (f := A) (by exact hA')
+  have e : (fun s => (A s)⁻¹) = Ring.inverse ∘ A := by
+    funext s
+    exact Matrix.nonsing_inv_eq_ringInverse (A s)
+  have hinv : ((hu'.unit⁻¹ : (Matrix (Fin n) (Fin n) ℝ)ˣ) : Matrix (Fin n) (Fin n) ℝ) =
+      (A t)⁻¹ := by
+    rw [Matrix.nonsing_inv_eq_ringInverse]
+    conv_rhs => rw [← hu'.unit_spec]
+    rw [Ring.inverse_unit]
+  have h2 : HasDerivAt (fun s => (A s)⁻¹) (-((A t)⁻¹ * A' * (A t)⁻¹)) t := by
+    rw [e]
+    convert h using 1
+    case e'_9 =>
+      rw [hinv]
+      simp [ContinuousLinearMap.mulLeftRight_apply]
+    all_goals rfl
+  exact hasDerivAt_matrix_iff.mp h2 i j
 
 end Control
 end RoboLean

@@ -100,32 +100,14 @@ theorem dotProduct_self_le_mul_sq_norm (v : Fin n → ℝ) : v ⬝ᵥ v ≤ n * 
     _ ≤ ∑ _i : Fin n, ‖v‖ ^ 2 := Finset.sum_le_sum fun i _ => h i
     _ = n * ‖v‖ ^ 2 := by simp
 
-/- A bilinear form on `ℝⁿ` is bounded, with a positive constant `K = 1 + ∑ᵢⱼ |Pᵢⱼ|` (sup norms).
-`RoboLean.Control.exists_abs_dotProduct_mulVec_le` of `Control/AugmentedPD` (E023) states the same
-bound with `κ ≥ 0`; it is not imported here, to keep this module independent of the manipulator
-modules. -/
+/- A bilinear form on `ℝⁿ` is bounded with a positive constant (sup norms): the bound `κ ≥ 0` of
+`exists_abs_dotProduct_mulVec_le` (`Control/MatrixAnalysis`) raised to `κ + 1 > 0`. -/
 private theorem exists_pos_abs_dotProduct_mulVec_le (P : Matrix (Fin n) (Fin n) ℝ) :
     ∃ K > 0, ∀ x y : Fin n → ℝ, |x ⬝ᵥ (P *ᵥ y)| ≤ K * ‖x‖ * ‖y‖ := by
-  refine ⟨1 + ∑ i, ∑ j, |P i j|, by positivity, fun x y => ?_⟩
-  have hx : ∀ i, |x i| ≤ ‖x‖ := fun i => by simpa using norm_le_pi_norm x i
-  have hy : ∀ j, |y j| ≤ ‖y‖ := fun j => by simpa using norm_le_pi_norm y j
-  have hS : 0 ≤ ∑ i, ∑ j, |P i j| := by positivity
-  calc |x ⬝ᵥ (P *ᵥ y)| = |∑ i, ∑ j, x i * (P i j * y j)| := by
-        simp [dotProduct, Matrix.mulVec, Finset.mul_sum]
-    _ ≤ ∑ i, ∑ j, |x i * (P i j * y j)| :=
-        (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ =>
-          Finset.abs_sum_le_sum_abs _ _)
-    _ ≤ ∑ i, ∑ j, ‖x‖ * (|P i j| * ‖y‖) := by
-        refine Finset.sum_le_sum fun i _ => Finset.sum_le_sum fun j _ => ?_
-        rw [abs_mul, abs_mul]
-        gcongr
-        · exact hx i
-        · exact hy j
-    _ = (∑ i, ∑ j, |P i j|) * ‖x‖ * ‖y‖ := by
-        simp only [Finset.sum_mul]
-        refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => ?_
-        ring
-    _ ≤ (1 + ∑ i, ∑ j, |P i j|) * ‖x‖ * ‖y‖ := by gcongr; linarith
+  obtain ⟨κ, hκ, h⟩ := exists_abs_dotProduct_mulVec_le P
+  refine ⟨κ + 1, by linarith, fun x y => (h x y).trans ?_⟩
+  gcongr
+  linarith
 
 end Control
 

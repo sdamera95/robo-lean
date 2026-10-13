@@ -212,9 +212,9 @@ theorem hasDerivAt_workspaceM_comp (hf : ContDiff ℝ 2 f) {θ : ℝ → Fin n �
     {t : ℝ} (hθ : HasDerivAt θ θ' t) (hJ : IsUnit (jac f (θ t)).det) (i j : Fin n) :
     HasDerivAt (fun s => P.workspaceM f (θ s) i j) (P.workspaceMdot f (θ t) θ' i j) t := by
   have hX := hasDerivAt_jac_inv_comp hf hθ hJ
-  have hXT := hasDerivAt_matrix_transpose hX
+  have hXT := Control.hasDerivAt_matrix_transpose hX
   have hM := P.hasDerivAt_M_comp hθ
-  have h := hasDerivAt_matrix_mul (hasDerivAt_matrix_mul hXT hM) hX i j
+  have h := Control.hasDerivAt_matrix_mul (Control.hasDerivAt_matrix_mul hXT hM) hX i j
   convert h using 1
   · rfl
   · rw [workspaceMdot, Matrix.add_mul]

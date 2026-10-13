@@ -382,7 +382,9 @@ theorem isManipulable_iff (h : HandGrasp ι m n) (θ : (i : ι) → Fin (n i) �
 /-- **Summary item 6 of MLS printed p. 257, for hands.** For the hand Jacobian of eq. (5.14) (block
 diagonal) of a hand whose contact constraint maps `B_{cᵢ}ᵀ` are onto (true for every contact model
 of Table 5.2: `ContactModel.frictionless_constraint_surjective`,
-`pointContact_constraint_surjective`, `softFinger_constraint_surjective`), the grasp is manipulable
+`pointContact_constraint_surjective`, `softFinger_constraint_surjective` in `Grasp/Contact`, and of
+every model with linearly independent basis columns:
+`constraint_surjective_of_linearIndependent`), the grasp is manipulable
 at `(θ, x_o)` if and only if `J_h(θ, x_o)` is surjective. Force-closure is not needed. The
 argument uses the block structure: `Gᵢᵀ = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹}` is onto `ℝ^{mᵢ}`, so every block of
 `J_h` must be onto. For a general multifingered grasp (Definition 5.4) the "only if" direction

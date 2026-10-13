@@ -15,8 +15,9 @@ coordinates. E025's `ContactGrasp.spatial model frame` is derived from it
 of the frames.
 
 The velocity side. The constraint of a contact with wrench basis `B_c` on a twist `V` is
-`B_cᵀ V` (MLS eq. (5.9), p. 235); here `ContactModel.constraint`, whose coefficient `j` is the
-pairing `f · v + τ · ω` (MLS p. 61) of basis column `j` with `V`. The transpose of the grasp map
+`B_cᵀ V` (MLS eq. (5.9), p. 235); here `ContactModel.constraint` (in `Grasp/Contact`, with its
+surjectivity lemmas), whose coefficient `j` is the pairing `f · v + τ · ω` (MLS p. 61) of basis
+column `j` with `V`. The transpose of the grasp map
 acts on the object twist `V^b_{po}` by `Gᵢᵀ V = (Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ})ᵀ V = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹} V`
 (MLS eq. (5.13), p. 236); here `SpatialGrasp.graspTranspose`. It is the transpose with respect to
 the twist–wrench pairing on the object side and the dot product of coefficients on the contact
@@ -36,36 +37,9 @@ open Matrix
 
 namespace RoboLean
 
-/-- A twist that pairs to zero with every wrench is zero: the pairing of MLS printed p. 61 is
-nondegenerate in the twist (supporting lemma; candidate for a move to `Geometry/Wrench`). -/
-theorem Twist.eq_zero_of_forall_pair_eq_zero {V : Twist} (h : ∀ F : Wrench, Wrench.pair F V = 0) :
-    V = 0 := by
-  have hV := h ⟨V.linear, V.angular⟩
-  simp only [Wrench.pair] at hV
-  have h₁ : 0 ≤ inner ℝ V.linear V.linear := real_inner_self_nonneg
-  have h₂ : 0 ≤ inner ℝ V.angular V.angular := real_inner_self_nonneg
-  have hl : inner ℝ V.linear V.linear = (0 : ℝ) := by linarith
-  have ha : inner ℝ V.angular V.angular = (0 : ℝ) := by linarith
-  apply Twist.ext
-  · simpa using inner_self_eq_zero.mp hl
-  · simpa using inner_self_eq_zero.mp ha
-
 namespace ContactModel
 
 variable {m : ℕ}
-
-/-- The transpose `B_cᵀ` of a spatial wrench basis acting on twists, MLS eq. (5.9), printed
-p. 235: coefficient `j` of `B_cᵀ V` is the pairing `f · v + τ · ω` (MLS printed p. 61) of basis
-column `j` with the twist `V`. For the relative velocity `V = V^b_{fc}` of the contact frame with
-respect to the fingertip, `B_cᵀ V = 0` is the contact constraint (5.9). Wrench order `(f, τ)`,
-twist order `(v, ω)`. -/
-def constraint (c : ContactModel Wrench m) : Twist →ₗ[ℝ] (Fin m → ℝ) :=
-  LinearMap.pi fun j => Wrench.pairing (c.basis j)
-
-/-- Coefficient `j` of `B_cᵀ V` is the pairing of basis column `j` with `V` (MLS eq. (5.9),
-printed p. 235; pairing of MLS p. 61). -/
-theorem constraint_apply (c : ContactModel Wrench m) (V : Twist) (j : Fin m) :
-    c.constraint V j = Wrench.pair (c.basis j) V := rfl
 
 /-- `B_cᵀ` is the transpose of `B_c`: `(B_cᵀ V) · f = (B_c f) · V`, the dot product of
 coefficients on one side and the twist–wrench pairing (MLS printed p. 61) on the other
@@ -94,39 +68,6 @@ theorem frictionless_constraint (V : Twist) :
   fin_cases j
   simp [constraint_apply, frictionless, Wrench.pair, Rotation.zAxis, Twist.coordinates,
     EuclideanSpace.inner_eq_star_dotProduct, dotProduct, Fin.sum_univ_succ]
-
-/-- The frictionless constraint map `B_cᵀ` is onto `ℝ¹` (its basis column is nonzero; MLS
-eq. (5.1), printed p. 215, and eq. (5.9), p. 235). -/
-theorem frictionless_constraint_surjective : Function.Surjective frictionless.constraint := by
-  intro y
-  refine ⟨⟨WithLp.toLp 2 ![0, 0, y 0], 0⟩, ?_⟩
-  funext j
-  fin_cases j
-  simp [constraint_apply, frictionless, Wrench.pair, Rotation.zAxis,
-    EuclideanSpace.inner_eq_star_dotProduct, dotProduct, Fin.sum_univ_succ]
-
-/-- The point-contact constraint map `B_cᵀ` of MLS eq. (5.3) (printed p. 217) is onto `ℝ³`: its
-three basis columns are the unit forces along the contact axes (MLS eq. (5.9), p. 235). -/
-theorem pointContact_constraint_surjective (μ : ℝ) (hμ : 0 < μ) :
-    Function.Surjective (pointContact μ hμ).constraint := by
-  intro y
-  refine ⟨⟨WithLp.toLp 2 ![y 0, y 1, y 2], 0⟩, ?_⟩
-  funext j
-  fin_cases j <;>
-    simp [constraint_apply, pointContact, Wrench.pair, Rotation.xAxis, Rotation.yAxis,
-      Rotation.zAxis, EuclideanSpace.inner_eq_star_dotProduct, dotProduct, Fin.sum_univ_succ]
-
-/-- The soft-finger constraint map `B_cᵀ` of MLS eq. (5.4) (printed p. 217) is onto `ℝ⁴`: its
-basis columns are the three unit forces and the unit moment about the contact normal (MLS
-eq. (5.9), p. 235). -/
-theorem softFinger_constraint_surjective (μ γ : ℝ) (hμ : 0 < μ) (hγ : 0 < γ) :
-    Function.Surjective (softFinger μ γ hμ hγ).constraint := by
-  intro y
-  refine ⟨⟨WithLp.toLp 2 ![y 0, y 1, y 2], WithLp.toLp 2 ![0, 0, y 3]⟩, ?_⟩
-  funext j
-  fin_cases j <;>
-    simp [constraint_apply, softFinger, Wrench.pair, Rotation.xAxis, Rotation.yAxis,
-      Rotation.zAxis, EuclideanSpace.inner_eq_star_dotProduct, dotProduct, Fin.sum_univ_succ]
 
 end ContactModel
 

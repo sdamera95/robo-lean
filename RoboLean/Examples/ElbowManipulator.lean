@@ -377,10 +377,11 @@ theorem elbowManipulator_elbow_angle {l₀ l₁ l₂ : ℝ} (hl₁ : l₁ ≠ 0)
     (hcos ▸ Real.neg_one_le_cos _) (hcos ▸ Real.cos_le_one _) (θ 2)).mp hsub
 
 /-- **MLS Example 3.5, Step 2, eq. (3.34), p. 105: the shoulder angles solve Subproblem 2.** If
-`g_st(θ) = g_d`, then `e^{ξ̂₁θ₁} e^{ξ̂₂θ₂} p = q` with `p = e^{ξ̂₃θ₃} p_w` and `q = g₁ p_w`: Subproblem 2
-(eq. (3.20)) for the unit twists `ξ₁ = (-ω₁ × p_b, ω₁)`, `ω₁ = +z`, and `ξ₂ = (-ω₂ × p_b, ω₂)`,
-`ω₂ = -x`, whose axes meet at `p_b`; the axes are not parallel (`ω₁ × ω₂ ≠ 0`,
-`elbowManipulator_shoulder_axes_cross_ne_zero`), as `PadenKahan.subproblemTwo_iff` requires. -/
+`g_st(θ) = g_d`, then `e^{ξ̂₁θ₁} e^{ξ̂₂θ₂} p = q` with `p = e^{ξ̂₃θ₃} p_w` and `q = g₁ p_w`:
+Subproblem 2 (eq. (3.20)) for the unit twists `ξ₁ = (-ω₁ × p_b, ω₁)`, `ω₁ = +z`, and
+`ξ₂ = (-ω₂ × p_b, ω₂)`, `ω₂ = -x`, whose axes meet at `p_b`; the axes are not parallel
+(`ω₁ × ω₂ ≠ 0`, `elbowManipulator_shoulder_axes_cross_ne_zero`), as
+`PadenKahan.subproblemTwo_iff` requires. -/
 theorem elbowManipulator_subproblemTwo_shoulder {l₀ l₁ l₂ : ℝ} {θ : Fin 6 → ℝ}
     {g : RigidTransform} (h : (elbowManipulator l₀ l₁ l₂).fk θ = g) :
     (Twist.exp (Twist.revolute zAxis (elbowShoulder l₀)) (θ 0) *
@@ -402,9 +403,9 @@ theorem elbowManipulator_shoulder_axes_cross_ne_zero : Vec3.cross zAxis (-xAxis)
 /-- **MLS Example 3.5, Step 3, eqs. (3.35)–(3.36), p. 106: two wrist angles solve
 Subproblem 2.** If `g_st(θ) = g_d`, then for every point `p` on the axis of `ξ₆` (the line
 through `p_w` along `+y`), `e^{ξ̂₄θ₄} e^{ξ̂₅θ₅} p = g₂ p` with
-`g₂ = e^{-ξ̂₃θ₃} e^{-ξ̂₂θ₂} e^{-ξ̂₁θ₁} g_d g_st(0)⁻¹`: Subproblem 2 for the unit twists through `p_w`
-with axes `+z` and `-x`. The book takes `p` "not on the `ξ₄`, `ξ₅` axes" so that the subproblem is
-informative; the equation holds for every point of the sixth axis. -/
+`g₂ = e^{-ξ̂₃θ₃} e^{-ξ̂₂θ₂} e^{-ξ̂₁θ₁} g_d g_st(0)⁻¹`: Subproblem 2 for the unit twists through
+`p_w` with axes `+z` and `-x`. The book takes `p` "not on the `ξ₄`, `ξ₅` axes" so that the
+subproblem is informative; the equation holds for every point of the sixth axis. -/
 theorem elbowManipulator_subproblemTwo_wrist {l₀ l₁ l₂ : ℝ} {θ : Fin 6 → ℝ}
     {g : RigidTransform} (h : (elbowManipulator l₀ l₁ l₂).fk θ = g) {p : Vec3}
     (hp : p ∈ axisLine (elbowWrist l₀ l₁ l₂) yAxis) :
@@ -421,8 +422,8 @@ theorem elbowManipulator_subproblemTwo_wrist {l₀ l₁ l₂ : ℝ} {θ : Fin 6 
 
 /-- **MLS Example 3.5, Step 4, eq. (3.37), p. 106: the last wrist angle solves Subproblem 1.** If
 `g_st(θ) = g_d`, then for every point `p`,
-`e^{ξ̂₆θ₆} p = e^{-ξ̂₅θ₅} e^{-ξ̂₄θ₄} ⋯ e^{-ξ̂₁θ₁} g_d g_st(0)⁻¹ p`: Subproblem 1 (eq. (3.17)) for the
-unit twist through `p_w` with axis `+y`. The book takes `p` not on the sixth axis, for which
+`e^{ξ̂₆θ₆} p = e^{-ξ̂₅θ₅} e^{-ξ̂₄θ₄} ⋯ e^{-ξ̂₁θ₁} g_d g_st(0)⁻¹ p`: Subproblem 1 (eq. (3.17)) for
+the unit twist through `p_w` with axis `+y`. The book takes `p` not on the sixth axis, for which
 Subproblem 1 determines `θ₆` modulo `2π` (`PadenKahan.subproblemOne_iff`). -/
 theorem elbowManipulator_subproblemOne {l₀ l₁ l₂ : ℝ} {θ : Fin 6 → ℝ} {g : RigidTransform}
     (h : (elbowManipulator l₀ l₁ l₂).fk θ = g) (p : Vec3) :

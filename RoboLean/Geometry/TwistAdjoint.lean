@@ -23,41 +23,58 @@ namespace RoboLean
 
 namespace Vec3
 
+/-- The cross product is additive in its second argument, `u × (v + w) = u × v + u × w`: MLS
+printed p. 26, "the cross product by `a` is a linear operator" (`b ↦ a × b = â b`,
+eqs. (2.4)–(2.5)). Right-handed cross product of p. 26. -/
 @[simp] theorem cross_add (u v w : Vec3) :
     cross u (v + w) = cross u v + cross u w := by
   apply WithLp.ofLp_injective
   exact (crossProduct (WithLp.ofLp u)).map_add _ _
 
+/-- The cross product is additive in its first argument, `(u + v) × w = u × w + v × w`: the
+matrix `â` of MLS eq. (2.4), printed p. 26, depends linearly on `a`, and `a × b = â b` (eq. (2.5)).
+Right-handed cross product of p. 26. -/
 @[simp] theorem add_cross (u v w : Vec3) :
     cross (u + v) w = cross u w + cross v w := by
   apply WithLp.ofLp_injective
   exact congrArg (fun f => f (WithLp.ofLp w)) (crossProduct.map_add _ _)
 
+/-- The cross product is homogeneous in its second argument, `u × (c v) = c (u × v)`: MLS printed
+p. 26, `b ↦ a × b` is a linear operator (eqs. (2.4)–(2.5)). -/
 @[simp] theorem cross_smul (u v : Vec3) (c : ℝ) :
     cross u (c • v) = c • cross u v := by
   apply WithLp.ofLp_injective
   exact (crossProduct (WithLp.ofLp u)).map_smul c _
 
+/-- The cross product is homogeneous in its first argument, `(c u) × v = c (u × v)`: the matrix
+`â` of MLS eq. (2.4), printed p. 26, is linear in `a`, and `a × b = â b` (eq. (2.5)). -/
 @[simp] theorem smul_cross (u v : Vec3) (c : ℝ) :
     cross (c • u) v = c • cross u v := by
   apply WithLp.ofLp_injective
   exact congrArg (fun f => f (WithLp.ofLp v)) (crossProduct.map_smul c _)
 
+/-- `u × 0 = 0`: MLS printed p. 26, `b ↦ a × b` is a linear operator (eqs. (2.4)–(2.5)). -/
 @[simp] theorem cross_zero (u : Vec3) : cross u 0 = 0 := by
   apply WithLp.ofLp_injective
   exact (crossProduct (WithLp.ofLp u)).map_zero
 
+/-- `0 × u = 0`: the matrix `â` of MLS eq. (2.4), printed p. 26, is zero for `a = 0`. -/
 @[simp] theorem zero_cross (u : Vec3) : cross 0 u = 0 := by
   apply WithLp.ofLp_injective
   exact congrArg (fun f => f (WithLp.ofLp u)) crossProduct.map_zero
 
+/-- `u × (-v) = -(u × v)`: MLS printed p. 26, `b ↦ a × b` is a linear operator
+(eqs. (2.4)–(2.5)). -/
 @[simp] theorem cross_neg (u v : Vec3) : cross u (-v) = -cross u v := by
   apply WithLp.ofLp_injective
   exact (crossProduct (WithLp.ofLp u)).map_neg _
 
+/-- `(-u) × v = -(u × v)`: the matrix `â` of MLS eq. (2.4), printed p. 26, is linear in `a`. -/
 @[simp] theorem neg_cross (u v : Vec3) : cross (-u) v = -cross u v := by
   simpa only [neg_one_smul] using smul_cross u v (-1)
 
+/-- Anticommutativity, `u × v = -(v × u)`: each component of the formula printed on MLS p. 26
+(`a × b = (a₂b₃ − a₃b₂, a₃b₁ − a₁b₃, a₁b₂ − a₂b₁)`) changes sign when `a` and `b` are swapped. -/
 theorem cross_anticomm (u v : Vec3) : cross u v = -cross v u := by
   apply WithLp.ofLp_injective
   exact (_root_.cross_anticomm (WithLp.ofLp v) (WithLp.ofLp u)).symm
@@ -71,23 +88,32 @@ def adjoint (g : RigidTransform) (ξ : Twist) : Twist :=
   ⟨g.rotation.act ξ.linear + Vec3.cross g.translation (g.rotation.act ξ.angular),
     g.rotation.act ξ.angular⟩
 
+/-- The linear part of `Ad_g ξ` is `R v + p × (R ω)`: the top block row `[R, p̂ R]` of MLS
+eq. (2.58), printed p. 55, applied to `ξ = (v, ω)`, with `p̂ x = p × x` by eq. (2.5), p. 26. -/
 @[simp] theorem adjoint_linear (g : RigidTransform) (ξ : Twist) :
     (adjoint g ξ).linear =
       g.rotation.act ξ.linear + Vec3.cross g.translation (g.rotation.act ξ.angular) := rfl
 
+/-- The angular part of `Ad_g ξ` is `R ω`: the bottom block row `[0, R]` of MLS eq. (2.58),
+printed p. 55, applied to `ξ = (v, ω)`. -/
 @[simp] theorem adjoint_angular (g : RigidTransform) (ξ : Twist) :
     (adjoint g ξ).angular = g.rotation.act ξ.angular := rfl
 
+/-- `Ad_g` is additive: it is the `6 × 6` matrix of MLS eq. (2.58), printed p. 55, acting on twist
+coordinates `(v, ω)`. -/
 @[simp] theorem adjoint_add (g : RigidTransform) (ξ η : Twist) :
     adjoint g (ξ + η) = adjoint g ξ + adjoint g η := by
   apply Twist.ext
   · simp [adjoint, map_add, add_add_add_comm]
   · simp [adjoint, map_add]
 
+/-- `Ad_g` is homogeneous: it is the `6 × 6` matrix of MLS eq. (2.58), printed p. 55, acting on
+twist coordinates `(v, ω)`. -/
 @[simp] theorem adjoint_smul (g : RigidTransform) (c : ℝ) (ξ : Twist) :
     adjoint g (c • ξ) = c • adjoint g ξ := by
   apply Twist.ext <;> simp [adjoint, map_smul, smul_add]
 
+/-- `Ad_g 0 = 0` (MLS eq. (2.58), printed p. 55: `Ad_g` is a matrix). -/
 @[simp] theorem adjoint_zero (g : RigidTransform) : adjoint g 0 = 0 := by
   apply Twist.ext <;> simp [adjoint]
 
@@ -97,6 +123,8 @@ def adjointLinearMap (g : RigidTransform) : Twist →ₗ[ℝ] Twist where
   map_add' := adjoint_add g
   map_smul' := adjoint_smul g
 
+/-- The adjoint of the identity transform is the identity: MLS eq. (2.58), printed p. 55, with
+`R = I` and `p = 0`. -/
 @[simp] theorem adjoint_one (ξ : Twist) : adjoint 1 ξ = ξ := by
   apply Twist.ext <;> simp [adjoint]
 
@@ -107,10 +135,14 @@ def adjointLinearMap (g : RigidTransform) : Twist →ₗ[ℝ] Twist where
   · simp [adjoint, map_add, Rotation.act_cross, add_assoc]
   · simp [adjoint]
 
+/-- `Ad_{g⁻¹} (Ad_g ξ) = ξ`: the inverse of the adjoint is the adjoint of the inverse,
+`Ad_g⁻¹ = Ad_{g⁻¹}` (MLS printed p. 56). -/
 @[simp] theorem adjoint_inv_adjoint (g : RigidTransform) (ξ : Twist) :
     adjoint g⁻¹ (adjoint g ξ) = ξ := by
   rw [← adjoint_mul, inv_mul_cancel, adjoint_one]
 
+/-- `Ad_g (Ad_{g⁻¹} ξ) = ξ`: the inverse of the adjoint is the adjoint of the inverse,
+`Ad_g⁻¹ = Ad_{g⁻¹}` (MLS printed p. 56). -/
 @[simp] theorem adjoint_adjoint_inv (g : RigidTransform) (ξ : Twist) :
     adjoint g (adjoint g⁻¹ ξ) = ξ := by
   rw [← adjoint_mul, mul_inv_cancel, adjoint_one]
@@ -124,9 +156,13 @@ def adjointEquiv (g : RigidTransform) : Twist ≃ₗ[ℝ] Twist where
   map_add' := adjoint_add g
   map_smul' := adjoint_smul g
 
+/-- The linear equivalence `adjointEquiv g` acts as `Ad_g` of MLS eq. (2.58), printed p. 55
+(library bridge to Mathlib's `LinearEquiv`). -/
 @[simp] theorem adjointEquiv_apply (g : RigidTransform) (ξ : Twist) :
     adjointEquiv g ξ = adjoint g ξ := rfl
 
+/-- The inverse of `adjointEquiv g` is `Ad_{g⁻¹}`: MLS printed p. 56,
+`Ad_g⁻¹ = Ad_{g⁻¹}`. -/
 @[simp] theorem adjointEquiv_symm_apply (g : RigidTransform) (ξ : Twist) :
     (adjointEquiv g).symm ξ = adjoint g⁻¹ ξ := rfl
 
@@ -182,6 +218,8 @@ theorem conjugation_mem_se3 (g : RigidTransform) (A : Se3) :
 def se3AdjointEquiv (g : RigidTransform) : Se3 ≃ₗ[ℝ] Se3 :=
   hatLinearEquiv.symm.trans ((adjointEquiv g).trans hatLinearEquiv)
 
+/-- On `se(3)` matrices, `se3AdjointEquiv g` is conjugation `ξ̂ ↦ g ξ̂ g⁻¹` by the homogeneous
+matrix of `g`: MLS Lemma 2.13, printed p. 56 (through `hat_adjoint`). -/
 theorem se3AdjointEquiv_apply (g : RigidTransform) (A : Se3) :
     (se3AdjointEquiv g A).val =
       g.toHomogeneous * A.val * g.toHomogeneous⁻¹ := by
@@ -193,6 +231,8 @@ theorem se3AdjointEquiv_apply (g : RigidTransform) (A : Se3) :
 def coordinates (ξ : Twist) : Fin 3 ⊕ Fin 3 → ℝ :=
   Sum.elim (WithLp.ofLp ξ.linear) (WithLp.ofLp ξ.angular)
 
+/-- A twist is determined by its six twist coordinates `ξ = (v, ω) ∈ ℝ⁶` (MLS eqs. (2.30)–(2.31),
+printed p. 40), ordered linear then angular. -/
 theorem coordinates_injective : Function.Injective coordinates := by
   intro ξ η h
   apply Twist.ext <;> ext i
@@ -277,6 +317,8 @@ private theorem coordinates_surjective : Function.Surjective coordinates := by
   funext i
   cases i <;> rfl
 
+/-- The adjoint matrix of the identity transform is the `6 × 6` identity: MLS eq. (2.58), printed
+p. 55, with `R = I` and `p = 0`. -/
 @[simp] theorem adjointMatrix_one : adjointMatrix 1 = 1 := by
   apply Matrix.ext_iff_mulVec.mpr
   intro x

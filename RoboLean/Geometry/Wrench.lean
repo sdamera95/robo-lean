@@ -198,6 +198,20 @@ theorem ext_pair {F G : Wrench} (h : ∀ ξ : Twist, pair F ξ = pair G ξ) : F 
     intro ω
     simpa [pair, Twist.linear, Twist.angular] using h ⟨0, ω⟩
 
+/-- A twist that pairs to zero with every wrench is zero: the pairing of MLS printed p. 61 is
+nondegenerate in the twist (the twist-side counterpart of `ext_pair`). -/
+theorem _root_.RoboLean.Twist.eq_zero_of_forall_pair_eq_zero {V : Twist}
+    (h : ∀ F : Wrench, Wrench.pair F V = 0) : V = 0 := by
+  have hV := h ⟨V.linear, V.angular⟩
+  simp only [Wrench.pair] at hV
+  have h₁ : 0 ≤ inner ℝ V.linear V.linear := real_inner_self_nonneg
+  have h₂ : 0 ≤ inner ℝ V.angular V.angular := real_inner_self_nonneg
+  have hl : inner ℝ V.linear V.linear = (0 : ℝ) := by linarith
+  have ha : inner ℝ V.angular V.angular = (0 : ℝ) := by linarith
+  apply Twist.ext
+  · simpa using inner_self_eq_zero.mp hl
+  · simpa using inner_self_eq_zero.mp ha
+
 /-- Equality of pairing against all instantaneous motions in one frame, MLS
 printed p. 62 (equivalent wrenches). This is pointwise equivalence, not a
 statement about time integrals. -/

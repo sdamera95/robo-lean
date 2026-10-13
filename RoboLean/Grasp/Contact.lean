@@ -181,6 +181,87 @@ theorem softFinger_basisMatrix (μ γ : ℝ) (hμ : 0 < μ) (hγ : 0 < γ) :
     simp [basisMatrix, softFinger, Wrench.coordinates, Rotation.xAxis, Rotation.yAxis,
       Rotation.zAxis]
 
+/-! ### The constraint `B_cᵀ` on twists (MLS eq. (5.9), printed p. 235) -/
+
+/-- The transpose `B_cᵀ` of a spatial wrench basis acting on twists, MLS eq. (5.9), printed
+p. 235: coefficient `j` of `B_cᵀ V` is the pairing `f · v + τ · ω` (MLS printed p. 61) of basis
+column `j` with the twist `V`. For the relative velocity `V = V^b_{fc}` of the contact frame with
+respect to the fingertip, `B_cᵀ V = 0` is the contact constraint (5.9). Wrench order `(f, τ)`,
+twist order `(v, ω)`. -/
+def constraint (c : ContactModel Wrench m) : Twist →ₗ[ℝ] (Fin m → ℝ) :=
+  LinearMap.pi fun j => Wrench.pairing (c.basis j)
+
+/-- Coefficient `j` of `B_cᵀ V` is the pairing of basis column `j` with `V` (MLS eq. (5.9),
+printed p. 235; pairing of MLS p. 61). -/
+theorem constraint_apply (c : ContactModel Wrench m) (V : Twist) (j : Fin m) :
+    c.constraint V j = Wrench.pair (c.basis j) V := rfl
+
+/-- `B_cᵀ` is onto `ℝ^m` when the `m` columns of the wrench basis are linearly independent (MLS
+printed p. 218: `m` "indicates the number of independent forces that can be applied by the
+contact"; the constraint is eq. (5.9), p. 235). Proof: a nonzero linear form `φ` on `ℝ^m` vanishing
+on the range of `B_cᵀ` has coefficients `f` with `(B_c f) · V = φ(B_cᵀ V) = 0` for every twist `V`,
+so `B_c f = 0` (`Wrench.ext_pair`) and `f = 0` by independence. Wrench order `(f, τ)`, twist order
+`(v, ω)`. -/
+theorem constraint_surjective_of_linearIndependent (c : ContactModel Wrench m)
+    (hc : LinearIndependent ℝ c.basis) : Function.Surjective c.constraint := by
+  rw [← LinearMap.range_eq_top]
+  by_contra hne
+  obtain ⟨φ, hφ0, hle⟩ :=
+    (LinearMap.range c.constraint).exists_le_ker_of_lt_top (lt_top_iff_ne_top.mpr hne)
+  set f : Fin m → ℝ := fun j => φ (Pi.single j 1) with hf_def
+  have hφ : ∀ y : Fin m → ℝ, φ y = ∑ j, y j * f j := by
+    intro y
+    conv_lhs => rw [← Finset.univ_sum_single y]
+    rw [map_sum]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [hf_def, ← smul_eq_mul, ← map_smul]
+    congr 1
+    ext k
+    simp [Pi.single_apply]
+  have hw : c.wrench f = 0 := by
+    refine Wrench.ext_pair fun V => ?_
+    have h0 : φ (c.constraint V) = 0 := hle ⟨V, rfl⟩
+    rw [hφ] at h0
+    rw [Wrench.pair_zero_left, wrench_apply, Wrench.pair_sum_left, ← h0]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [Wrench.pair_smul_left, constraint_apply, mul_comm]
+  have hf : f = 0 := funext (Fintype.linearIndependent_iff.mp hc f (by rwa [wrench_apply] at hw))
+  exact hφ0 (LinearMap.ext fun y => by rw [hφ, hf]; simp)
+
+/-- The frictionless constraint map `B_cᵀ` is onto `ℝ¹` (its basis column is nonzero; MLS
+eq. (5.1), printed p. 215, and eq. (5.9), p. 235). -/
+theorem frictionless_constraint_surjective : Function.Surjective frictionless.constraint := by
+  refine constraint_surjective_of_linearIndependent _ (Fintype.linearIndependent_iff.mpr ?_)
+  intro g hg
+  rw [← wrench_apply, frictionless_wrench] at hg
+  simp [Wrench.ext_iff] at hg
+  intro i
+  fin_cases i
+  simp_all
+
+/-- The point-contact constraint map `B_cᵀ` of MLS eq. (5.3) (printed p. 217) is onto `ℝ³`: its
+three basis columns are the unit forces along the contact axes (MLS eq. (5.9), p. 235). -/
+theorem pointContact_constraint_surjective (μ : ℝ) (hμ : 0 < μ) :
+    Function.Surjective (pointContact μ hμ).constraint := by
+  refine constraint_surjective_of_linearIndependent _ (Fintype.linearIndependent_iff.mpr ?_)
+  intro g hg
+  rw [← wrench_apply, pointContact_wrench] at hg
+  simp [Wrench.ext_iff] at hg
+  intro i
+  fin_cases i <;> simp_all
+
+/-- The soft-finger constraint map `B_cᵀ` of MLS eq. (5.4) (printed p. 217) is onto `ℝ⁴`: its
+basis columns are the three unit forces and the unit moment about the contact normal (MLS
+eq. (5.9), p. 235). -/
+theorem softFinger_constraint_surjective (μ γ : ℝ) (hμ : 0 < μ) (hγ : 0 < γ) :
+    Function.Surjective (softFinger μ γ hμ hγ).constraint := by
+  refine constraint_surjective_of_linearIndependent _ (Fintype.linearIndependent_iff.mpr ?_)
+  intro g hg
+  rw [← wrench_apply, softFinger_wrench] at hg
+  simp [Wrench.ext_iff] at hg
+  intro i
+  fin_cases i <;> simp_all
+
 /-! ### The planar point contact of Example 5.3 -/
 
 /-- The planar point contact with friction, MLS Example 5.3, printed p. 222: in planar wrench
