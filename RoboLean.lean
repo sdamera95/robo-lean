@@ -133,3 +133,7 @@ import RoboLean.Control.StateTransition
 import RoboLean.Control.LinearTimeVarying
 import RoboLean.Control.LinearizationTimeVarying
 import RoboLean.Examples.LinearizationTimeVarying
+import RoboLean.Dynamics.ConstrainedLagrangian
+import RoboLean.Dynamics.CompositeDynamics
+import RoboLean.Examples.ConstrainedDynamics
+import RoboLean.Examples.HandDynamics
