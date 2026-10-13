@@ -940,14 +940,27 @@ opened only where needed. "All eigenvalues in the open left half plane" is `Cont
 `ℝ → ℂ` (equivalently, on the complex spectrum); the name is the control-text one, not MLS's. The
 exponential is `NormedSpace.exp`; a matrix statement elaborates `exp` with the plain product
 topology and the normed lemmas meet it by definitional unfolding (`exact`), not by `rw`. Theorem
-4.6 is formalized for a constant linearization `A(t) ≡ L` (with `f` allowed to depend on `t`), on
-`ℝⁿ`, with the conclusion exponential stability (Definition 4.3), from which the printed local
-uniform asymptotic stability follows; a time-varying `A(t)` is open. Other finite-dimensional
+4.6 is formalized on `ℝⁿ`, with the conclusion exponential stability (Definition 4.3), from which
+the printed local uniform asymptotic stability follows: for a constant linearization `A(t) ≡ L`
+(E026) and for a time-varying `A(t)` (E033). Other finite-dimensional
 state spaces, such as `ℝ × ℝ`, are reached by `ExponentiallyStable.of_continuousLinearEquiv`
 (constants change by `‖e‖‖e⁻¹‖`). No continuity of `f`, no Lipschitz condition (p. 179) and no
 existence of solutions is assumed. The Lyapunov function of the proof is `xᵀPx` with `P` twice the
 finite-horizon Gramian `∫₀^T exp(sL)ᵀ exp(sL) ds` in the Euclidean dot product, compared with the
 sup norm through `‖x‖² ≤ x ⬝ x ≤ n‖x‖²` and `QuadraticBounds`.
+
+**Time-varying linearization (E033).** `A : ℝ → (ℝⁿ →L[ℝ] ℝⁿ)` is "bounded" when `‖A(t)‖ ≤ M` for `t
+≥ 0` (operator norm of the sup norm), and is in addition assumed continuous on `[0, ∞)`, a
+hypothesis MLS does not state (its p. 179 conditions allow piecewise continuity in `t`; the
+library's solutions need a derivative at every `t > t₀`). A state-transition matrix is a family of
+continuous linear maps `Φ(t, s) : E →L[ℝ] E` with `IsStateTransition A Φ`: `Φ(s, s) = 1`, `Φ(t,
+s)Φ(s, r) = Φ(t, r)` and `∂Φ(t, s)/∂t = A(t)Φ(t, s)` (derivative within `[0, ∞)`), for `t, s, r ≥
+0`; `Φ(t, s)` maps the state at time `s` to the state at time `t`, forward or backward, and `t ↦
+Φ(t, t₀)z₀` is the solution from `(t₀, z₀)`. It exists when `A` is continuous and bounded on `[0,
+∞)` and is unique; for constant `A ≡ L` it is `exp((t − s)L)`. The exponential bound is written
+`‖Φ(t, s)‖ ≤ C e^{−α(t − s)}` for `0 ≤ s ≤ t`. The Lyapunov function of the proof is the Gramian
+`V(t, x) = ∫_t^{t+T} ‖Φ(s, t)x‖₂² ds` in the Euclidean dot product with `T = 1 + log(2nC'² +
+1)/(2α)` (E026's horizon, `C' = max(C, 0)`).
 
 ## Grasp and contact conventions
 
