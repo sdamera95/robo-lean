@@ -1015,10 +1015,8 @@ the table's wording.
 coefficients; `Grasp.positivelySpans_iff_nonneg` proves it equivalent to spanning with
 nonnegative coefficients, the form used in proofs.
 
-**Deferred (Q5, Q6).** The §6 normal orientation (above) and the strictness of the antipodal
-conditions of Theorem 5.6 (p232; per the E025 scout digest, not read by the lead, the printed
-conditions are strict inequalities while the statement says the line "lies inside" the closed
-cones) are not settled here; neither is used by E025.
+**Deferred (Q5).** The §6 normal orientation (above) is not settled. Q6, the strictness of the
+antipodal conditions of Theorem 5.6, is settled by E031 (below).
 
 ### Hands, finger kinematics and manipulability
 
@@ -1072,3 +1070,50 @@ Definition 5.3's strictly internal forces (E025); its "structural forces" row (`
 not equivalent under force-closure (`Examples.summaryItem6_counterexample`); for hands with onto
 contact constraint maps (every Table 5.2 model) they are equivalent without force-closure
 (`HandGrasp.isManipulable_iff_surjective`). Statements about "the" hand Jacobian use the latter.
+
+### Grasp planning and antipodal grasps
+
+Recorded 2026-10-13 for increment E031 (gate [E031/20261013T213811Z](../../docs/implogs/gates/E031/20261013T213811Z/)).
+Source: MLS Chapter 5 §4, printed pp. 229–234, and Exercises 5, 7, 8 (pp. 260–261), read by the
+E031 lead as renders and text extracts.
+
+**2-D cross product and `n^⊥`.** `a ⊗ b = det[a b] = a_x b_y - a_y b_x` (`Grasp.cross2`, p. 232);
+`n^⊥ = (-n_y, n_x)` (`Grasp.perp2`), the unique unit vector with `n · n^⊥ = 0` and
+`n ⊗ n^⊥ = +1` for a unit `n` (`perp2_unique`). Not to be confused with `Vec3.perp`, the projection
+onto a plane.
+
+**Planar contact axes.** For a planar frame `R ∈ SO(2)` (p. 222): contact `x`-axis
+`t = R e_x` (`contactTangent`), inward normal `n = R e_y` (`contactNormal`), `t ⊗ n = det R = 1`
+and `n^⊥ = -t`. The planar wrench of a force `F` at `p` is `(F_x, F_y, p ⊗ F)` (`planarWrench`).
+
+**Conditions A–D and Q6.** A–D are taken as printed, strict, one `μ`: A ∧ B at contact 1 for
+`p₂ - p₁`, C ∧ D at contact 2 for `p₁ - p₂` (`InsideFrictionCone`, `AntipodalConditions`). "The line
+lies inside the friction cone" means the open cone: A ∧ B ⇔ `|t · d| < μ (n · d)` ⇔ `Rᵀ d` in the
+interior of the cone of p. 222 ⇔ `d` in the interior of the contact's cone in object coordinates.
+The boundary (any of A–D at equality) is never force-closure, and the closed reading is false on an
+explicit instance.
+
+**Orientation hypothesis of Theorem 5.6 (not stated by MLS).** The "only if" direction needs the
+inward normals to face each other, `n₁ · (p₂ - p₁) ≥ 0` and `n₂ · (p₁ - p₂) ≥ 0`
+(`NormalsFaceEachOther`; one of the two suffices), which holds on a convex object. Without it
+force-closure is equivalent to A–D or A–D with the connecting line reversed at both contacts; the
+exchanged rectangle of Example 5.3 (an internal grasp) is force-closure and fails A–D.
+
+**Contact bounds.** Theorems 5.4 and 5.5 carry the added hypothesis `p ≥ 1`. Families may repeat
+vectors; bounds count members. `ℝ^p` is any finite-dimensional real vector space (5.4) or normed
+space (5.5); `co` is `convexHull ℝ`, `int` is `interior`.
+
+**Surfaces and `Λ(Σ)`.** A "surface" is a set of (contact point, normal) pairs in object
+coordinates; no boundary `∂O` is modeled and nothing checks unit length or inwardness. Planar
+`Λ(Σ)` uses `(n_x, n_y, p ⊗ n)`; spatial `Λ(Σ)` uses the six coordinates of `(n; p × n)`, force
+first, with the product topology. Exceptional: `convexHull ℝ Λ(Σ) ∉ nhds 0`. A planar frictionless
+grasp of contacts on a surface is the matrix of its columns (Example 5.4's form); a spatial one is
+`ContactGrasp.spatial` of frictionless contacts with translation `pᵢ` and third axis `nᵢ`.
+
+**Theorem 5.7.** "The line lies inside the friction cone" at a soft-finger contact means the
+direction to the other contact, in that contact's frame (`contactDirection`), satisfies the open
+Coulomb inequality `√(x₁² + x₂²) < μ x₃`; the torsional part of the cone (5.4) plays no role in the
+hypothesis. Only the "if" direction holds in the library's model.
+
+**Figure 5.13.** The book defines no axes; the library uses the triangle `(0, 0)`, `(1, 0)`,
+`(1/2, √3/2)`, contacts `(s, 0)` and `(t/2, t√3/2)` measured from the shared vertex.
