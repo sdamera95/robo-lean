@@ -1130,3 +1130,73 @@ hypothesis. Only the "if" direction holds in the library's model.
 
 **Figure 5.13.** The book defines no axes; the library uses the triangle `(0, 0)`, `(1, 0)`,
 `(1/2, √3/2)`, contacts `(s, 0)` and `(t/2, t√3/2)` measured from the shared vertex.
+
+## Constrained dynamics conventions
+
+Recorded 2026-10-13 for increment E034 (gate [E034/20261013T224821Z](../../docs/implogs/gates/E034/20261013T224821Z/)).
+Source: MLS Chapter 6, printed pp. 265–284, read by the E034 lead as renders and text extracts.
+These are conventions of the Lean model; they do not certify a physical constrained system.
+
+**Constraint carrier.** Configurations and velocities are `Fin n → ℝ`; the book's open set `Q` is
+all of `ℝⁿ` unless a statement names a set (`IsIntegrableOn`) or a neighborhood. A Pfaffian
+constraint is a field `A : (Fin n → ℝ) → Matrix (Fin k) (Fin n) ℝ`, satisfied at `(q, v)` when
+`A(q) v = 0` (`PfaffianAt`). "Pointwise linearly independent" (p. 267) is
+`LinearIndependent ℝ (A q).row`; it is a hypothesis where used, not part of the carrier. A
+holonomic constraint `h : ℝⁿ → ℝᵏ` has `∂h/∂q = MapJacobian.jac h`.
+
+**Virtual displacements and d'Alembert's principle.** A virtual displacement at `q` is any `δq` with
+`A(q) δq = 0`; a force `F` does no virtual work when `F · δq = 0` for all of them
+(`DoesNoVirtualWork`). d'Alembert's principle (pp. 268, 271) is a modeling assumption and is built
+into the definitions: the constraint force in (6.4) is `Aᵀλ`, and (6.7)–(6.8) restrict to virtual
+displacements. The library proves that the forces doing no virtual work are exactly the `Aᵀλ` (no
+rank hypothesis), so the two formulations are equivalent; nothing derives the principle.
+
+**Multipliers.** (6.4) is `Lagrangian.LagrangeEquationsAt` with the force `Υ − Aᵀλ`
+(`MultiplierEquationsAt`); `λ ∈ ℝᵏ` is a value at the time `t`, with no regularity in `t`.
+Existence of `λ` from (6.7)–(6.8) needs no rank hypothesis; uniqueness holds exactly when the rows of
+`A(q(t))` are independent. In (6.7)–(6.8) (`LagrangeDAlembertAt`), as in Lagrange's equations, the
+existence of the derivative of `s ↦ ∂L/∂q̇(q(s), q̇(s))` at `t` is part of the predicate. The force
+split of E013 is kept: `Υ = F − Nₑ`, `N = ∂V/∂q + Nₑ`.
+
+**The multiplier formula (6.6).** `multiplier A M w a = (A M⁻¹ Aᵀ)⁻¹ ((A M⁻¹) w + a)` with
+`Matrix.inv`, `w = F − Cq̇ − N` and `a = Ȧq̇`. Hypotheses where used: `M(q(t))` positive definite;
+`Ȧ` an actual entrywise derivative of `s ↦ A(q(s))` at `t`; the constraint on a neighborhood of `t`.
+
+**Relabeling `q = (q₁, q₂)` (p. 272).** A relabeling is an equivalence
+`e : Fin r ⊕ Fin k ≃ Fin n`; `q₁ = splitFst e q` (independent coordinates), `q₂ = splitSnd e q`
+(the `k` coordinates eliminated by the constraint), `A₁ = colsFst A e`, `A₂ = colsSnd A e`,
+`A₂⁻ᵀ = (A₂⁻¹)ᵀ`. "Reordering" means choosing `e`; it exists for independent rows and persists
+near a configuration where `A` is continuous.
+
+**The composite hand–object system.** The configuration is `q ∈ Fin N → ℝ` with
+`e : Fin p ⊕ Fin n ≃ Fin N`: object coordinates `x = splitFst e q` (`p` of them, the `q₁` of (6.9)),
+finger joints `θ = splitSnd e q` (`n`, the `q₂`). MLS's ordering `q = (θ, x)` is
+`mlsSplit p n : Fin p ⊕ Fin n ≃ Fin (n + p)` (fingers first). The composite Lagrangian is
+`L_f(θ, θ̇) + L_o(x, ẋ)` (6.19). The generalized force is `(τ, 0)` (`handForce`).
+
+**Sign of the grasp constraint.** `A = [J_h  −Gᵀ]` (p. 267, `handPfaffian`), with `J_h ∈ ℝ^{n×n}`
+(invertible, so `m = n`) and `G ∈ ℝ^{p×n}`. Then `J_hᵀλ = τ − (M_fθ̈ + C_fθ̇ + N_f)` and
+`Gλ = M_oẍ + C_oẋ + N_o`: `λ` is the contact force applied to the object (`Gλ` its net wrench, the
+fingers receiving `−J_hᵀλ`), the `f_c` of (5.16) (`τ = J_hᵀ f_c`, p. 238) when
+`M_fθ̈ + C_fθ̇ + N_f = 0`. MLS p. 280 prints `A = [−J_h  Gᵀ]`,
+which gives `−λ`; the displayed contact-force formula of p. 280 is that of p. 267's sign.
+
+**Abstract chart.** `J_h` and `G` are functions of the composite configuration `q` (or matrix curves
+along a motion); the object chart `x ↦ x_o ∈ SE(3)` is not modeled. The twist-level grasping
+constraint `HandGrasp.GraspingConstraint` (5.15) is the origin of (6.18); `J_h(θ, x)` and
+`Gᵀ(θ, x)` of (6.18) correspond to it through a chart Jacobian `J_φ(x)`, not formalized.
+
+**Effective parameters (6.22).** `effectiveMass Mo Mf J G = M_o + G J⁻ᵀ M_f J⁻¹ Gᵀ` and
+`effectiveCoriolis Co Cf Mf J G Bd = C_o + G J⁻ᵀ (C_f J⁻¹ Gᵀ + M_f Bd)`, `J⁻ᵀ = (J⁻¹)ᵀ` with
+`Matrix.inv`; the book's `(d/dt)(J_h⁻¹ Gᵀ)` is the explicit argument `Bd`, required to be the actual
+entrywise derivative of `s ↦ J_h(s)⁻¹ G(s)ᵀ` wherever (6.21) or Lemma 6.1(2) is used. Hypotheses of
+the composite theorems: `M_f`, `M_o` symmetric; `J_h` invertible along the motion near `t`; (6.18)
+on a neighborhood of `t`; positive definiteness from `M_o > 0` (any `J_h`, `G`) or from `M_f > 0`,
+`J_h` invertible and `G` onto (force-closure); skew symmetry of `Ṁ_o − 2C_o` and `Ṁ_f − 2C_f` as
+hypotheses, or from Christoffel matrices of symmetric inertia fields (E013, Lemma 4.2(2)). The
+object Coriolis block printed in (6.17) is not used (it is symmetric, O2). Assumptions 1 and 3 of
+p. 277 (force-closure and manipulable; contact forces in the friction cone) are not formalized:
+the algebra does not use them and the friction-cone condition is a property of the controller.
+
+**Workspace form (6.26).** `G = I` (`p = n`); with `M_o = 0` the effective inertia and Coriolis
+matrix are E029's `workspaceM` and `workspaceC` (N42).
