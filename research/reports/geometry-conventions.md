@@ -591,6 +591,19 @@ that tries `veil_smt` first, then `grind`, core lemmas and hand-proved steps), w
 condition that SMT reconstruction discharges unchanged (E032). A product clause is mirrored
 literally (`bound * closedCount`, `age * age`, `rate * ticksTotal`); an auxiliary equality such as
 `load = age * age` is a clause of its own on both sides.
+A counter that wraps around at a theory constant is encoded without `div` and `mod`: `if slot + 1 =
+period then slot := 0; rounds := rounds + 1 else slot := slot + 1` in the Veil action, the clauses
+`slot < period` and `period * rounds + slot = ticksTotal`, and in the Lean mirror the same `if` in
+the two updated fields; `ticksTotal % period = slot` and `ticksTotal / period = rounds` are then
+Lean theorems derived from the two clauses for `1 ≤ period`, not Veil clauses. With `veil.smt.trust
+false` this encoding needs no solver fallback at this Veil and lean-smt revision (every
+per-condition proof reconstructs), and on states with `slot < period` its step relation equals the
+`div`/`mod` one ([E036](../../docs/implogs/E036-veil-fifth-pilot-wrap-around-scheduler.md)), so it
+is the preferred form; the E032 fallback chain remains the route for a model that must keep `div` or
+`mod`. A bounded exclusion is recorded as a theorem only in Veil's proof-term form `unsat trace [n] {
+… } by veil_bmc`, followed by `#print axioms n`: Veil's ordinary `unsat trace` keeps no proof term and
+reports an `unsat` solver result as holding even when the proof was not rebuilt or would fail the
+kernel (E036: silent over four actions, rejected by the kernel in the proof-term form).
 
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
 [p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis

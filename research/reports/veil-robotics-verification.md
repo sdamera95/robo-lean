@@ -157,6 +157,35 @@ finish within ten minutes. The explicit-state search, the non-vacuity traces, th
 the composition over reachable states behave as in the earlier evaluations. As before, Veil's DSL
 elaboration is trusted and the link to the continuous Lean theorems remains a recorded convention.
 
+## Fifth evaluation, 2026-10-14 (E036)
+
+The fourth evaluation's `div`/`mod` boundary was retested on the same Veil commit by re-encoding the
+scheduler without division: a tick that reaches the end of the period resets the slot to zero and
+counts a completed round, and the clauses are `slot < period` and `period * rounds + slot =
+ticksTotal`, from which the quotient and remainder clauses follow as Lean theorems
+([entry E036](../../docs/implogs/E036-veil-fifth-pilot-wrap-around-scheduler.md),
+[gate](../../docs/implogs/gates/E036/20261014T071255Z/)). With `veil.smt.trust false`, no solver
+fallback and Veil's default solver, every one of the 91 inductive verification conditions now has a
+reconstructed, kernel-checked proof (89 through cvc5, 2 closed before it), where the fourth
+evaluation needed a custom fallback chain for 16 of 105; the per-condition proofs are of the same
+size as before (median 21 cvc5 steps), and the two scheduler conditions of `tick` that failed now
+take 208 and 468 steps. The same states are reachable as with the `div`/`mod` encoding, and in Lean
+the two step relations are proved equal on states whose slot is below the period. The bounded
+exclusion behaves differently. Veil's `unsat trace` keeps no proof term and reports a solver `unsat`
+as holding even when reconstruction left the proof unfinished; in Veil's proof-term form, which
+elaborates the trace statement as a theorem, the two-action exclusion is a kernel-checked theorem, the first bounded exclusion with a kept proof in these evaluations, while over four actions the
+rebuilt proof is rejected by the kernel and over six it cannot be rebuilt, and over eight cvc5 gives
+no answer within 60 s. Those remaining failures come from products, not from division: two defects in
+lean-smt's integer reconstruction (a sum of equalities declared as an inequality, and E032's
+`mul_abs₂` error, which therefore also arises without `div`/`mod`) and its lack of rational
+reconstruction for certificates with fractional coefficients. cvc5's proofs of the trace queries are
+about a third smaller than with `div`/`mod` (71015 against 107965 steps over six actions). As the model grows by energy lanes, the per-condition
+proofs grow as in the fourth evaluation (the condition that needs every lane: 5305 steps with four
+extra lanes, 5180 before).
+The explicit-state search, the non-vacuity traces, the unsafe variant and the composition over
+reachable states behave as before; Veil's DSL elaboration is trusted and the link to the continuous
+Lean theorems remains a recorded convention.
+
 ## Related Z3 work in this research program
 
 A companion source review identified a [current symbolic-unrolling path](</home/sandeep/research/projects/R-DTLGN/icra-outputs/runs/2026-09-20D-thermometer-rho-campaign/z3-code/_bmc8.py:78>), a [Bool-pair ternary encoder](</home/sandeep/research/projects/R-DTLGN/r_dtlgn/smt/encoder_bool.py:26>), and a [newer inductive-step experiment](</home/sandeep/research/projects/R-DTLGN/icra-outputs/certification/observed-envelope/_step.py:108>). Their presence shows the project already extends beyond a simple bounded-checking script; this report does not establish that the inductive experiment produced a successful unbounded certificate. One possible Lean contribution, independent of adopting Veil, is to prove the encoder agrees with a finite ternary evaluator for arbitrary circuits and ticks. Agreement between a learned policy and an STL requirement would remain a separate claim. These Z3 examples provide methodological context and do not limit Veil's possible uses across robotics, control, and learning.
