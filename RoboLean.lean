@@ -137,3 +137,4 @@ import RoboLean.Dynamics.ConstrainedLagrangian
 import RoboLean.Dynamics.CompositeDynamics
 import RoboLean.Examples.ConstrainedDynamics
 import RoboLean.Examples.HandDynamics
+import RoboLean.Design.PlanarArmSchedulerSupervisor
