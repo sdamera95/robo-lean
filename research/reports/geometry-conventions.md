@@ -577,6 +577,20 @@ embeds a `Nat`-valued function as an `Int`-valued one with the assertion `∀ a�
 rewrites `x - y` into `if x ≥ y then x - y else 0`; with such a function in a model, debug with
 `trace.smt` (goal and query), not `trace.smt.solve`, whose proof printer fails on the binder `a₁`
 (E027).
+A Veil model's `/` and `%` on `Nat` are Lean's `Nat.div` and `Nat.mod` (the actions are Lean code),
+with `n / 0 = 0` and `n % 0 = n`, and the Lean mirror uses the same operations; lean-smt sends them
+to cvc5 as integer `div` and `mod` (embedding lemmas `Int.natCast_ediv`, `Int.natCast_emod`), where
+division by zero is unspecified, so a Veil model states a positive divisor as an `assumption` on the
+theory (`assumption [period_pos] period ≥ 1`), which every condition carries as its `Assumptions`
+premise and Veil's `reachable.init` requires, while the Lean mirror takes `1 ≤ period` only where
+Lean's conventions need it ([E032](../../docs/implogs/E032-veil-fourth-pilot-scheduler-
+supervisor.md)). With `veil.smt.trust false`, a condition whose refutation involves `div` or `mod`
+does not reconstruct at this Veil and lean-smt revision; such conditions are discharged by a solver
+fallback set in the model (`set_option veil.solver "custom"` with a `macro_rules` for `veil_solve`
+that tries `veil_smt` first, then `grind`, core lemmas and hand-proved steps), which leaves every
+condition that SMT reconstruction discharges unchanged (E032). A product clause is mirrored
+literally (`bound * closedCount`, `age * age`, `rate * ticksTotal`); an auxiliary equality such as
+`load = age * age` is a clause of its own on both sides.
 
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
 [p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis

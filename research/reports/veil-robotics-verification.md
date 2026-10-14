@@ -126,6 +126,37 @@ queries. As before, Veil's DSL elaboration is trusted, a composition of the per-
 over the reachable states was proved in Lean inside the Veil file, and the link to the continuous
 Lean theorems remains a recorded convention.
 
+## Fourth evaluation, 2026-10-13 (E032)
+
+The question left by the third evaluation, where reconstruction stops, was run on the same Veil
+commit with the budget supervisor extended by cost counters and a round-robin scheduler
+([entry E032](../../docs/implogs/E032-veil-fourth-pilot-scheduler-supervisor.md),
+[gate](../../docs/implogs/gates/E032/20261013T222456Z/)): `ticksClosed ≤ bound * closedCount`, a
+quadratic load with `load = age * age` and `load ≤ bound * bound`, an energy counter with `energy =
+rate * ticksTotal` and `energy ≤ rate * capacity`, and a slot and period count advanced by
+`slot := (slot + 1) % period` and `rounds := rounds + (slot + 1) / period` with the clauses
+`slot < period`, `ticksTotal % period = slot`, `ticksTotal / period = rounds` and `period * rounds +
+slot = ticksTotal`, for a symbolic `period` assumed positive. With `veil.smt.trust false`, products
+reconstruct: the 20 conditions that need only polynomial normalization and reach the solver, and all
+14 that need nonlinear monotonicity, which cvc5 proves with its multiplication-sign and monotonicity lemmas and lean-smt
+replays through its integer lemmas. `div` and `mod` stop it: 15 conditions are refuted by cvc5 but not
+reconstructed, because lean-smt rebuilds cvc5's arithmetic reduction step only for `abs`, not for
+`div` and `mod` (in four of them a second reconstruction defect raises a kernel type error), and one
+condition with `div` is not refuted within 60 or 180 s; even frame conditions fail once a `div` or
+`mod` hypothesis enters the refutation, and a literal divisor fails too, through rational
+coefficients that this lean-smt build cannot rebuild. A 180 s solver limit does not help; `grind`
+alone closes the ten frame conditions but fails the two nonlinear ones that SMT reconstruction closes;
+the remaining six need core lemmas or hand-proved arithmetic steps, which the model supplies through
+a custom solver chain that keeps SMT first. The bounded exclusion check fails with trust off on this
+model (lean-smt cannot rebuild the trace query's proof; Veil keeps no trace proof in any case) and is
+answered unsat with trust on; its cvc5 proof grows from 4478 steps over two actions to 107965 over
+six (E027: 27129), and over eight actions cvc5 does not answer within 300 s. As the model grows by
+energy lanes, every condition still reconstructs up to four extra lanes, the condition whose
+refutation needs all lanes grows from 278 to 5180 proof steps, and with eight lanes one file did not
+finish within ten minutes. The explicit-state search, the non-vacuity traces, the unsafe variant and
+the composition over reachable states behave as in the earlier evaluations. As before, Veil's DSL
+elaboration is trusted and the link to the continuous Lean theorems remains a recorded convention.
+
 ## Related Z3 work in this research program
 
 A companion source review identified a [current symbolic-unrolling path](</home/sandeep/research/projects/R-DTLGN/icra-outputs/runs/2026-09-20D-thermometer-rho-campaign/z3-code/_bmc8.py:78>), a [Bool-pair ternary encoder](</home/sandeep/research/projects/R-DTLGN/r_dtlgn/smt/encoder_bool.py:26>), and a [newer inductive-step experiment](</home/sandeep/research/projects/R-DTLGN/icra-outputs/certification/observed-envelope/_step.py:108>). Their presence shows the project already extends beyond a simple bounded-checking script; this report does not establish that the inductive experiment produced a successful unbounded certificate. One possible Lean contribution, independent of adopting Veil, is to prove the encoder agrees with a finite ternary evaluator for arbitrary circuits and ticks. Agreement between a learned policy and an STL requirement would remain a separate claim. These Z3 examples provide methodological context and do not limit Veil's possible uses across robotics, control, and learning.
