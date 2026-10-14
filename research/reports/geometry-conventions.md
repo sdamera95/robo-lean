@@ -1208,10 +1208,18 @@ fingers receiving `−J_hᵀλ`), the `f_c` of (5.16) (`τ = J_hᵀ f_c`, p. 238
 `M_fθ̈ + C_fθ̇ + N_f = 0`. MLS p. 280 prints `A = [−J_h  Gᵀ]`,
 which gives `−λ`; the displayed contact-force formula of p. 280 is that of p. 267's sign.
 
-**Abstract chart.** `J_h` and `G` are functions of the composite configuration `q` (or matrix curves
-along a motion); the object chart `x ↦ x_o ∈ SE(3)` is not modeled. The twist-level grasping
-constraint `HandGrasp.GraspingConstraint` (5.15) is the origin of (6.18); `J_h(θ, x)` and
-`Gᵀ(θ, x)` of (6.18) correspond to it through a chart Jacobian `J_φ(x)`, not formalized.
+**Object chart (E037).** `J_h` and `G` may be abstract functions of the
+composite configuration `q` (E034), or derived from the twist-level grasping constraint
+`HandGrasp.GraspingConstraint` (5.15) through a chart `x_o = φ(x)` of the object pose,
+`φ : (Fin p → ℝ) → RigidTransform`, with a body-velocity Jacobian `Jφ(x) ∈ ℝ^{6×p}` (rows in twist
+order `(v, ω)`): `IsBodyJacobian φ Jφ` is a hypothesis structure stating that along every motion `x`
+the pose curve `φ ∘ x` has a derivative and its body velocity `(φ⁻¹φ̇)^∨` is `Jφ(x)ẋ`; column `i` of
+`Jφ(x)` is then `(φ⁻¹ ∂φ/∂xᵢ)^∨` (Exercise 4(b), p. 314). Then `J_h(θ, x) = J_h(θ, φ(x))` and
+`Gᵀ(θ, x) = Gᵀ Jφ(x)`, i.e. `G(θ, x) = Jφ(x)ᵀ G` (`localGrasp`). On the composite carrier the stacked
+contact coefficients `Σ i, Fin (m i)` and joints `Σ i, Fin (n i)` are relabeled to `Fin k` by
+equivalences (`chartHandJacobian`, `chartGrasp`, `unstackJoints`); the hand's `J_h` is square when
+`Σ m i = Σ n i` (assumption 2 of p. 277). The library's chart instance is the translational chart
+`x ↦ (I, x)` with `Jφ = [[I], [0]]`; no chart of all of `SE(3)` is constructed.
 
 **Effective parameters (6.22).** `effectiveMass Mo Mf J G = M_o + G J⁻ᵀ M_f J⁻¹ Gᵀ` and
 `effectiveCoriolis Co Cf Mf J G Bd = C_o + G J⁻ᵀ (C_f J⁻¹ Gᵀ + M_f Bd)`, `J⁻ᵀ = (J⁻¹)ᵀ` with
@@ -1227,3 +1235,57 @@ the algebra does not use them and the friction-cone condition is a property of t
 
 **Workspace form (6.26).** `G = I` (`p = n`); with `M_o = 0` the effective inertia and Coriolis
 matrix are E029's `workspaceM` and `workspaceC` (N42).
+
+Recorded 2026-10-14 for increment E037 (gate [E037/20261014T073708Z](../../docs/implogs/gates/E037/20261014T073708Z/)).
+Source: MLS Chapter 6, printed pp. 274–277, 281–303 and Exercises 2 and 4 (p. 314), read by the
+E037 lead as renders and text extracts.
+
+**Object dynamics in local coordinates (Exercise 4, (6.17)).** In body coordinates the Newton–Euler
+equations read `M V̇ + C(V) V = F` with `M = [[mI, 0], [0, 𝓘]]` (constant) and
+`C(V) = [[m ω̂, 0], [0, −(𝓘ω)^]]` (`objectCoriolis`), skew, so `Ṁ − 2C = −2C` is skew; the block
+`½(ω̂ᵇ𝓘 − 𝓘ω̂ᵇ)` printed in (6.17) is not used. With gravity, (6.17) is stated with the printed sign,
+`Fᵇ = −(Rᵀ(m g⃗), 0)`, the direction of `g⃗` left to the user. In local coordinates
+`M̄ = JφᵀMJφ`, `C̄ = JφᵀC(V)Jφ + JφᵀMJ̇φ`, with `J̇φ` the actual derivative of `s ↦ Jφ(x(s))`;
+Newton–Euler implies `M̄ẍ + C̄ẋ = JφᵀFᵇ`, and the converse holds for `Jφ` onto.
+
+**The robot interface (§5, p. 303).** A robot is `Control.RobotSystem p`: fields `M(x)`, `C(x, ẋ)`,
+`N(x, ẋ)` on `x ∈ ℝᵖ`, no hypotheses inside. Positive definiteness of `M` is a hypothesis where used;
+the skew property is `HasSkewProperty` (`Control.SkewAlongMotions M C`: for every motion and every
+actual entrywise derivative `Ṁ` of `s ↦ M(x(s))`, `Ṁ − 2C(x, ẋ)` is skew). The first-order system
+of a feedback law is `field u` (state `(x, ẋ)`, `Matrix.inv`); the computed torque law is the book's
+`F = M(ẍ_d − K_vė − K_pe) + Cẋ + N`, `e = x − x_d` (`computedTorque`; for matrix curves
+`computedTorqueAlong`). Proposition 4.8 holds for every robot with `M` positive definite, and along
+any motion whose `M(s)` is positive definite, the matrices possibly depending on coordinates outside
+the robot's state (p. 301). `ManipulatorModel.toRobotSystem` is E015's model as a robot (same
+`field` and computed torque, by definition). The hand–object system is a robot on the object
+coordinates when the finger fields are written in object coordinates (`handRobot`, the holonomic
+case of p. 301); inputs and outputs of robots and the operations `attach`, `control` are not modeled.
+
+**The torques (6.36).** `G⁺ = Gᵀ(GGᵀ)⁻¹` is `rightPinv G` (`Matrix.inv`; one definition for `J⁺`,
+`P⁺`, `G⁺`), used under `G` onto; `graspTorque J G F f_N = Jᵀ(G⁺F + f_N)`, with `f_N ∈ N(G)` where
+used; `J⁻ᵀτ = G⁺F + f_N` is the contact force due to the actuators (p. 301).
+
+**Redundancy (§3.1).** `J̄ = [J; K]` has its rows `(ẋ, v_N)` relabeled by
+`e : Fin p ⊕ Fin r ≃ Fin n` to a square matrix (`augmentedJacobian`); `(ẋ, v_N)` is
+`Constrained.splitJoin e ẋ v_N`. The book's "rows of `K` span `N(J)`" is stated as `K` onto and
+`J Kᵀ = 0`; "orthonormal and perpendicular" as `K Kᵀ = I`, `J Kᵀ = 0`. `Ḡ` (`Ḡᵀ = [[Gᵀ, 0], [0, I]]`)
+has rows `(ẋ, v_N)` relabeled by `ew` and columns `(f_c, f_N)` by `ea` (`augmentedGrasp`). The
+redundant grasp constraint is `graspPfaffian` (`[J_h −Gᵀ]` with `J_h ∈ ℝ^{m×n}`, the sign of p. 267).
+(6.30) carries the object blocks `diag(M_o, 0)`, `diag(C_o, 0)`, `(N_o, 0)` on `(ẋ, v_N)`.
+
+**Tendons (§4).** Extension functions `h : ℝⁿ → ℝᵖ`, coupling matrix `P(θ) = (∂h/∂θ)ᵀ ∈ ℝ^{n×p}`
+(`couplingMatrix`, `∂h/∂θ = MapJacobian.jac h θ`); column `i` of `P` is the joint torque of a unit
+tension in tendon `i`. `τ = Pf` is the model (the energy argument is a premise). Elastic forces
+`f = K(e + h(0) − h(θ))`, stiffness `S(θ) = PK(h(θ) − h(0))`, `Q = PK`. Force-closure (6.34) is
+strict positivity of every tension (`IsTendonForceClosure`, tendons indexed by any finite type); the
+counts need `n ≥ 1`; (6.35) uses the diagonal stiffness `diag(k)`, `kᵢ > 0`.
+
+**Stacked fingers (6.16).** Fingers are indexed by a finite type `ι`, finger `i` has `n i` joints,
+the stacked joints are relabeled by `(Σ i, Fin (n i)) ≃ Fin N`; `θ_{fᵢ} = fingerCoords e θ i`;
+`M_f`, `C_f` are `Matrix.blockDiagonal'` relabeled (`stackMat`), `N_f` stacked (`stackVec`); each
+finger's inertia depends on its own joints only.
+
+**Substituted Lagrangian (6.15).** `L(r, ṙ, ṡ)` is a function of three arguments without `s`;
+partial derivatives are read from its joint Fréchet derivative `DL` (`∂L/∂rᵢ = DL(eᵢ, 0, 0)`,
+`∂L/∂ṙᵢ = DL(0, eᵢ, 0)`, `∂L/∂ṡ = DL(0, 0, 1)`), and those of `a` from its Fréchet derivative `Da`
+(`∂aⱼ/∂rᵢ = (Da eᵢ)ⱼ`); the last sum of (6.15) is `Σⱼ (∂aⱼ/∂rᵢ) ṙⱼ`.
