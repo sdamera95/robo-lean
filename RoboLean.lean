@@ -139,3 +139,14 @@ import RoboLean.Examples.ConstrainedDynamics
 import RoboLean.Examples.HandDynamics
 import RoboLean.Design.PlanarArmSchedulerSupervisor
 import RoboLean.Design.PlanarArmWrapSchedulerSupervisor
+import RoboLean.Dynamics.PseudoInverse
+import RoboLean.Control.RobotSystem
+import RoboLean.Dynamics.HandControl
+import RoboLean.Dynamics.RedundantDynamics
+import RoboLean.Dynamics.Tendons
+import RoboLean.Dynamics.ObjectChart
+import RoboLean.Dynamics.GraspChart
+import RoboLean.Dynamics.StackedFingers
+import RoboLean.Dynamics.SubstitutedLagrangian
+import RoboLean.Examples.RedundancyAndTendons
+import RoboLean.Examples.HandChart
