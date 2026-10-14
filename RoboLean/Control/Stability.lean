@@ -40,8 +40,13 @@ bounds printed on p. 184, and the facts that exponential stability implies stabi
 asymptotic stability (p. 181). Continued in E019: Theorem 4.4(4), the local form of Theorem 4.5
 and the uniform consequences of exponential stability (`StabilityTheorems`), a solution-flow
 interface with uniqueness for Lipschitz fields (`SolutionFlow`) and Lasalle's principle
-(`LaSalle`). Not formalized: the converse half of Theorem 4.5, Theorem 4.6 (linearization) and
-a general existence theory.
+(`LaSalle`). Elsewhere: the converse half of Theorem 4.5 with the first three bounds for
+autonomous Lipschitz fields in `Control/ConverseLyapunov` (E023), and with all four bounds for
+linear time-varying systems in `Control/LinearTimeVarying` (E033); Theorem 4.6 (linearization) in
+`Control/Linearization` (E026, constant `A`) and, with a time-varying `A(t)`, in
+`Control/StateTransition`, `Control/LinearTimeVarying` and `Control/LinearizationTimeVarying`
+(E033, with the added hypothesis `A` continuous on `[0, ∞)`). Not formalized: a general existence
+theory.
 -/
 
 noncomputable section

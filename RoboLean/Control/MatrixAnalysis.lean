@@ -25,7 +25,10 @@ These lemmas were collected here in E019 from `ManipulatorSystem` and `PDControl
 names are unchanged. E030 added the product rule for a time-varying matrix applied to a curve and
 the bilinear bounds `|vᵀ A w| ≤ κ ‖v‖ ‖w‖` (from `AugmentedPD`, names unchanged), and the
 entry-by-entry derivatives of matrix-valued curves (`hasDerivAt_matrix_iff`, `_mul`, `_transpose`,
-`_inv`, from `MapJacobian`, whose old names are deprecated aliases).
+`_inv`, from `MapJacobian`, whose old names are deprecated aliases). E035 added the rectangular
+product rule `hasDerivAt_matrix_mulVec_rect` (from `ConstrainedLagrangian`) and the congruence
+identity `reduced_sub_two_eq`, `skew_reduced` of Lemmas 4.11(2) and 6.1(2) (from
+`CompositeDynamics`); the old names are deprecated aliases.
 -/
 
 open Matrix
@@ -108,6 +111,27 @@ theorem hasDerivAt_matrix_mulVec {A : ℝ → Matrix (Fin n) (Fin n) ℝ}
       (∑ j, (A' i j * b t j + A t i j * b' j)) t :=
     HasDerivAt.fun_sum fun j _ => (hA i j).mul (hb' j)
   simpa [Matrix.mulVec, dotProduct, Finset.sum_add_distrib] using h
+
+section Rectangular
+
+variable {k : ℕ}
+
+/-- **Product rule for a rectangular matrix-valued curve applied to a curve** (for
+`(d/dt)(A(q) q̇) = Ȧ q̇ + A q̈`, MLS p. 269): if every entry of `A` has the derivative `A'ᵢⱼ` at `t`
+and `b` has the derivative `b'`, then `s ↦ A(s) b(s)` has the derivative `A' b(t) + A(t) b'`. The
+square case is `Control.hasDerivAt_matrix_mulVec`. -/
+theorem hasDerivAt_matrix_mulVec_rect {A : ℝ → Matrix (Fin k) (Fin n) ℝ}
+    {A' : Matrix (Fin k) (Fin n) ℝ} {b : ℝ → Fin n → ℝ} {b' : Fin n → ℝ} {t : ℝ}
+    (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t) (hb : HasDerivAt b b' t) :
+    HasDerivAt (fun s => A s *ᵥ b s) (A' *ᵥ b t + A t *ᵥ b') t := by
+  have hb' := hasDerivAt_pi.mp hb
+  refine hasDerivAt_pi.mpr fun i => ?_
+  have h : HasDerivAt (fun s => ∑ j, A s i j * b s j)
+      (∑ j, (A' i j * b t j + A t i j * b' j)) t :=
+    HasDerivAt.fun_sum fun j _ => (hA i j).mul (hb' j)
+  simpa [Matrix.mulVec, dotProduct, Finset.sum_add_distrib] using h
+
+end Rectangular
 
 /-- **A bilinear bound for a real square matrix** in the sup norm on `ℝⁿ`:
 `|vᵀ A w| ≤ (∑ᵢⱼ |Aᵢⱼ|) ‖v‖ ‖w‖`; used for the cross terms of the skewed energy in the proof of
@@ -197,6 +221,39 @@ theorem hasDerivAt_matrix_inv {A : ℝ → Matrix (Fin n) (Fin n) ℝ} {A' : Mat
       simp [ContinuousLinearMap.mulLeftRight_apply]
     all_goals rfl
   exact hasDerivAt_matrix_iff.mp h2 i j
+
+/-! ### The congruence identity (MLS Lemmas 4.11(2) and 6.1(2), pp. 197, 279) -/
+
+section Congruence
+
+variable {ι κ : Type*} [Fintype ι]
+
+/-- **The identity in the proof of MLS Lemma 6.1(2), p. 279, for a rectangular reduction `S`.** With
+`M̃ = Sᵀ M S`, `M̃˙ = S'ᵀ M S + Sᵀ Ṁ S + Sᵀ M S'` and `C̃ = Sᵀ (C S + M S')`,
+`M̃˙ − 2C̃ = Sᵀ (Ṁ − 2C) S + S'ᵀ M S − Sᵀ M S'`. For `S = J_h⁻¹ Gᵀ` this is the printed identity of
+p. 279 (finger part); for `S = J⁻¹` it is Lemma 4.11's (p. 197). -/
+theorem reduced_sub_two_eq (M Md C : Matrix ι ι ℝ) (S S' : Matrix ι κ ℝ) :
+    S'ᵀ * M * S + Sᵀ * Md * S + Sᵀ * M * S' - (2 : ℝ) • (Sᵀ * (C * S + M * S')) =
+      Sᵀ * (Md - (2 : ℝ) • C) * S + S'ᵀ * M * S - Sᵀ * M * S' := by
+  simp only [Matrix.mul_add, Matrix.mul_smul, Matrix.smul_mul, Matrix.mul_sub, Matrix.sub_mul,
+    Matrix.mul_assoc]
+  module
+
+/-- **The congruence step of MLS Lemma 6.1(2), p. 279, for a rectangular reduction `S`:** "Taking
+transposes and using symmetry of `M_f` inverts the sign of the last line". If `M` is symmetric and
+`Ṁ − 2C` is skew-symmetric, then `S'ᵀ M S + Sᵀ Ṁ S + Sᵀ M S' − 2 Sᵀ (C S + M S')` is skew-symmetric
+for all `S`, `S'`. -/
+theorem skew_reduced {M Md C : Matrix ι ι ℝ} {S S' : Matrix ι κ ℝ} (hM : Mᵀ = M)
+    (hs : (Md - (2 : ℝ) • C)ᵀ = -(Md - (2 : ℝ) • C)) :
+    (S'ᵀ * M * S + Sᵀ * Md * S + Sᵀ * M * S' - (2 : ℝ) • (Sᵀ * (C * S + M * S')))ᵀ =
+      -(S'ᵀ * M * S + Sᵀ * Md * S + Sᵀ * M * S' - (2 : ℝ) • (Sᵀ * (C * S + M * S'))) := by
+  rw [reduced_sub_two_eq, Matrix.transpose_sub, Matrix.transpose_add, Matrix.transpose_mul,
+    Matrix.transpose_mul, Matrix.transpose_mul, Matrix.transpose_mul, Matrix.transpose_mul,
+    Matrix.transpose_mul, hs, hM, Matrix.transpose_transpose, Matrix.transpose_transpose]
+  simp only [Matrix.mul_neg, Matrix.neg_mul, Matrix.mul_assoc]
+  module
+
+end Congruence
 
 end Control
 end RoboLean

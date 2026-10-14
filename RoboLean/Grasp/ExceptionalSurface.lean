@@ -59,16 +59,6 @@ private theorem convexHull_notMem_nhds_of_subset_ker {E : Type*} [AddCommGroup E
     (hs : ∀ w ∈ s, φ w = 0) : convexHull ℝ s ∉ nhds (0 : E) := fun h =>
   ker_notMem_nhds φ he (Filter.mem_of_superset h (convexHull_min hs (Submodule.convex _)))
 
-/-- Positive spanning (MLS printed p. 225) is carried along a linear equivalence. -/
-private theorem PositivelySpans.map_linearEquiv {ι W W' : Type*} [Fintype ι] [AddCommGroup W]
-    [Module ℝ W] [AddCommGroup W'] [Module ℝ W'] {v : ι → W} (h : PositivelySpans v)
-    (e : W ≃ₗ[ℝ] W') : PositivelySpans fun i => e (v i) := by
-  intro x
-  obtain ⟨α, hα, hx⟩ := h (e.symm x)
-  refine ⟨α, hα, ?_⟩
-  rw [← e.apply_symm_apply x, ← hx, map_sum]
-  simp only [map_smul]
-
 /-- The set `Λ(Σ)` of MLS printed p. 230 for a planar "surface" given as a set of pairs
 `(p, n)` (contact point, inward unit normal, in object coordinates): the planar wrenches
 `(n_x, n_y, p ⊗ n)` that frictionless point contacts on it can apply (p. 222). Nothing checks

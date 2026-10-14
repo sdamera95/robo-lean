@@ -16,8 +16,8 @@ with the fingertip; the contact frame `Cᵢ`, at the same point, moves with the 
   fingers (`SerialChain (n i)`: joint twists in `Sᵢ` at the reference configuration and
   `g_{sᵢfᵢ}(0)`), and the finger bases `g_{psᵢ}` (the book writes `g_{sᵢp} = g_{psᵢ}⁻¹`);
 * `contactFrame xo i` is `g_{sᵢcᵢ} = g_{sᵢp} g_{po} g_{ocᵢ}` (MLS pp. 236, 240);
-* `fingerJacobian xo i θᵢ` is the block `B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ})` (eq. (5.13)), with
-  the library's spatial Jacobian `SerialChain.spatialJacobian` (MLS eq. (3.54)) and the contact
+* `fingerJacobian xo i θᵢ` is the block `B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ})` (eq. (5.13)),
+  with the library's spatial Jacobian `SerialChain.spatialJacobian` (MLS eq. (3.54)) and the contact
   constraint map `ContactModel.constraint` (`B_{cᵢ}ᵀ`, eq. (5.9); defined in `Grasp/Contact`);
 * `handJacobian θ xo` is `J_h(θ, x_o)`, block diagonal by construction (`handJacobian_apply`,
   `handJacobian_single`), and `handJacobianMatrix` is the printed block-diagonal matrix of p. 236
@@ -82,7 +82,8 @@ def contactFrame (h : HandGrasp ι m n) (xo : RigidTransform) (i : ι) : RigidTr
   (h.base i)⁻¹ * xo * h.grasp.frame i
 
 /-- The adjoint identity of MLS printed p. 236,
-`Ad⁻¹_{g_{pcᵢ}} Ad_{g_{pfᵢ}} Ad⁻¹_{g_{sᵢfᵢ}} = (Ad_{g_{sᵢp}} Ad_{g_{po}} Ad_{g_{ocᵢ}})⁻¹ = Ad⁻¹_{g_{sᵢcᵢ}}`,
+`Ad⁻¹_{g_{pcᵢ}} Ad_{g_{pfᵢ}} Ad⁻¹_{g_{sᵢfᵢ}} = (Ad_{g_{sᵢp}} Ad_{g_{po}} Ad_{g_{ocᵢ}})⁻¹`
+`= Ad⁻¹_{g_{sᵢcᵢ}}`,
 with `g_{pcᵢ} = g_{po} g_{ocᵢ}` and `g_{pfᵢ} = g_{psᵢ} g_{sᵢfᵢ}`, for every fingertip pose
 `g_{sᵢfᵢ}`. -/
 theorem adjoint_contactFrame_inv (h : HandGrasp ι m n) (xo : RigidTransform) (i : ι)
@@ -95,10 +96,10 @@ theorem adjoint_contactFrame_inv (h : HandGrasp ι m n) (xo : RigidTransform) (i
   group
 
 /-- Block `i` of the hand Jacobian, MLS eq. (5.13), printed p. 236:
-`B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ})`, from the joint rates `θ̇_{fᵢ}` of finger `i` to `ℝ^{mᵢ}`.
-`J^s_{sᵢfᵢ}` is the spatial Jacobian of the finger (MLS eq. (3.54)) acting by
-`θ̇ ↦ ∑ₗ θ̇ₗ ξₗ'`; `Ad⁻¹_{g_{sᵢcᵢ}}` writes that twist in the contact frame; `B_{cᵢ}ᵀ` reads it in the
-directions of the wrench basis. Lean joint `l` is the book's joint `l + 1`. -/
+`B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ})`, from the joint rates `θ̇_{fᵢ}` of finger `i` to
+`ℝ^{mᵢ}`. `J^s_{sᵢfᵢ}` is the spatial Jacobian of the finger (MLS eq. (3.54)) acting by
+`θ̇ ↦ ∑ₗ θ̇ₗ ξₗ'`; `Ad⁻¹_{g_{sᵢcᵢ}}` writes that twist in the contact frame; `B_{cᵢ}ᵀ` reads it in
+the directions of the wrench basis. Lean joint `l` is the book's joint `l + 1`. -/
 def fingerJacobian (h : HandGrasp ι m n) (xo : RigidTransform) (i : ι)
     (θi : Fin (n i) → ℝ) : (Fin (n i) → ℝ) →ₗ[ℝ] (Fin (m i) → ℝ) :=
   (h.grasp.model i).constraint ∘ₗ Twist.adjointLinearMap (h.contactFrame xo i)⁻¹ ∘ₗ
@@ -110,15 +111,16 @@ theorem fingerJacobian_apply (h : HandGrasp ι m n) (xo : RigidTransform) (i : �
     (θi θ' : Fin (n i) → ℝ) :
     h.fingerJacobian xo i θi θ' =
       (h.grasp.model i).constraint
-        (Twist.adjoint (h.contactFrame xo i)⁻¹ (∑ l, θ' l • (h.finger i).spatialJacobian θi l)) := by
+        (Twist.adjoint (h.contactFrame xo i)⁻¹
+          (∑ l, θ' l • (h.finger i).spatialJacobian θi l)) := by
   simp only [fingerJacobian, LinearMap.coe_comp, Function.comp_apply,
     Fintype.linearCombination_apply]
   rfl
 
 /-- The block of MLS eq. (5.13) as the printed matrix product of p. 236,
-`B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ}) ∈ ℝ^{mᵢ × nᵢ}`: the transposed `6 × mᵢ` basis matrix, the
-`6 × 6` adjoint matrix of `g_{sᵢcᵢ}⁻¹` (MLS eq. (2.58)) and the `6 × nᵢ` spatial Jacobian matrix;
-six-coordinate rows `(v, ω)` against wrench rows `(f, τ)`. -/
+`B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ}) ∈ ℝ^{mᵢ × nᵢ}`: the transposed `6 × mᵢ` basis matrix,
+the `6 × 6` adjoint matrix of `g_{sᵢcᵢ}⁻¹` (MLS eq. (2.58)) and the `6 × nᵢ` spatial Jacobian
+matrix; six-coordinate rows `(v, ω)` against wrench rows `(f, τ)`. -/
 def fingerJacobianMatrix (h : HandGrasp ι m n) (xo : RigidTransform) (i : ι)
     (θi : Fin (n i) → ℝ) : Matrix (Fin (m i)) (Fin (n i)) ℝ :=
   (h.grasp.model i).basisMatrixᵀ * Twist.adjointMatrix (h.contactFrame xo i)⁻¹ *
@@ -338,9 +340,9 @@ def ContactConstraint (h : HandGrasp ι m n) (i : ι) (θ : ℝ → Fin (n i) �
       (RigidTransform.bodyVelocity (fun s => h.fingertipContact i (θ s) (xo s)) D t hD) = 0
 
 /-- **MLS eq. (5.13), printed p. 236, derived from eq. (5.9).** Along joint and object
-trajectories with actual derivatives, the contact constraint `B_{cᵢ}ᵀ V^b_{fᵢcᵢ} = 0` holds at `t`
-if and only if `B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ}) θ̇_{fᵢ} = Gᵢᵀ V^b_{po}`. Finger base fixed in
-the palm and contact fixed on the object are built into `fingertipContact`. -/
+trajectories with actual derivatives, the contact constraint `B_{cᵢ}ᵀ V^b_{fᵢcᵢ} = 0` holds at
+`t` if and only if `B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s_{sᵢfᵢ}(θ_{fᵢ}) θ̇_{fᵢ} = Gᵢᵀ V^b_{po}`. Finger base
+fixed in the palm and contact fixed on the object are built into `fingertipContact`. -/
 theorem contactConstraint_iff (h : HandGrasp ι m n) (i : ι) {θ : ℝ → Fin (n i) → ℝ}
     {θ' : Fin (n i) → ℝ} {xo : ℝ → RigidTransform} {Do : HomogeneousMatrix} {t : ℝ}
     (hθ : ∀ l, HasDerivAt (fun s => θ s l) (θ' l) t)
@@ -393,10 +395,11 @@ def handTorque (h : HandGrasp ι m n) (θ : (i : ι) → Fin (n i) → ℝ) (xo 
   fun i l => ∑ j, h.fingerJacobian xo i (θ i) (Pi.single l 1) j * fc i j
 
 /-- **MLS eq. (5.16), printed p. 238, per finger, against eq. (3.60), p. 121.** The torques of
-finger `i` are the spatial force pullback `(J^s_{sᵢfᵢ})ᵀ F` of the contact wrench `F = B_{cᵢ} f_{cᵢ}`
-carried from the contact frame to the finger base frame `Sᵢ` (`Wrench.transform g_{sᵢcᵢ}`, the
-book's `Ad⁻ᵀ_{g_{sᵢcᵢ}}`): `(B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s)ᵀ f = (J^s)ᵀ Ad⁻ᵀ_{g_{sᵢcᵢ}} B_{cᵢ} f`. Wrench
-`(f, τ)`, twist `(v, ω)`. -/
+finger `i` are the spatial force pullback `(J^s_{sᵢfᵢ})ᵀ F` of the contact wrench
+`F = B_{cᵢ} f_{cᵢ}` carried from the contact frame to the finger base frame `Sᵢ`
+(`Wrench.transform g_{sᵢcᵢ}`, the book's `Ad⁻ᵀ_{g_{sᵢcᵢ}}`):
+`(B_{cᵢ}ᵀ Ad⁻¹_{g_{sᵢcᵢ}} J^s)ᵀ f = (J^s)ᵀ Ad⁻ᵀ_{g_{sᵢcᵢ}} B_{cᵢ} f`. Wrench `(f, τ)`, twist
+`(v, ω)`. -/
 theorem handTorque_eq_spatialWrenchTorques (h : HandGrasp ι m n) (θ : (i : ι) → Fin (n i) → ℝ)
     (xo : RigidTransform) (fc : (i : ι) → Fin (m i) → ℝ) (i : ι) :
     h.handTorque θ xo fc i =

@@ -234,24 +234,6 @@ theorem workspaceMdot_sub_two_workspaceC_eq (q v : Fin n → ℝ) :
     Matrix.sub_mul, Matrix.mul_neg, Matrix.mul_assoc]
   module
 
-/-- The congruence step of the proof of MLS Lemma 4.11(2), p. 197: if `M` is symmetric and
-`Ṁ − 2C` is skew-symmetric, then for all `X`, `X'` the matrix
-`X'ᵀ M X + Xᵀ Ṁ X + Xᵀ M X' − 2 Xᵀ (C X + M X')` is skew-symmetric. -/
-private theorem skew_congr {M Md C X X' : Matrix (Fin n) (Fin n) ℝ} (hM : Mᵀ = M)
-    (hs : (Md - (2 : ℝ) • C)ᵀ = -(Md - (2 : ℝ) • C)) :
-    (X'ᵀ * M * X + Xᵀ * Md * X + Xᵀ * M * X' - (2 : ℝ) • (Xᵀ * (C * X + M * X')))ᵀ =
-      -(X'ᵀ * M * X + Xᵀ * Md * X + Xᵀ * M * X' - (2 : ℝ) • (Xᵀ * (C * X + M * X'))) := by
-  have e : X'ᵀ * M * X + Xᵀ * Md * X + Xᵀ * M * X' - (2 : ℝ) • (Xᵀ * (C * X + M * X')) =
-      Xᵀ * (Md - (2 : ℝ) • C) * X + X'ᵀ * M * X - Xᵀ * M * X' := by
-    simp only [Matrix.mul_add, Matrix.mul_smul, Matrix.smul_mul, Matrix.mul_sub,
-      Matrix.sub_mul, Matrix.mul_assoc]
-    module
-  rw [e, Matrix.transpose_sub, Matrix.transpose_add, Matrix.transpose_mul, Matrix.transpose_mul,
-    Matrix.transpose_mul, Matrix.transpose_mul, Matrix.transpose_mul, Matrix.transpose_mul, hs, hM,
-    Matrix.transpose_transpose, Matrix.transpose_transpose]
-  simp only [Matrix.mul_neg, Matrix.neg_mul, Matrix.mul_assoc]
-  module
-
 /-- `C̃` in the form `Xᵀ (C X + M X')` with `X = J⁻¹`, `X' = −X J̇ X`. -/
 private theorem workspaceC_eq_mul (q v : Fin n → ℝ) :
     P.workspaceC f q v = ((jac f q)⁻¹)ᵀ * (P.C q v * (jac f q)⁻¹ +
@@ -272,7 +254,7 @@ theorem skew_workspaceMdot_sub_two_workspaceC (h : ∀ k, (P.chain.linkInertia k
     Christoffel.skew_rate_sub_two_coriolisMatrix (Christoffel.partials_isSymm
       (P.chain.massMatrix_isSymm h) (P.chain.hasFDerivAt_massMatrix q)) v
   rw [workspaceC_eq_mul]
-  exact skew_congr hM hs
+  exact Control.skew_reduced hM hs
 
 /-- **MLS Lemma 4.11(2), p. 197, along a motion.** With symmetric link inertias, a `C²` map `f`,
 a motion `θ` with velocity `θ'` at `t` and `J(θ(t))` invertible, every actual derivative `M̃˙` of
@@ -294,7 +276,7 @@ theorem skew_deriv_workspaceM_sub_two_workspaceC (h : ∀ k, (P.chain.linkInerti
     P.chain.skew_deriv_sub_two_coriolisMatrix_massMatrixDeriv h (fun k => hasDerivAt_pi.mp hθ k)
       (P.hasDerivAt_M_comp hθ)
   rw [hMt, workspaceC_eq_mul]
-  exact skew_congr hM hs
+  exact Control.skew_reduced hM hs
 
 /-! ### Workspace computed torque (MLS p. 198) -/
 

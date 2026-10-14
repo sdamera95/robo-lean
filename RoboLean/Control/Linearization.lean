@@ -49,7 +49,9 @@ nonlinear system on a small ball, where `‖f(t, x) − Lx‖ ≤ γ‖x‖`, an
 (`exponentiallyStable_of_quadratic_lyapunov_local`, E019) concludes. No continuity of `f` is used:
 `V̇` is computed along each solution from its derivative.
 
-**Not formalized: Theorem 4.6 with a time-varying `A(t)`.** Its proof needs uniform asymptotic
+**Theorem 4.6 with a time-varying `A(t)`: in `Control/StateTransition`, `Control/LinearTimeVarying`
+and `Control/LinearizationTimeVarying` (E033, with the added hypothesis `A` continuous on
+`[0, ∞)`).** Its proof needs uniform asymptotic
 stability of `ż = A(t)z` to give a uniform exponential bound and a Lyapunov function `xᵀP(t)x`,
 i.e. solutions of `ż = A(t)z` from every `(t₀, z₀)` (the state-transition matrix) and their
 dependence on `t₀`; the flow interface `HasFlow` is autonomous and the pinned Mathlib has no
@@ -478,7 +480,7 @@ theorem exponentiallyStable_of_isUniformLinearization_of_uniformlyAsymptotically
 uniformly asymptotically stable equilibrium point of `ż = Lz` (4.40) and (4.39) holds, then `0` is
 a (locally) uniformly asymptotically stable equilibrium point of `ẋ = f(x, t)` (4.37), on `ℝⁿ`
 with the sup norm. The library's uniform asymptotic stability is local (a ball of initial
-states). The time-varying `A(t)` case is not formalized (module docstring). -/
+states). The time-varying `A(t)` case is in `Control/LinearizationTimeVarying` (E033). -/
 theorem uniformlyAsymptoticallyStable_of_isUniformLinearization
     {f : ℝ → (Fin n → ℝ) → (Fin n → ℝ)} {L : (Fin n → ℝ) →L[ℝ] (Fin n → ℝ)}
     (hL : UniformlyAsymptoticallyStable (fun _ z => L z) 0)

@@ -16,9 +16,10 @@ of the frames.
 
 The velocity side. The constraint of a contact with wrench basis `B_c` on a twist `V` is
 `B_cᵀ V` (MLS eq. (5.9), p. 235); here `ContactModel.constraint` (in `Grasp/Contact`, with its
-surjectivity lemmas), whose coefficient `j` is the pairing `f · v + τ · ω` (MLS p. 61) of basis
-column `j` with `V`. The transpose of the grasp map
-acts on the object twist `V^b_{po}` by `Gᵢᵀ V = (Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ})ᵀ V = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹} V`
+surjectivity lemmas and its transpose identities `sum_constraint_mul`,
+`basisMatrix_transpose_mulVec`, `frictionless_constraint`), whose coefficient `j` is the pairing
+`f · v + τ · ω` (MLS p. 61) of basis column `j` with `V`. The transpose of the grasp map acts on
+the object twist `V^b_{po}` by `Gᵢᵀ V = (Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ})ᵀ V = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹} V`
 (MLS eq. (5.13), p. 236); here `SpatialGrasp.graspTranspose`. It is the transpose with respect to
 the twist–wrench pairing on the object side and the dot product of coefficients on the contact
 side (`sum_graspTranspose_mul`), and in six coordinates it is the matrix transpose of the grasp
@@ -36,40 +37,6 @@ noncomputable section
 open Matrix
 
 namespace RoboLean
-
-namespace ContactModel
-
-variable {m : ℕ}
-
-/-- `B_cᵀ` is the transpose of `B_c`: `(B_cᵀ V) · f = (B_c f) · V`, the dot product of
-coefficients on one side and the twist–wrench pairing (MLS printed p. 61) on the other
-(MLS eqs. (5.5), (5.9), printed pp. 218, 235). -/
-theorem sum_constraint_mul (c : ContactModel Wrench m) (V : Twist) (f : Fin m → ℝ) :
-    ∑ j, c.constraint V j * f j = Wrench.pair (c.wrench f) V := by
-  rw [wrench_apply, Wrench.pair_sum_left]
-  refine Finset.sum_congr rfl fun j _ => ?_
-  rw [Wrench.pair_smul_left, constraint_apply, mul_comm]
-
-/-- In six coordinates `B_cᵀ` is the transpose of the `6 × m` basis matrix: `B_cᵀ V` is
-`basisMatrixᵀ` applied to the twist coordinates (MLS eq. (5.9), printed p. 235; wrench rows
-`(f, τ)` against twist rows `(v, ω)`). -/
-theorem basisMatrix_transpose_mulVec (c : ContactModel Wrench m) (V : Twist) :
-    c.basisMatrixᵀ *ᵥ V.coordinates = c.constraint V := by
-  funext j
-  rw [constraint_apply, Wrench.pair_eq_coordinates_dotProduct]
-  simp [basisMatrix, Matrix.mulVec, dotProduct, Matrix.transpose_apply]
-
-/-- The frictionless contact constraint of MLS printed p. 235: `[0 0 1 0 0 0] V = 0` constrains
-only the linear velocity along the contact `z`-axis (the inward normal); `B_cᵀ V` is that one
-coordinate. -/
-theorem frictionless_constraint (V : Twist) :
-    frictionless.constraint V = ![V.coordinates (Sum.inl 2)] := by
-  funext j
-  fin_cases j
-  simp [constraint_apply, frictionless, Wrench.pair, Rotation.zAxis, Twist.coordinates,
-    EuclideanSpace.inner_eq_star_dotProduct, dotProduct, Fin.sum_univ_succ]
-
-end ContactModel
 
 /-- A spatial grasp with fixed contacts that keeps its contact frames, MLS §2, printed
 pp. 214–219: `k` contacts indexed by a finite type `ι`; contact `i` has a spatial contact model
@@ -163,8 +130,8 @@ def toGrasp (g : SpatialGrasp ι m) : Grasp ((i : ι) → Fin (m i) → ℝ) Wre
 @[simp] theorem toGrasp_cone (g : SpatialGrasp ι m) : g.toGrasp.cone = g.cone := rfl
 
 /-- The transpose of the grasp map acting on object twists, MLS eq. (5.13), printed p. 236:
-`(Gᵀ V)ᵢ = Gᵢᵀ V = (Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ})ᵀ V = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹} V`, the object twist written in
-contact frame `i` and read in the directions of its wrench basis. For `V = V^b_{po}`, the body
+`(Gᵀ V)ᵢ = Gᵢᵀ V = (Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ})ᵀ V = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹} V`, the object twist written
+in contact frame `i` and read in the directions of its wrench basis. For `V = V^b_{po}`, the body
 velocity of the object relative to the palm, this is the right-hand side of the grasping
 constraint (5.15). Twist order `(v, ω)`. -/
 def graspTranspose (g : SpatialGrasp ι m) : Twist →ₗ[ℝ] ((i : ι) → Fin (m i) → ℝ) :=

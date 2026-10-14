@@ -31,7 +31,8 @@ observation, one-input evaluation in the gate's `Observation.lean`).
 
 * The congruence identity behind Lemma 4.11(2) and Lemma 6.1(2), for rectangular `S`:
   `S'ᵀ M S + Sᵀ Ṁ S + Sᵀ M S' − 2 Sᵀ (C S + M S') = Sᵀ (Ṁ − 2C) S + S'ᵀ M S − Sᵀ M S'`, skew when
-  `M` is symmetric and `Ṁ − 2C` is skew (`skew_reduced`). It covers `S = J⁻¹` (Lemma 4.11),
+  `M` is symmetric and `Ṁ − 2C` is skew (`Control.skew_reduced`, in `Control/MatrixAnalysis`
+  since E035). It covers `S = J⁻¹` (Lemma 4.11),
   `S = J_h⁻¹ Gᵀ` (Lemma 6.1) and the augmented Jacobians of §3.
 * The effective parameters (6.22) `effectiveMass`, `effectiveCoriolis`, `effectiveN`,
   `effectiveForce`, with the book's `(d/dt)(J_h⁻¹ Gᵀ)` an explicit argument, and the algebra of
@@ -62,38 +63,14 @@ open Matrix Filter Topology
 namespace RoboLean
 namespace Composite
 
-/-! ### The congruence identity (MLS Lemmas 4.11(2) and 6.1(2), pp. 197, 279) -/
+/-! The congruence identity (MLS Lemmas 4.11(2) and 6.1(2)) moved to the `Control` namespace
+(`RoboLean.Control.MatrixAnalysis`) on 2026-10-14; the old names remain as deprecated aliases. -/
 
-section Congruence
+@[deprecated Control.reduced_sub_two_eq (since := "2026-10-14")]
+alias reduced_sub_two_eq := Control.reduced_sub_two_eq
 
-variable {ι κ : Type*} [Fintype ι]
-
-/-- **The identity in the proof of MLS Lemma 6.1(2), p. 279, for a rectangular reduction `S`.** With
-`M̃ = Sᵀ M S`, `M̃˙ = S'ᵀ M S + Sᵀ Ṁ S + Sᵀ M S'` and `C̃ = Sᵀ (C S + M S')`,
-`M̃˙ − 2C̃ = Sᵀ (Ṁ − 2C) S + S'ᵀ M S − Sᵀ M S'`. For `S = J_h⁻¹ Gᵀ` this is the printed identity of
-p. 279 (finger part); for `S = J⁻¹` it is Lemma 4.11's (p. 197). -/
-theorem reduced_sub_two_eq (M Md C : Matrix ι ι ℝ) (S S' : Matrix ι κ ℝ) :
-    S'ᵀ * M * S + Sᵀ * Md * S + Sᵀ * M * S' - (2 : ℝ) • (Sᵀ * (C * S + M * S')) =
-      Sᵀ * (Md - (2 : ℝ) • C) * S + S'ᵀ * M * S - Sᵀ * M * S' := by
-  simp only [Matrix.mul_add, Matrix.mul_smul, Matrix.smul_mul, Matrix.mul_sub, Matrix.sub_mul,
-    Matrix.mul_assoc]
-  module
-
-/-- **The congruence step of MLS Lemma 6.1(2), p. 279, for a rectangular reduction `S`:** "Taking
-transposes and using symmetry of `M_f` inverts the sign of the last line". If `M` is symmetric and
-`Ṁ − 2C` is skew-symmetric, then `S'ᵀ M S + Sᵀ Ṁ S + Sᵀ M S' − 2 Sᵀ (C S + M S')` is skew-symmetric
-for all `S`, `S'`. -/
-theorem skew_reduced {M Md C : Matrix ι ι ℝ} {S S' : Matrix ι κ ℝ} (hM : Mᵀ = M)
-    (hs : (Md - (2 : ℝ) • C)ᵀ = -(Md - (2 : ℝ) • C)) :
-    (S'ᵀ * M * S + Sᵀ * Md * S + Sᵀ * M * S' - (2 : ℝ) • (Sᵀ * (C * S + M * S')))ᵀ =
-      -(S'ᵀ * M * S + Sᵀ * Md * S + Sᵀ * M * S' - (2 : ℝ) • (Sᵀ * (C * S + M * S'))) := by
-  rw [reduced_sub_two_eq, Matrix.transpose_sub, Matrix.transpose_add, Matrix.transpose_mul,
-    Matrix.transpose_mul, Matrix.transpose_mul, Matrix.transpose_mul, Matrix.transpose_mul,
-    Matrix.transpose_mul, hs, hM, Matrix.transpose_transpose, Matrix.transpose_transpose]
-  simp only [Matrix.mul_neg, Matrix.neg_mul, Matrix.mul_assoc]
-  module
-
-end Congruence
+@[deprecated Control.skew_reduced (since := "2026-10-14")]
+alias skew_reduced := Control.skew_reduced
 
 /-! ### The effective parameters (MLS eqs. (6.21)–(6.22), p. 278) -/
 
@@ -253,7 +230,7 @@ theorem skew_effectiveMassRate_sub_two_effectiveCoriolis {Mod Co : Matrix (Fin p
         (2 : ℝ) • (Xᵀ * (Cf * X + Mf * Bd))) := by
     rw [smul_add]
     abel
-  rw [e, Matrix.transpose_add, hso, skew_reduced hMf hsf, neg_add]
+  rw [e, Matrix.transpose_add, hso, Control.skew_reduced hMf hsf, neg_add]
 
 /-- **The rate of the effective mass along a motion (MLS p. 279, `M̃˙`).** If the entries of
 `s ↦ M_o(s)`, `s ↦ M_f(s)` and `s ↦ J_h(s)⁻¹ G(s)ᵀ` have the derivatives `Ṁ_o`, `Ṁ_f`, `Ẋ` at `t`,
@@ -680,7 +657,7 @@ theorem velocity_acceleration_eq {J : ℝ → Matrix (Fin n) (Fin n) ℝ}
     rw [← Matrix.mulVec_mulVec, ← h1, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ h2,
       Matrix.one_mulVec]
   refine ⟨hev.self_of_nhds, ?_⟩
-  have h1 := (hasDerivAt_matrix_mulVec_rect hB hx').congr_of_eventuallyEq hev
+  have h1 := (Control.hasDerivAt_matrix_mulVec_rect hB hx').congr_of_eventuallyEq hev
   rw [hθ'.unique h1, add_comm]
 
 /-- **MLS eqs. (6.21)–(6.22), p. 278: the equations of motion of the hand–object system,**

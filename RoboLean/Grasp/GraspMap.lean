@@ -6,7 +6,8 @@ import RoboLean.Grasp.ForceClosure
 
 MLS Chapter 5, §2.2, printed pp. 218–222. Contact `i` applies `F_{cᵢ} = B_{cᵢ} f_{cᵢ}` at the origin
 of its contact frame `Cᵢ`, written in `Cᵢ`; in object coordinates this is
-`F_o = Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ} f_{cᵢ}` (p. 218), so the contact map is `Gᵢ := Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ}`.
+`F_o = Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ} f_{cᵢ}` (p. 218), so the contact map is
+`Gᵢ := Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ}`.
 With `k` contacts, wrenches written in the one object frame superpose, and the grasp map is
 `G = [Ad_{g_{oc₁}⁻¹}ᵀ B_{c₁} ⋯ Ad_{g_{oc_k}⁻¹}ᵀ B_{c_k}]` (eq. (5.6), p. 219), with
 `F_o = G f_c`, `f_c ∈ FC = FC_{c₁} × ⋯ × FC_{c_k}` (eq. (5.7), pp. 219–220).
@@ -124,7 +125,8 @@ p. 220). -/
 /-- The grasp map as a real `p × m` matrix, MLS eq. (5.6), printed p. 219 (`G ∈ ℝ^{p×m}`), in the
 wrench coordinates `e : W →ₗ (κ → ℝ)` (for spatial grasps `Wrench.coordinatesEquiv`, six rows
 force first; for planar grasps the identity): column `⟨i, j⟩` holds the coordinates of `Gᵢ eⱼ`. -/
-def matrix {κ : Type*} [DecidableEq ι] (g : ContactGrasp W ι m) (e : W →ₗ[ℝ] (κ → ℝ)) : Matrix κ (Σ i, Fin (m i)) ℝ :=
+def matrix {κ : Type*} [DecidableEq ι] (g : ContactGrasp W ι m) (e : W →ₗ[ℝ] (κ → ℝ)) :
+    Matrix κ (Σ i, Fin (m i)) ℝ :=
   LinearMap.toMatrix' (e ∘ₗ g.graspMap ∘ₗ stack.symm.toLinearMap)
 
 /-- Column `⟨i, j⟩` of the grasp matrix is the `j`-th column of the contact map `Gᵢ`, MLS
@@ -157,8 +159,8 @@ def spatial (model : (i : ι) → ContactModel Wrench (m i)) (frame : ι → Rig
   model := model
   transfer i := Wrench.transformLinearMap (frame i)
 
-/-- The spatial contact map `Gᵢ f = Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ} f`, MLS printed p. 218, with the library's
-coordinate-free wrench transfer. -/
+/-- The spatial contact map `Gᵢ f = Ad_{g_{ocᵢ}⁻¹}ᵀ B_{cᵢ} f`, MLS printed p. 218, with the
+library's coordinate-free wrench transfer. -/
 theorem spatial_contactMap_apply (model : (i : ι) → ContactModel Wrench (m i))
     (frame : ι → RigidTransform) (i : ι) (f : Fin (m i) → ℝ) :
     (spatial model frame).contactMap i f = Wrench.transform (frame i) ((model i).wrench f) := rfl
@@ -200,10 +202,12 @@ theorem spatial_frictionless_contactMap (frame : ι → RigidTransform) (i : ι)
 
 /-- **MLS Example 5.1, printed p. 220**: for frictionless point contacts the grasp map is
 `G f_c = ∑ᵢ f_{cᵢ} (n_{cᵢ}; p_{cᵢ} × n_{cᵢ})`, i.e. `G = [n_{c₁} ⋯ n_{c_k}; p_{c₁} × n_{c₁} ⋯
-p_{c_k} × n_{c_k}]`, with `n_{cᵢ} = R_{cᵢ} e_z` the (inward) contact normal in object coordinates. -/
+p_{c_k} × n_{c_k}]`, with `n_{cᵢ} = R_{cᵢ} e_z` the (inward) contact normal in object
+coordinates. -/
 theorem spatial_frictionless_graspMap (frame : ι → RigidTransform) (f : ι → Fin 1 → ℝ) :
     (spatial (fun _ => ContactModel.frictionless) frame).graspMap f =
-      ∑ i, f i 0 • Wrench.pointForce (frame i).translation ((frame i).rotation.act Rotation.zAxis) := by
+      ∑ i, f i 0 •
+        Wrench.pointForce (frame i).translation ((frame i).rotation.act Rotation.zAxis) := by
   rw [graspMap_apply]
   exact Finset.sum_congr rfl fun i _ => spatial_frictionless_contactMap frame i (f i)
 

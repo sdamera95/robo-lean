@@ -143,9 +143,9 @@ theorem cartesianFinger_sum_spatialJacobian (tool : RigidTransform) (θ θ' : Fi
         Rotation.zAxis]
   · simp [cartesianFinger, Fin.sum_univ_succ, Twist.prismatic]
 
-/-- The finger base poses of the box hands, `g_{ps₁} = (I, (0, -b, 0))` and `g_{ps₂} = (I, (0, b, 0))`
-in palm coordinates (the layout of MLS Figure 5.17, printed p. 241, which gives `p_{s₁p} = (0, b, 0)`
-and `p_{s₂p} = (0, -b, 0)`). -/
+/-- The finger base poses of the box hands, `g_{ps₁} = (I, (0, -b, 0))` and
+`g_{ps₂} = (I, (0, b, 0))` in palm coordinates (the layout of MLS Figure 5.17, printed p. 241,
+which gives `p_{s₁p} = (0, b, 0)` and `p_{s₂p} = (0, -b, 0)`). -/
 def boxHandBase (b : ℝ) : Fin 2 → RigidTransform :=
   ![⟨1, WithLp.toLp 2 ![0, -b, 0]⟩, ⟨1, WithLp.toLp 2 ![0, b, 0]⟩]
 
@@ -157,8 +157,8 @@ def boxHand {m : Fin 2 → ℕ} (model : (i : Fin 2) → ContactModel Wrench (m 
   ⟨⟨model, boxFrame r⟩, fun _ => cartesianFinger 1, boxHandBase b⟩
 
 /-- The blocks of the box hands (MLS eq. (5.13), printed p. 236): a Cartesian finger moves its
-fingertip by the translation `θ̇`, written in the contact frame as `g_{sᵢcᵢ}⁻¹_* θ̇`, and the contact
-model reads it in the directions of its wrench basis. -/
+fingertip by the translation `θ̇`, written in the contact frame as `g_{sᵢcᵢ}⁻¹_* θ̇`, and the
+contact model reads it in the directions of its wrench basis. -/
 theorem boxHand_fingerJacobian {m : Fin 2 → ℕ} (model : (i : Fin 2) → ContactModel Wrench (m i))
     (r b : ℝ) (xo : RigidTransform) (i : Fin 2) (θi θ' : Fin 3 → ℝ) :
     (boxHand model r b).fingerJacobian xo i θi θ' =
@@ -166,7 +166,8 @@ theorem boxHand_fingerJacobian {m : Fin 2 → ℕ} (model : (i : Fin 2) → Cont
         (((boxHand model r b).contactFrame xo i)⁻¹.applyVector
           (WithLp.toLp 2 ![θ' 0, θ' 1, θ' 2]))) := by
   rw [HandGrasp.fingerJacobian_apply]
-  change (model i).constraint (Twist.adjoint _ (∑ l, θ' l • (cartesianFinger 1).spatialJacobian θi l)) = _
+  change (model i).constraint
+    (Twist.adjoint _ (∑ l, θ' l • (cartesianFinger 1).spatialJacobian θi l)) = _
   rw [cartesianFinger_sum_spatialJacobian, Twist.adjoint_prismatic]
 
 /-- The point-contact constraint (MLS eq. (5.9), printed p. 235) on a pure translation `(w, 0)`

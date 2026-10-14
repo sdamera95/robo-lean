@@ -262,6 +262,39 @@ theorem softFinger_constraint_surjective (μ γ : ℝ) (hμ : 0 < μ) (hγ : 0 <
   intro i
   fin_cases i <;> simp_all
 
+/-- `B_cᵀ` is the transpose of `B_c`: `(B_cᵀ V) · f = (B_c f) · V`, the dot product of
+coefficients on one side and the twist–wrench pairing (MLS printed p. 61) on the other
+(MLS eqs. (5.5), (5.9), printed pp. 218, 235). -/
+theorem sum_constraint_mul (c : ContactModel Wrench m) (V : Twist) (f : Fin m → ℝ) :
+    ∑ j, c.constraint V j * f j = Wrench.pair (c.wrench f) V := by
+  rw [wrench_apply, Wrench.pair_sum_left]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  rw [Wrench.pair_smul_left, constraint_apply, mul_comm]
+
+/-- In six coordinates `B_cᵀ` is the transpose of the `6 × m` basis matrix: `B_cᵀ V` is
+`basisMatrixᵀ` applied to the twist coordinates (MLS eq. (5.9), printed p. 235; wrench rows
+`(f, τ)` against twist rows `(v, ω)`). -/
+theorem basisMatrix_transpose_mulVec (c : ContactModel Wrench m) (V : Twist) :
+    c.basisMatrixᵀ *ᵥ V.coordinates = c.constraint V := by
+  funext j
+  have hpair : Wrench.pair (c.basis j) V = (c.basis j).coordinates ⬝ᵥ V.coordinates := by
+    simp only [Wrench.pair, Wrench.coordinates, Twist.coordinates, dotProduct,
+      Fintype.sum_sum_type, Sum.elim_inl, Sum.elim_inr, EuclideanSpace.inner_eq_star_dotProduct,
+      star_trivial]
+    congr 1 <;> exact Finset.sum_congr rfl fun _ _ => mul_comm _ _
+  rw [constraint_apply, hpair]
+  simp [basisMatrix, Matrix.mulVec, dotProduct, Matrix.transpose_apply]
+
+/-- The frictionless contact constraint of MLS printed p. 235: `[0 0 1 0 0 0] V = 0` constrains
+only the linear velocity along the contact `z`-axis (the inward normal); `B_cᵀ V` is that one
+coordinate. -/
+theorem frictionless_constraint (V : Twist) :
+    frictionless.constraint V = ![V.coordinates (Sum.inl 2)] := by
+  funext j
+  fin_cases j
+  simp [constraint_apply, frictionless, Wrench.pair, Rotation.zAxis, Twist.coordinates,
+    EuclideanSpace.inner_eq_star_dotProduct, dotProduct, Fin.sum_univ_succ]
+
 /-! ### The planar point contact of Example 5.3 -/
 
 /-- The planar point contact with friction, MLS Example 5.3, printed p. 222: in planar wrench

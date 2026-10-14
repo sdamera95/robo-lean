@@ -95,16 +95,6 @@ theorem exists_linearIndependent_nonneg_combination {ι W : Type*} [Fintype ι] 
     obtain ⟨t, β, h1, h2, h3⟩ := ih (s.erase i₀) (Finset.erase_ssubset hi₀) α' hα'
     exact ⟨t, β, h1, h2, h3.trans hsum⟩
 
-/-- Positive spanning (MLS printed p. 225) is carried along a linear equivalence. -/
-private theorem positivelySpans_map_linearEquiv {ι W W' : Type*} [Fintype ι] [AddCommGroup W]
-    [Module ℝ W] [AddCommGroup W'] [Module ℝ W'] {v : ι → W} (h : PositivelySpans v)
-    (e : W ≃ₗ[ℝ] W') : PositivelySpans fun i => e (v i) := by
-  intro x
-  obtain ⟨α, hα, hx⟩ := h (e.symm x)
-  refine ⟨α, hα, ?_⟩
-  rw [← e.apply_symm_apply x, ← hx, map_sum]
-  simp only [map_smul]
-
 /-- If `q` is interior to the convex hull of a finite set `X`, every vector is a nonnegative
 combination of the vectors `x - q`, `x ∈ X` (supporting lemma for MLS Theorem 5.5, p. 230). -/
 private theorem exists_nonneg_sum_sub_eq {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -367,7 +357,7 @@ theorem exists_positivelySpans_card_le_twelve_of_not_isSpatialExceptional
   have hpos : PositivelySpans fun i => Wrench.pointForce (c i).1 (c i).2 := by
     have hsymm : ∀ F : Wrench, Wrench.coordinatesEquiv.symm F.coordinates = F :=
       Wrench.coordinatesEquiv.symm_apply_apply
-    simpa only [hsymm] using positivelySpans_map_linearEquiv hcoord Wrench.coordinatesEquiv.symm
+    simpa only [hsymm] using hcoord.map_linearEquiv Wrench.coordinatesEquiv.symm
   have h7 := hpos.finrank_succ_le_card (by rw [Wrench.finrank_eq_six]; norm_num)
   rw [Wrench.finrank_eq_six, Fintype.card_fin] at h7
   refine ⟨X.card, c, h7, ?_, fun i => hd _, hpos, fun frame hf => ?_⟩

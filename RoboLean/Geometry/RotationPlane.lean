@@ -21,7 +21,10 @@ vector `ω × u` makes the frame right-handed in the sense of MLS pp. 23–24
 The file also holds `perp`, the projection onto the plane perpendicular to an axis
 (MLS pp. 100 and 102), moved here from `RoboLean.Kinematics.PadenKahan` on 2026-10-11, and its
 four lemmas `inner_perp`, `norm_perp_sq`, `inner_perp_perp` and `cross_perp`, moved from there on
-2026-10-13 (the old `PadenKahan` names are deprecated aliases).
+2026-10-13 (the old `PadenKahan` names are deprecated aliases). The section "Planar rotations"
+holds three `SO(2)` lemmas of the planar grasp modules (`Grasp.so2_entries`,
+`Grasp.so2_mulVec_transpose_mulVec`, `Grasp.so2_transpose_mulVec_mulVec`), moved from
+`RoboLean.Grasp.PlanarWrench` on 2026-10-14.
 -/
 
 noncomputable section
@@ -168,3 +171,41 @@ theorem cross_perp (ω u : Vec3) : Vec3.cross ω (Vec3.perp ω u) = Vec3.cross �
   simp [Vec3.perp, cross_coordinates, map_sub, map_smul, cross_self]
 
 end RoboLean.Vec3
+
+/-! ### Planar rotations
+
+Supporting lemmas on `SO(2)` (Mathlib's `specialOrthogonalGroup (Fin 2) ℝ`) for the planar
+contact frames of MLS printed pp. 222 and 232, moved from `RoboLean.Grasp.PlanarWrench` on
+2026-10-14 with their full names `RoboLean.Grasp.*` unchanged. -/
+
+namespace RoboLean.Grasp
+
+/-- Entries of a planar rotation (supporting lemma for MLS printed pp. 222 and 232):
+`R = [[a, -c], [c, a]]` with `a² + c² = 1` (Mathlib
+`Matrix.mem_specialOrthogonalGroup_fin_two_iff`). -/
+theorem so2_entries (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
+    (R : Matrix (Fin 2) (Fin 2) ℝ) 1 1 = (R : Matrix (Fin 2) (Fin 2) ℝ) 0 0 ∧
+      (R : Matrix (Fin 2) (Fin 2) ℝ) 0 1 = -(R : Matrix (Fin 2) (Fin 2) ℝ) 1 0 ∧
+      (R : Matrix (Fin 2) (Fin 2) ℝ) 0 0 ^ 2 + (R : Matrix (Fin 2) (Fin 2) ℝ) 1 0 ^ 2 = 1 := by
+  obtain ⟨h1, h2, h3⟩ := Matrix.mem_specialOrthogonalGroup_fin_two_iff.mp R.2
+  refine ⟨h1.symm, h2, ?_⟩
+  rw [h2] at h3
+  linarith
+
+/-- `R Rᵀ d = d` for a planar rotation (supporting lemma for MLS printed pp. 222, 232). -/
+theorem so2_mulVec_transpose_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
+    (d : Fin 2 → ℝ) :
+    (R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) = d := by
+  have h := (Matrix.mem_orthogonalGroup_iff (Fin 2) ℝ).mp
+    (Matrix.mem_specialOrthogonalGroup_iff.mp R.2).1
+  rw [Matrix.mulVec_mulVec, h, Matrix.one_mulVec]
+
+/-- `Rᵀ R f = f` for a planar rotation (supporting lemma for MLS printed pp. 222, 232). -/
+theorem so2_transpose_mulVec_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
+    (f : Fin 2 → ℝ) :
+    (R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ ((R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ f) = f := by
+  have h := (Matrix.mem_orthogonalGroup_iff' (Fin 2) ℝ).mp
+    (Matrix.mem_specialOrthogonalGroup_iff.mp R.2).1
+  rw [Matrix.mulVec_mulVec, h, Matrix.one_mulVec]
+
+end RoboLean.Grasp

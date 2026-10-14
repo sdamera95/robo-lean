@@ -449,20 +449,11 @@ theorem add_eq_zero_iff_eq_multiplier {M : Matrix (Fin n) (Fin n) ℝ}
   · intro h2
     rw [h2, Matrix.mulVec_mulVec, Matrix.mul_nonsing_inv _ hu, Matrix.one_mulVec]
 
-/-- **Product rule for a rectangular matrix-valued curve applied to a curve** (for
-`(d/dt)(A(q) q̇) = Ȧ q̇ + A q̈`, MLS p. 269): if every entry of `A` has the derivative `A'ᵢⱼ` at `t`
-and `b` has the derivative `b'`, then `s ↦ A(s) b(s)` has the derivative `A' b(t) + A(t) b'`. The
-square case is `Control.hasDerivAt_matrix_mulVec`. -/
-theorem hasDerivAt_matrix_mulVec_rect {A : ℝ → Matrix (Fin k) (Fin n) ℝ}
-    {A' : Matrix (Fin k) (Fin n) ℝ} {b : ℝ → Fin n → ℝ} {b' : Fin n → ℝ} {t : ℝ}
-    (hA : ∀ i j, HasDerivAt (fun s => A s i j) (A' i j) t) (hb : HasDerivAt b b' t) :
-    HasDerivAt (fun s => A s *ᵥ b s) (A' *ᵥ b t + A t *ᵥ b') t := by
-  have hb' := hasDerivAt_pi.mp hb
-  refine hasDerivAt_pi.mpr fun i => ?_
-  have h : HasDerivAt (fun s => ∑ j, A s i j * b s j)
-      (∑ j, (A' i j * b t j + A t i j * b' j)) t :=
-    HasDerivAt.fun_sum fun j _ => (hA i j).mul (hb' j)
-  simpa [Matrix.mulVec, dotProduct, Finset.sum_add_distrib] using h
+/-! The rectangular product rule moved to the `Control` namespace
+(`RoboLean.Control.MatrixAnalysis`) on 2026-10-14; the old name remains as a deprecated alias. -/
+
+@[deprecated Control.hasDerivAt_matrix_mulVec_rect (since := "2026-10-14")]
+alias hasDerivAt_matrix_mulVec_rect := Control.hasDerivAt_matrix_mulVec_rect
 
 /-- **The rate `Ȧ` of a constraint field along a motion (MLS p. 269, "Differentiating the constraint
 equation (6.3)"):** if every entry of `A` has the Fréchet derivative `A' i j` at `q(t)` and the
@@ -483,7 +474,7 @@ theorem mulVec_add_mulVec_eq_zero {A : (Fin n → ℝ) → Matrix (Fin k) (Fin n
     (hc : ∀ᶠ s in 𝓝 t, PfaffianAt A (θ s) (θ' s))
     (hAd : ∀ i j, HasDerivAt (fun s => A (θ s) i j) (Ad i j) t) (hθ' : HasDerivAt θ' θ'' t) :
     A (θ t) *ᵥ θ'' + Ad *ᵥ θ' t = 0 := by
-  have h1 := hasDerivAt_matrix_mulVec_rect hAd hθ'
+  have h1 := Control.hasDerivAt_matrix_mulVec_rect hAd hθ'
   have h0 : HasDerivAt (fun s => A (θ s) *ᵥ θ' s) 0 t :=
     (hasDerivAt_const t (0 : Fin k → ℝ)).congr_of_eventuallyEq hc
   rw [add_comm]

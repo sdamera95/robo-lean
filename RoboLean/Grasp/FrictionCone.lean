@@ -335,7 +335,8 @@ theorem mem_interior_softFingerCone {μ γ : ℝ} {f : Fin 4 → ℝ}
   have hU : IsOpen ({g : Fin 4 → ℝ | √(g 0 ^ 2 + g 1 ^ 2) < μ * g 2} ∩
       ({g | 0 < g 2} ∩ {g | |g 3| < γ * g 2})) :=
     (isOpen_lt (by fun_prop) (by fun_prop)).inter
-      ((isOpen_lt continuous_const (continuous_apply 2)).inter (isOpen_lt (by fun_prop) (by fun_prop)))
+      ((isOpen_lt continuous_const (continuous_apply 2)).inter
+        (isOpen_lt (by fun_prop) (by fun_prop)))
   exact interior_maximal
     (fun g hg => mem_softFingerCone.2 ⟨hg.1.le, hg.2.1.le, hg.2.2.le⟩) hU ⟨h₁, h₂, h₃⟩
 
@@ -353,6 +354,57 @@ theorem mem_interior_planarPointContactCone {μ : ℝ} {f : Fin 2 → ℝ} (h₁
   have hU : IsOpen ({g : Fin 2 → ℝ | |g 0| < μ * g 1} ∩ {g | 0 < g 1}) :=
     (isOpen_lt (by fun_prop) (by fun_prop)).inter (isOpen_lt continuous_const (continuous_apply 1))
   exact interior_maximal (fun g hg => mem_planarPointContactCone.2 ⟨hg.1.le, hg.2.le⟩) hU ⟨h₁, h₂⟩
+
+/-- Supporting lemma: from an interior point `f` of the planar friction cone (MLS Example 5.3,
+printed p. 222) a small positive step in any direction stays in the cone. -/
+private theorem exists_pos_add_smul_mem_planarPointContactCone {μ : ℝ} {f : Fin 2 → ℝ}
+    (hf : f ∈ interior (planarPointContactCone μ : Set (Fin 2 → ℝ))) (e : Fin 2 → ℝ) :
+    ∃ t : ℝ, 0 < t ∧ f + t • e ∈ planarPointContactCone μ := by
+  have hcont : Continuous fun t : ℝ => f + t • e := by fun_prop
+  have h0 : f + (0 : ℝ) • e ∈ interior (planarPointContactCone μ : Set (Fin 2 → ℝ)) := by
+    simpa using hf
+  have hev : ∀ᶠ t in nhds (0 : ℝ),
+      f + t • e ∈ interior (planarPointContactCone μ : Set (Fin 2 → ℝ)) :=
+    hcont.continuousAt.eventually_mem (isOpen_interior.mem_nhds h0)
+  have hev' : ∀ᶠ t in nhdsWithin (0 : ℝ) (Set.Ioi 0),
+      f + t • e ∈ interior (planarPointContactCone μ : Set (Fin 2 → ℝ)) ∧ t ∈ Set.Ioi 0 :=
+    (hev.filter_mono nhdsWithin_le_nhds).and self_mem_nhdsWithin
+  obtain ⟨t, ht, htpos⟩ := hev'.exists
+  exact ⟨t, htpos, interior_subset ht⟩
+
+/-- **The interior of the planar friction cone is given by the strict inequality**, converse of
+`mem_interior_planarPointContactCone` (MLS Example 5.3, printed p. 222, cone `|f₁| ≤ μ f₂,
+f₂ ≥ 0`; `int(FC)` of p. 223): an interior point satisfies `|f₁| < μ f₂`. -/
+theorem abs_lt_of_mem_interior_planarPointContactCone {μ : ℝ} {f : Fin 2 → ℝ}
+    (hf : f ∈ interior (planarPointContactCone μ : Set (Fin 2 → ℝ))) : |f 0| < μ * f 1 := by
+  by_cases h : 0 ≤ f 0
+  · obtain ⟨t, ht, hmem⟩ := exists_pos_add_smul_mem_planarPointContactCone hf ![1, 0]
+    have h1 := (mem_planarPointContactCone.mp hmem).1
+    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, Matrix.cons_val_zero,
+      Matrix.cons_val_one, Matrix.cons_val_fin_one, mul_one, mul_zero, add_zero] at h1
+    rw [abs_of_nonneg (by linarith)] at h1
+    rw [abs_of_nonneg h]
+    linarith
+  · replace h : f 0 < 0 := not_le.mp h
+    obtain ⟨t, ht, hmem⟩ := exists_pos_add_smul_mem_planarPointContactCone hf ![-1, 0]
+    have h1 := (mem_planarPointContactCone.mp hmem).1
+    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, Matrix.cons_val_zero,
+      Matrix.cons_val_one, Matrix.cons_val_fin_one, mul_neg, mul_one, mul_zero,
+      add_zero] at h1
+    rw [abs_of_neg (by linarith)] at h1
+    rw [abs_of_neg h]
+    linarith
+
+/-- **The interior of the planar friction cone**, MLS Example 5.3, printed p. 222 (cone
+`|f₁| ≤ μ f₂, f₂ ≥ 0`) with `int(FC)` of p. 223: for `μ > 0`, `f` is an interior point exactly
+when `|f₁| < μ f₂` (then `f₂ > 0`). -/
+theorem mem_interior_planarPointContactCone_iff {μ : ℝ} (hμ : 0 < μ) {f : Fin 2 → ℝ} :
+    f ∈ interior (planarPointContactCone μ : Set (Fin 2 → ℝ)) ↔ |f 0| < μ * f 1 := by
+  refine ⟨abs_lt_of_mem_interior_planarPointContactCone, fun h => ?_⟩
+  have hpos : 0 < f 1 := by
+    have : 0 < μ * f 1 := lt_of_le_of_lt (abs_nonneg _) h
+    exact pos_of_mul_pos_right this hμ.le
+  exact mem_interior_planarPointContactCone h hpos
 
 end Grasp
 

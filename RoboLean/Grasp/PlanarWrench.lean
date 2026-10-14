@@ -1,4 +1,5 @@
 import RoboLean.Grasp.GraspMap
+import RoboLean.Geometry.RotationPlane
 
 /-!
 # The 2-D cross product, `n^⊥`, planar contact frames and planar point-contact grasp maps
@@ -20,6 +21,10 @@ Conventions.
   the printed `n^⊥` of the inward normal is `-t` (`perp2_contactNormal`).
 * `planarWrench p F = (F_x, F_y, p ⊗ F)` is the planar wrench `(f_x, f_y, τ)` (p. 222) of a force
   `F` applied at the point `p`, both in object coordinates.
+
+The entries of a planar rotation and `R Rᵀ = Rᵀ R = 1` (`so2_entries`,
+`so2_mulVec_transpose_mulVec`, `so2_transpose_mulVec_mulVec`) are in `Geometry/RotationPlane`
+since 2026-10-14, under their names.
 
 The frame is data: nothing checks that `contactNormal R` is an inward normal of an object.
 -/
@@ -136,18 +141,6 @@ Example 5.3, printed p. 222 (the `n_i` of p. 232 for contact frames built this w
 def contactNormal (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) : Fin 2 → ℝ :=
   fun i => (R : Matrix (Fin 2) (Fin 2) ℝ) i 1
 
-/-- Entries of a planar rotation (supporting lemma for MLS printed pp. 222 and 232):
-`R = [[a, -c], [c, a]]` with `a² + c² = 1` (Mathlib
-`Matrix.mem_specialOrthogonalGroup_fin_two_iff`). -/
-theorem so2_entries (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
-    (R : Matrix (Fin 2) (Fin 2) ℝ) 1 1 = (R : Matrix (Fin 2) (Fin 2) ℝ) 0 0 ∧
-      (R : Matrix (Fin 2) (Fin 2) ℝ) 0 1 = -(R : Matrix (Fin 2) (Fin 2) ℝ) 1 0 ∧
-      (R : Matrix (Fin 2) (Fin 2) ℝ) 0 0 ^ 2 + (R : Matrix (Fin 2) (Fin 2) ℝ) 1 0 ^ 2 = 1 := by
-  obtain ⟨h1, h2, h3⟩ := Matrix.mem_specialOrthogonalGroup_fin_two_iff.mp R.2
-  refine ⟨h1.symm, h2, ?_⟩
-  rw [h2] at h3
-  linarith
-
 /-- The inward normal of a planar contact frame is a unit vector (MLS printed pp. 222, 232). -/
 theorem contactNormal_sq_add_sq (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
     contactNormal R 0 ^ 2 + contactNormal R 1 ^ 2 = 1 := by
@@ -182,22 +175,6 @@ pp. 222, 232). -/
 theorem contactTangent_dotProduct (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
     (d : Fin 2 → ℝ) : contactTangent R ⬝ᵥ d = ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) 0 := by
   simp [contactTangent, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
-
-/-- `R Rᵀ d = d` for a planar rotation (supporting lemma for MLS printed pp. 222, 232). -/
-theorem so2_mulVec_transpose_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
-    (d : Fin 2 → ℝ) :
-    (R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) = d := by
-  have h := (Matrix.mem_orthogonalGroup_iff (Fin 2) ℝ).mp
-    (Matrix.mem_specialOrthogonalGroup_iff.mp R.2).1
-  rw [Matrix.mulVec_mulVec, h, Matrix.one_mulVec]
-
-/-- `Rᵀ R f = f` for a planar rotation (supporting lemma for MLS printed pp. 222, 232). -/
-theorem so2_transpose_mulVec_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
-    (f : Fin 2 → ℝ) :
-    (R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ ((R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ f) = f := by
-  have h := (Matrix.mem_orthogonalGroup_iff' (Fin 2) ℝ).mp
-    (Matrix.mem_specialOrthogonalGroup_iff.mp R.2).1
-  rw [Matrix.mulVec_mulVec, h, Matrix.one_mulVec]
 
 /-- The planar wrench `(f_x, f_y, τ)` of a force `F` applied at the point `p`, both in object
 coordinates: `τ = p ⊗ F = p_x F_y - p_y F_x`, the moment of MLS Example 5.3, printed p. 222

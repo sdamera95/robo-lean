@@ -264,8 +264,8 @@ theorem isInternalMotion_iff_mem_ker (mg : MultifingeredGrasp Θ ι m) (θN : Θ
   LinearMap.mem_ker.symm
 
 /-- MLS printed p. 238: "Internal motions can be added to a given finger velocity without changing
-the velocity of the grasped object": if `J_h θ̇ = Gᵀ V` (eq. (5.15)) and `θ̇_N` is an internal motion,
-then `J_h (θ̇ + θ̇_N) = Gᵀ V`. -/
+the velocity of the grasped object": if `J_h θ̇ = Gᵀ V` (eq. (5.15)) and `θ̇_N` is an internal
+motion, then `J_h (θ̇ + θ̇_N) = Gᵀ V`. -/
 theorem IsInternalMotion.add (mg : MultifingeredGrasp Θ ι m) {θN θ' : Θ} {V : Twist}
     (hN : mg.IsInternalMotion θN) (h : mg.handJacobian θ' = mg.grasp.graspTranspose V) :
     mg.handJacobian (θ' + θN) = mg.grasp.graspTranspose V := by
@@ -386,8 +386,8 @@ of Table 5.2: `ContactModel.frictionless_constraint_surjective`,
 every model with linearly independent basis columns:
 `constraint_surjective_of_linearIndependent`), the grasp is manipulable
 at `(θ, x_o)` if and only if `J_h(θ, x_o)` is surjective. Force-closure is not needed. The
-argument uses the block structure: `Gᵢᵀ = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹}` is onto `ℝ^{mᵢ}`, so every block of
-`J_h` must be onto. For a general multifingered grasp (Definition 5.4) the "only if" direction
+argument uses the block structure: `Gᵢᵀ = B_{cᵢ}ᵀ Ad_{g_{ocᵢ}⁻¹}` is onto `ℝ^{mᵢ}`, so every block
+of `J_h` must be onto. For a general multifingered grasp (Definition 5.4) the "only if" direction
 fails (`Examples.summaryItem6_counterexample`). -/
 theorem isManipulable_iff_surjective (h : HandGrasp ι m n) (θ : (i : ι) → Fin (n i) → ℝ)
     (xo : RigidTransform) (hB : ∀ i, Function.Surjective (h.grasp.model i).constraint) :

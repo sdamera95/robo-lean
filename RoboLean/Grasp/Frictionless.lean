@@ -74,6 +74,17 @@ theorem positivelySpans_iff_nonneg (v : ι → W) :
     simp only [add_smul, one_smul, Finset.sum_add_distrib, ha, hb]
     abel
 
+/-- **Positive spanning is carried along a linear equivalence** (MLS printed p. 225, the
+definition of positive spanning, strictly positive coefficients): if `v` positively spans `W`
+and `e : W ≃ₗ[ℝ] W'`, then `i ↦ e (v i)` positively spans `W'`, with the same coefficients. -/
+theorem PositivelySpans.map_linearEquiv {W' : Type*} [AddCommGroup W'] [Module ℝ W']
+    {v : ι → W} (h : PositivelySpans v) (e : W ≃ₗ[ℝ] W') : PositivelySpans fun i => e (v i) := by
+  intro x
+  obtain ⟨α, hα, hx⟩ := h (e.symm x)
+  refine ⟨α, hα, ?_⟩
+  rw [← e.apply_symm_apply x, ← hx, map_sum]
+  simp only [map_smul]
+
 /-- Force-closure (MLS Definition 5.2, printed p. 223) restated without the sign: every wrench
 `x` is `G f` for some `f ∈ FC`. -/
 private theorem forceClosure_iff_forall_exists {E : Type*} [AddCommGroup E] [Module ℝ E]
@@ -174,7 +185,8 @@ theorem forceClosure_mulVecLin_iff_not_exists_dotProduct_nonneg [DecidableEq ι]
       rw [dense_iff_closure_eq]
       by_contra hne
       obtain ⟨x, hx⟩ := (Set.ne_univ_iff_exists_notMem _).mp hne
-      obtain ⟨φ, u, hφx, hφb⟩ := geometric_hahn_banach_point_closed hKconv.closure isClosed_closure hx
+      obtain ⟨φ, u, hφx, hφb⟩ :=
+        geometric_hahn_banach_point_closed hKconv.closure isClosed_closure hx
       have hu : u < 0 := by simpa using hφb 0 (subset_closure h0K)
       have hφK : ∀ b ∈ K, 0 ≤ φ b := by
         intro b hb
@@ -209,7 +221,8 @@ theorem forceClosure_mulVecLin_iff_not_exists_dotProduct_nonneg [DecidableEq ι]
     intro w
     set P : Set (ι → ℝ) := interior (orthantCone ι : Set (ι → ℝ))
     have hPo : IsOpen (L '' P) := L.isOpenMap_of_finiteDimensional hsurj _ isOpen_interior
-    have hpre : IsOpen ((fun p => w - p) ⁻¹' (L '' P)) := hPo.preimage (continuous_const.sub continuous_id)
+    have hpre : IsOpen ((fun p => w - p) ⁻¹' (L '' P)) :=
+      hPo.preimage (continuous_const.sub continuous_id)
     have hne : ((fun p => w - p) ⁻¹' (L '' P)).Nonempty :=
       ⟨w - L (fun _ => 1), ⟨fun _ => 1, mem_interior_orthantCone fun _ => one_pos, by simp⟩⟩
     obtain ⟨p, ⟨g, hg, hgp⟩, ⟨f, hf, rfl⟩⟩ := hdense.inter_open_nonempty _ hpre hne
@@ -369,8 +382,8 @@ def frictionlessCoefficients : (ι → ℝ) →ₗ[ℝ] ((i : ι) → Fin 1 → 
 
 /-- **MLS printed p. 224** (with Example 5.1, p. 220): a fixed grasp of `k` frictionless point
 contacts with frames `g_{ocᵢ} = (p_{cᵢ}, R_{cᵢ})` is force-closure if and only if the columns
-`(n_{cᵢ}; p_{cᵢ} × n_{cᵢ})` of its grasp map, `n_{cᵢ} = R_{cᵢ} e_z`, positively span the wrench space
-("`G(FC) = ℝ⁶` if and only if positive linear combinations of the columns of `G` span `ℝ⁶`").
+`(n_{cᵢ}; p_{cᵢ} × n_{cᵢ})` of its grasp map, `n_{cᵢ} = R_{cᵢ} e_z`, positively span the wrench
+space ("`G(FC) = ℝ⁶` if and only if positive linear combinations of the columns of `G` span `ℝ⁶`").
 Finite-force caveat: unbounded contact forces at maintained rigid contacts (MLS p. 214). -/
 theorem spatial_frictionless_isForceClosure_iff [DecidableEq ι] (frame : ι → RigidTransform) :
     (ContactGrasp.spatial (fun _ => ContactModel.frictionless) frame).toGrasp.IsForceClosure ↔
