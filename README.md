@@ -2,21 +2,41 @@
 
 Robo Lean is a Lean 4 library with pinned Mathlib, starting from the mathematical core of Murray, Li, and Sastry's *A Mathematical Introduction to Robotic Manipulation*. The [roadmap](research/reports/lean-library-roadmap.md), [coverage ledger](research/reports/mls-coverage-ledger.md), and [geometry conventions](research/reports/geometry-conventions.md) define the scope and assumptions.
 
+## Library contents
+
+### Rigid transforms and the rotation exponential
+
 The library provides proper rotations and rigid-transform group/action laws in [RigidTransform](RoboLean/Geometry/RigidTransform.lean), a [homogeneous-matrix equivalence](RoboLean/Geometry/Homogeneous.lean), [cross-product preservation](RoboLean/Geometry/CrossProduct.lean), and [hat/vee maps](RoboLean/Geometry/Hat.lean). [HatPowers](RoboLean/Geometry/HatPowers.lean) proves the Euclidean square/cube identities, [RotationExp](RoboLean/Geometry/RotationExp.lean) packages the actual matrix exponential in `SO(3)` and proves its fixed-axis trajectory equation, and [Rodrigues](RoboLean/Geometry/Rodrigues.lean) gives unit, nonzero, and zero-axis formulas. [Rigid-transform examples](RoboLean/Examples/RigidTransform.lean) and [exponential examples](RoboLean/Examples/RotationExp.lean) state exact convention checks. [Smoke](RoboLean/Smoke.lean) remains the algebra setup check.
+
+### Rotation representations
 
 [RotationSurjectivity](RoboLean/Geometry/RotationSurjectivity.lean) proves unit-axis exponential representations for every proper rotation, including identity and half-turns. [RotationLog](RoboLean/Geometry/RotationLog.lean), [RotationParameters](RoboLean/Geometry/RotationParameters.lean), and [RotationAxisUniqueness](RoboLean/Geometry/RotationAxisUniqueness.lean) state principal-angle formulas, periodicity, and the exact uniqueness limits. [ElementaryRotations](RoboLean/Geometry/ElementaryRotations.lean) identifies the displayed axis-rotation matrices with actual exponentials; [EulerAngles](RoboLean/Geometry/EulerAngles.lean) proves forward Z-Y-Z formulas and a generic inverse requiring a positive radial term. [UnitQuaternion](RoboLean/Geometry/UnitQuaternion.lean) covers quaternion multiplication and the norm-one group.
 
+### Twists and exponential coordinates
+
 The twist foundation identifies ordered `(v, ω)` coordinates with an independent `se(3)` matrix carrier in [Twist](RoboLean/Geometry/Twist.lean). [TwistExp](RoboLean/Geometry/TwistExp.lean) uses the actual matrix exponential; [TwistExpClosedForm](RoboLean/Geometry/TwistExpClosedForm.lean) covers unit, nonunit, and zero-angular cases, and [TwistExpJacobian](RoboLean/Geometry/TwistExpJacobian.lean) proves the unit-axis translation coefficient invertible for `0 < θ < 2π`. [TwistSurjectivity](RoboLean/Geometry/TwistSurjectivity.lean) proves every rigid transform is attained, while [TwistLog](RoboLean/Geometry/TwistLog.lean) selects a noncomputable principal exponential coordinate that reconstructs the transform.
+
+### Adjoints, brackets, and velocities
 
 [TwistAdjoint](RoboLean/Geometry/TwistAdjoint.lean) and [TwistExpAdjoint](RoboLean/Geometry/TwistExpAdjoint.lean) connect coordinate adjoints, matrix conjugation, and actual exponentials. [TwistBracket](RoboLean/Geometry/TwistBracket.lean) and [AdjointBracket](RoboLean/Geometry/AdjointBracket.lean) connect the coordinate Lie bracket to matrix commutators and adjoint transformation. The trajectory and velocity modules derive point, spatial/body, product, and inverse laws from actual derivative hypotheses.
 
+### Screws
+
 [TwistScrew](RoboLean/Geometry/TwistScrew.lean), [ScrewAxis](RoboLean/Geometry/ScrewAxis.lean), and [NormalizedTwist](RoboLean/Geometry/NormalizedTwist.lean) make finite pitch, affine axes, full-twist normalization, pure translation, and stationary cases explicit. [TwistScrewMotion](RoboLean/Geometry/TwistScrewMotion.lean) identifies independently defined geometric motion with the actual exponential and proves the fixed-line mechanism formulas. [Chasles](RoboLean/Geometry/Chasles.lean) gives geometric screw-displacement existence; [ScrewConjugation](RoboLean/Geometry/ScrewConjugation.lean) proves frame-change and signed-axis conventions for that motion.
+
+### Wrenches and reciprocity
 
 [Wrench](RoboLean/Geometry/Wrench.lean), [WrenchScrew](RoboLean/Geometry/WrenchScrew.lean), and [Reciprocal](RoboLean/Geometry/Reciprocal.lean) cover force/torque transformations, power duality, wrench-screw parameters, and reciprocal coordinate spaces. [WrenchWork](RoboLean/Geometry/WrenchWork.lean) proves actual interval-work identities with derivative and integrability hypotheses. [WrenchReciprocityGeometry](RoboLean/Geometry/WrenchReciprocityGeometry.lean) adds geometric screw models and a common-normal formula with explicit domain and angle assumptions. Exact examples include parameterized planar mechanisms; they do not supply a general serial-chain kinematics interface.
 
+## Verification status
+
 **Verified - formal checking:** the [final integrated build and named-declaration audit](docs/implogs/gates/E007/20261009T042046818411474Z/summary.json) check the named sources; the [independent readback](docs/implogs/gates/E007/20261009T042046818411474Z/independent-evidence-review.json) checks the saved command, declaration, axiom, and hash evidence. [RoboLean.lean](RoboLean.lean) imports 54 project modules; the audit lists 864 ordered declarations, including definitions, types, constructors, and helpers. The [ledger](research/reports/mls-coverage-ledger.md) records 107 Verified and 19 Unverified obligations among 126 selected rows. These are selected source obligations, not independent theorem counts or a whole-book percentage. The saved [build output](docs/implogs/gates/E007/20261009T042046818411474Z/lake-build.stdout) retains style/linter warnings.
 
+## Scope and open items
+
 The foundation uses noncomputable definitions over exact reals. Quaternion-to-rotation and half-angle/group-map results, Euler inverse endpoint cases, remaining reciprocal-geometry cases, general manipulator kinematics, and the converse characterization of rigid maps remain open. The selected exponential coordinate is not claimed smooth or unique. Frame/unit types and distinct point/vector types are not enforced; numerical refinement, physical-model fidelity, and user acceptance remain separate.
+
+## Building
 
 Install [elan](https://lean-lang.org/install/), then run from this directory:
 
@@ -27,6 +47,10 @@ lake build
 
 Do not run `lake update`: the Mathlib revision is pinned in `lakefile.toml` and the resolved dependencies are checked in as `lake-manifest.json`. A pin change is a recorded decision, not a routine step.
 
+## Development
+
 Open the folder in VS Code with the Lean 4 extension for interactive checking. Add future project modules under `RoboLean/` and import them from `RoboLean.lean` when they should be part of the default build. The Lean version is in `lean-toolchain`; Mathlib is pinned in `lakefile.toml` and resolved in the checked-in `lake-manifest.json`.
+
+## License
 
 License: [MIT](LICENSE). The textbook itself is not part of this repository; citations use its printed page numbers.
