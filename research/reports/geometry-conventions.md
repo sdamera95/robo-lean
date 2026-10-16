@@ -1042,8 +1042,7 @@ object (p214). Frames are data: no type checks that a frame's `z`-axis is an inw
 §6 changes convention: the contact frame along a surface curve is the normalized Gauss frame
 `[c_u/‖c_u‖, c_v/‖c_v‖, n]`, `n = c_u × c_v/‖c_u × c_v‖` (p245, eq. (5.22); p246, footnote 2:
 "This is different from our previous convention, where we choose the z-axis along the inward
-pointing normal"). Whether `n` points outward depends on the chart's orientation; the §6 tranche
-must fix it before reusing the contact models of §2.
+pointing normal"). Whether `n` points outward depends on the chart's orientation; the library keeps the book's `n` and states outwardness as a hypothesis, and relates the two frames by a fixed rotation (subsection "Rolling contact (§6)" below).
 
 **Contact wrenches and the transfer.** A contact wrench `F_c = (f, τ)` acts at the contact origin
 and is written in the contact frame, force first, as `Wrench` (MLS p61). It is carried to the
@@ -1092,8 +1091,7 @@ the table's wording.
 coefficients; `Grasp.positivelySpans_iff_nonneg` proves it equivalent to spanning with
 nonnegative coefficients, the form used in proofs.
 
-**Deferred (Q5).** The §6 normal orientation (above) is not settled. Q6, the strictness of the
-antipodal conditions of Theorem 5.6, is settled with commit `e736100` (below).
+**Q5 (settled with commit `5e09b00`).** The §6 normal is the book's `n = c_u × c_v/‖c_u × c_v‖`, outwardness is an explicit hypothesis, and the §2 contact frame is the Gauss frame turned by `π` about its `x`-axis (subsection "Rolling contact (§6)"). Q6, the strictness of the antipodal conditions of Theorem 5.6, is settled with commit `e736100` (below).
 
 ### Hands, finger kinematics and manipulability
 
@@ -1192,6 +1190,67 @@ hypothesis. Only the "if" direction holds in the library's model.
 
 **Figure 5.13.** The book defines no axes; the library uses the triangle `(0, 0)`, `(1, 0)`,
 `(1/2, √3/2)`, contacts `(s, 0)` and `(t/2, t√3/2)` measured from the shared vertex.
+
+### Rolling contact (§6)
+
+Recorded 2026-10-16 with commit `5e09b00`. Source: MLS Chapter 5 §6, printed pp. 242–255 and 257,
+and Exercises 13, 16 and 17, pp. 262–263, read as renders and text extracts.
+
+**Charts.** A chart is a map `c : (Fin 2 → ℝ) → Vec3`; the coordinates `α = (u, v)` are indexed `0, 1`,
+and `c_u`, `c_v` are the derivative `fderiv ℝ c α` applied to `(1, 0)` and `(0, 1)`
+(`Surface.partialU`, `partialV`). Hypotheses are explicit per statement; `IsOrthogonalChartOn c U`
+bundles an open `U`, twice continuous differentiability on `U` (the book prints "differentiable";
+`n_u`, `n_v` and (5.24) use second derivatives), an injective differential (condition 3, p. 243) and
+`c_u ⟂ c_v` (p. 244). Condition 2 (homeomorphism) and Theorem 5.9 are not used. `c_uv` is `∂c_u/∂v`,
+equal to `∂c_v/∂u` for a twice continuously differentiable chart.
+
+**Normal and orientation (Q5).** The Gauss map is exactly the book's `n = c_u × c_v/‖c_u × c_v‖`
+(5.19), with no sign added. Whether `n` points out of a body depends on the chart: for a body
+`{x : h x ≤ 0}`, `IsOutwardNormal h c α` says that the directional derivative of `h` at `c(α)` along `n`
+is positive. The chart of Example 5.6 has an inward normal (its curvature tensor is `−(1/ρ) I`, against
+the printed `(1/ρ) I`), the finger chart of Example 5.7 (the mirror image in `y`) an outward one with
+`K_f = (1/ρ) I`. With an outward normal a convex surface has positive curvature. The kinematic theorems
+(Lemma 5.10, Theorem 5.11) need no orientation hypothesis; the physical reading of two bodies touching
+from outside needs both normals outward.
+
+**Metric, curvature and torsion.** `M_p = diag(‖c_u‖, ‖c_v‖)` is the printed orthogonal-chart form.
+`K_p` is defined by the entries of (5.21) and equals `M_p⁻ᵀ II_p M_p⁻¹` and (5.23). `T_p` is defined
+by the first expression of (5.24) and read as a row: `T M α̇ = T ⬝ᵥ (M α̇)`. The book's "If a surface
+is flat, then `T_p = 0`" holds for affine charts; a polar chart of a plane has `T_p ≠ 0`.
+
+**Frames.** The normalized Gauss frame `[x y n]` is a rotation for an orthogonal chart with nonzero
+partials; `Surface.gaussFrame c α` is that rotation there and the identity elsewhere, so that a frame
+curve is defined along every coordinate curve. The contact frame is `g_oc(α) = (c(α), [x y n])`, the
+frame of the proof of Lemma 5.10 and of (5.42).
+
+**Contact coordinates and `ψ`.** `η = (α_f, α_o, ψ)`. `R_ψ = [[cos ψ, −sin ψ], [−sin ψ, −cos ψ]]` as
+printed on p. 250 (a reflection: `R_ψᵀ = R_ψ`, `R_ψ² = I`, `det R_ψ = −1`); `K̃_o = R_ψ K_o R_ψ`. The
+contact rotation is `R_{c_o c_f} = diag(R_ψ, −1)`: the printed (5.34) has `+1`, which gives
+determinant `−1`; with `−1` the normals are opposed and (5.34)'s `ω_{c_o c_f} = (0, 0, ψ̇)` holds. The
+relative pose (not printed) is `g_of(η) = g_{oc_o}(α_o) · (0, diag(R_ψ, −1)) · g_{fc_f}(α_f)⁻¹`. Then
+`x_f ↦ cos ψ x_o − sin ψ y_o`: `ψ` is the right-handed angle from `x_o` to `x_f` about the finger's
+outward normal `−n_o`. The prose of p. 248 ("a rotation ... around the outward normal of `S_o`"),
+read with the right-hand rule about `n_o`, gives the opposite sense; the library follows the matrix.
+
+**Montana's equations.** Theorem 5.11 is stated as the library states (5.8)–(5.13): along a pose curve
+`g` that agrees near `t` with `g_of(η(s))`, `η` with actual derivatives at `t`, for every derivative of
+`g`, the relative velocity is `V_{l_o l_f} = Ad⁻¹_{g_{fc_f}(α_f(t))} V^b_of` (the local frame frozen at
+time `t`; (5.27) with the finger's contact point `c_f(α_f)`, not the printed `p̂_o`). Then (5.37) holds,
+`v_z = 0` included, as a theorem; (5.28) follows when `K_f + K̃_o` is invertible (the book's p. 251
+hypothesis; `M_f`, `M_o` are invertible for orthogonal charts). Pure rolling is `v_x = v_y = 0`,
+`ω_z = 0` and pure sliding `ω = 0` (p. 249).
+
+**Bridge to the contact frames of §2.** The §2 contact frame (`z` along the inward normal, p. 214) is
+`Rolling.inwardContactFrame c α = g_oc(α) · (0, diag(1, −1, −1))`: same origin, `x` kept, `y ↦ −y`,
+`z = −n`, pointing into the body when `n` is outward. The finger's Gauss frame at the contact is
+`inwardContactFrame c_o α_o · (0, R_z(ψ))`. The §2 contact models (`ContactModel`, friction cones,
+`B_c`) apply unchanged in `inwardContactFrame`; the book's (5.42), with `z` along the outward normal,
+would need `B_c` rewritten, which it does not do.
+
+**Exercise 17 (planar contact).** Points and vectors of the plane are `Fin 2 → ℝ`; `g_of = (p, R)` with
+`R ∈ SO(2)`. A chart has unit tangent `t = c'`, normal `n = J t` with `J` the rotation by `+π/2`, and
+curvature `K` defined by `n' = K t` (the planar form of (5.23)). The curves are in contact when
+`c_o(s_o) = p + R c_f(s_f)` and `n_o = −R n_f`.
 
 ## Constrained dynamics conventions
 
