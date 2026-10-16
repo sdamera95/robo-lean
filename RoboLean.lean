@@ -150,3 +150,11 @@ import RoboLean.Dynamics.StackedFingers
 import RoboLean.Dynamics.SubstitutedLagrangian
 import RoboLean.Examples.RedundancyAndTendons
 import RoboLean.Examples.HandChart
+import RoboLean.Control.RobotPDControl
+import RoboLean.Control.WorkspacePDControl
+import RoboLean.Control.FlowDerivative
+import RoboLean.Control.ConverseLyapunovGeneral
+import RoboLean.Control.StateTransitionPiecewise
+import RoboLean.Examples.RobotPDControl
+import RoboLean.Examples.ConverseLyapunovGeneral
+import RoboLean.Examples.AugmentedPDEnergy
