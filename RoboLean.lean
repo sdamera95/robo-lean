@@ -158,3 +158,13 @@ import RoboLean.Control.StateTransitionPiecewise
 import RoboLean.Examples.RobotPDControl
 import RoboLean.Examples.ConverseLyapunovGeneral
 import RoboLean.Examples.AugmentedPDEnergy
+import RoboLean.Grasp.SurfaceChart
+import RoboLean.Grasp.GeometricParameters
+import RoboLean.Grasp.ContactFrameVelocity
+import RoboLean.Grasp.ContactCoordinates
+import RoboLean.Grasp.ContactEquations
+import RoboLean.Grasp.RollingContact
+import RoboLean.Grasp.PlanarContactKinematics
+import RoboLean.Examples.SphereChart
+import RoboLean.Examples.RollingContact
+import RoboLean.Examples.PlanarContact
