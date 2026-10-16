@@ -9,10 +9,11 @@ import Mathlib.Analysis.SpecialFunctions.Exponential
 MLS assumes "the standard conditions for the existence and uniqueness of solutions" (p. 179) and,
 for Lasalle's principle, writes the solution of the autonomous system `ẋ = f(x)` (eq. (4.46),
 p. 188) as `s(t, x₀, t₀)`, the state at time `t` of the solution starting from `x₀` at `t₀`.
-The E016 notions quantify over all solutions and prove nothing about their existence. Lasalle's
-principle needs more: every solution must exist for all forward time, be unique, and depend
-continuously on its initial state. That is packaged here as a hypothesis structure, `HasFlow F φ`,
-for the autonomous system written in E016's carrier as `fun _ => F` (time first, ignored):
+The stability notions of `Control/Stability` quantify over all solutions and prove nothing about
+their existence. Lasalle's principle needs more: every solution must exist for all forward time, be
+unique, and depend continuously on its initial state. That is packaged here as a hypothesis
+structure, `HasFlow F φ`, for the autonomous system written in their carrier as `fun _ => F` (time
+first, ignored):
 
 * `φ t x₀` is MLS's `s(t₀ + t, x₀, t₀)` for every `t₀`; `φ 0 x₀ = x₀`;
 * existence: `t ↦ φ t x₀` solves the system from time `0`; hence `t ↦ φ (t − t₀) x₀` solves it

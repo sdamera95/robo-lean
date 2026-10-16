@@ -2,7 +2,7 @@ import RoboLean.Examples.HandGrasp
 import RoboLean.Examples.ScaraDynamics
 
 /-!
-# MLS Example 5.6 (§5.3, printed pp. 240–242): two SCARA fingers grasping a box
+# The SCARA example of MLS §5.3 (printed pp. 240–242): two SCARA fingers grasping a box
 
 MLS §5.3 (Figure 5.17, p. 241) grasps the box of Example 5.2 (soft-finger contacts at
 `p_{cᵢ} = (0, ±r, 0)`, frames `boxFrame r`) with two SCARA fingers whose fingertip length is zero
@@ -21,7 +21,7 @@ the spatial Jacobian of Example 3.8 (p. 240), the contact frames `g_{sᵢcᵢ}` 
 `Gᵀ (0, 0, 0, 0, 1, 0) = (0, 0, 0, 1, 0, 0, 0, -1)` and the conclusion that the grasp is not
 manipulable (p. 242).
 
-Source check (the E025 scout's doubt about `J₁₁`). The printed internal motions
+Source check of `J₁₁`. The printed internal motions
 `θ̇_{N₁} = e₃`, `θ̇_{N₂} = e₇` (p. 242) require the third column of `J₁₁` (and of `J₂₂`) to vanish.
 The printed `J₁₁` is the block at every finger configuration `(θ₁, θ₂)`, and its third column
 vanishes exactly when `l₁ cos θ₁ + l₂ cos(θ₁ + θ₂) = b - r` and `l₁ sin θ₁ + l₂ sin(θ₁ + θ₂) = 0`,
@@ -41,10 +41,11 @@ namespace RoboLean.Examples
 
 open Matrix Grasp Real
 
-/-- The two-SCARA hand of MLS Example 5.6 (§5.3, printed pp. 240–242, Figure 5.17): the soft-finger
-box grasp of Example 5.2 (`boxSpatialGrasp`), finger 1 the SCARA chain with links `l₁, l₂`, finger 2
-the SCARA chain with links `l₃, l₄` (`scaraChain`, MLS Examples 3.1 and 3.8; fingertip length zero),
-and the finger bases `g_{ps₁} = (I, (0, -b, 0))`, `g_{ps₂} = (I, (0, b, 0))`. -/
+/-- The two-SCARA hand of the unnumbered example of MLS §5.3 (printed pp. 240–242, Figure 5.17): the
+soft-finger box grasp of Example 5.2 (`boxSpatialGrasp`), finger 1 the SCARA chain with links
+`l₁, l₂`, finger 2 the SCARA chain with links `l₃, l₄` (`scaraChain`, MLS Examples 3.1 and 3.8;
+fingertip length zero), and the finger bases `g_{ps₁} = (I, (0, -b, 0))`,
+`g_{ps₂} = (I, (0, b, 0))`. -/
 def scaraHand (μ γ r b l₁ l₂ l₃ l₄ : ℝ) (hμ : 0 < μ) (hγ : 0 < γ) :
     HandGrasp (Fin 2) (fun _ => 4) fun _ => 4 :=
   ⟨boxSpatialGrasp μ γ r hμ hγ, ![scaraChain l₁ l₂, scaraChain l₃ l₄], boxHandBase b⟩
@@ -371,10 +372,10 @@ theorem scaraHand_graspTranspose_rotY_not_mem_range (μ γ r b l₁ l₂ l₃ l�
     scaraHand_fingerJacobianMatrix_zero, boxSpatialGrasp_graspTranspose_rotY] at h
   simp [scaraPrintedJ₁₁, Matrix.mulVec, dotProduct, Fin.sum_univ_succ] at h
 
-/-- **The conclusion of MLS Example 5.6, printed p. 242**: the two-SCARA grasp is not manipulable
-(Definition 5.5) at the object configuration of Figure 5.17, for every finger configuration
-(MLS states it for "the particular configuration shown"). Its grasp is that of Example 5.2, which
-is force-closure for `r ≠ 0` (`boxSpatialGrasp_isForceClosure`). -/
+/-- **The conclusion of the SCARA example of MLS §5.3, printed p. 242**: the two-SCARA grasp is not
+manipulable (Definition 5.5) at the object configuration of Figure 5.17, for every finger
+configuration (MLS states it for "the particular configuration shown"). Its grasp is that of
+Example 5.2, which is force-closure for `r ≠ 0` (`boxSpatialGrasp_isForceClosure`). -/
 theorem scaraHand_not_isManipulable (μ γ r b l₁ l₂ l₃ l₄ a : ℝ) (hμ : 0 < μ) (hγ : 0 < γ)
     (θ : Fin 2 → Fin 4 → ℝ) :
     ¬ ((scaraHand μ γ r b l₁ l₂ l₃ l₄ hμ hγ).toMultifingeredGrasp θ

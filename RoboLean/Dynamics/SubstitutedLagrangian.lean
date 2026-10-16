@@ -4,7 +4,7 @@ import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 /-!
 # Substituting a Pfaffian constraint into the Lagrangian, eq. (6.15) (MLS §6.1.4)
 
-MLS Chapter 6, §1.4, printed pp. 274–276 (renders inspected this session).
+MLS Chapter 6, §1.4, printed pp. 274–276.
 
 **What MLS states.** For a "three-dimensional, unforced Pfaffian system with configuration
 `q = (r, s) ∈ ℝ² × ℝ`, constraint `ṡ + aᵀ(r) ṙ = 0`", a Lagrangian `L(r, ṙ, ṡ)` with no dependence
@@ -26,7 +26,7 @@ derivative `DL`, so `∂L/∂rᵢ = DL(eᵢ, 0, 0)`, `∂L/∂ṙᵢ = DL(0, e�
   printed above (6.15);
 * (6.15) along a motion (`lagrangeEquationsAt_constrainedLagrangian_iff`), with the last sum read as
   `Σⱼ (∂aⱼ/∂rᵢ) ṙⱼ`, as in the expansion above (6.15); the printed `ṙᵢ` in (6.15) and in the
-  holonomic check of p. 276 is E034's observation O7;
+  holonomic check of p. 276 is source observation O7 in the coverage ledger;
 * the holonomic case: for `a = ∂h/∂r` with `h` of class `C²` the right side vanishes
   (`holonomic_rhs_eq_zero`) and Lagrange's equations of `L_c` are the left side of (6.15) set to
   zero (`lagrangeEquationsAt_constrainedLagrangian_iff_of_gradient`);

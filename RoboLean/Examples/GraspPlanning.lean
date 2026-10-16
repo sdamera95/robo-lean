@@ -11,7 +11,7 @@ Printed pp. 230–233 and Exercises 7–8, p. 261.
   the bound `p + 1` of Theorem 5.4.
 * Theorem 5.6 (p. 232): the rectangle of Example 5.3 (p. 222) satisfies A–D when its contacts face
   each other (`r > 0`); with the contacts exchanged (`r = -1`) the grasp is force-closure
-  (`rectangleGrasp_isForceClosure`, E025) while A–D fail, so the printed "if and only if" is false
+  (`rectangleGrasp_isForceClosure`) while A–D fail, so the printed "if and only if" is false
   without an orientation hypothesis (`antipodal_printed_iff_counterexample`). A grasp whose
   connecting line lies on an edge of one friction cone satisfies the closed (non-strict) A–D and
   the orientation hypothesis and is not force-closure (`antipodal_closed_reading_counterexample`),

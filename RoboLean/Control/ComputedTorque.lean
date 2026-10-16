@@ -3,7 +3,7 @@ import RoboLean.Control.ErrorDynamics
 /-!
 # Computed torque control (MLS §5.2, eqs. (4.48)–(4.50), Proposition 4.8, pp. 190–192)
 
-**What MLS prints (read this session).** For (4.47) and a desired trajectory `θ_d` that is "at
+**What MLS prints.** For (4.47) and a desired trajectory `θ_d` that is "at
 least twice differentiable" (p. 190), the computed torque law is (4.49), p. 191,
 `τ = M(θ)(θ̈_d − K_v ė − K_p e) + C(θ, θ̇) θ̇ + N(θ, θ̇)` with `e = θ − θ_d` and constant gain
 matrices. Substituting gives `M(θ)(ë + K_v ė + K_p e) = 0`, and "since `M(θ)` is always positive

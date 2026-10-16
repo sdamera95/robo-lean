@@ -43,8 +43,8 @@ with `t ∈ s.r` read as `r t = true`; a Veil `function attempts : target → Na
 `[DecidableEq Target]` (Veil's generated theorems carry `DecidableEq target` too); Veil's `Nat`,
 including its truncated subtraction, is Lean's `ℕ`. The two projects run on different Lean versions
 (4.32.0 for Veil, 4.34.1 here) and cannot import each other, so the correspondence, and reading
-Veil's uninterpreted `reachable` as `planarGuard a b`, are recorded conventions (decision D003,
-entries E018, E022 and E027), not kernel-checked links.
+Veil's uninterpreted `reachable` as `planarGuard a b`, are recorded conventions (see
+`research/reports/veil-robotics-verification.md`), not kernel-checked links.
 
 Sources. The guard is the annulus condition of the workspace certificate C04, which for positive
 link lengths characterizes the reachable workspace `W_R = {p(θ) : θ ∈ Q}` of MLS eq. (3.12),

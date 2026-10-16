@@ -102,7 +102,7 @@ Mathlib's right-handed coordinate cross product through `WithLp`, `Vec3.hat`
 has rows `(0,-v₂,v₁)`, `(v₂,0,-v₀)`, `(-v₁,v₀,0)` in Lean's zero-based
 indexing, and `Vec3.vee A` reads `(A₂₁,A₀₂,A₁₀)`. `SkewMatrix3` is the
 independent real skew-adjoint matrix type, identified by `Aᵀ = -A`.
-**Verified — formal statements:** the [I2 build and 85-declaration audit](../../docs/implogs/gates/E003/20261009T015317Z/summary.json)
+**Verified — formal statements:** the I2 build and 85-declaration audit
 checks `Rotation.act_cross`, `RigidTransform.applyVector_cross`,
 `Vec3.hat_mulVec`, `Vec3.hat_act`, and the real linear equivalence
 `Vec3.hatLinearEquiv`. It covers all vectors including zero; `hat_vee` requires
@@ -181,7 +181,7 @@ axis, t has the signed-angle/radian and unit angular-rate interpretation used
 by MLS p27 eqs2.8-2.9; it does not mean that every point on the body has unit
 linear speed. Rescaling satisfies `exp (c • ω) t = exp ω (t*c)`.
 
-**Verified - formal statements:** the [I3 build and audit](../../docs/implogs/gates/E004/20261009T022521Z/summary.json)
+**Verified - formal statements:** the I3 build and audit
 checks `Rotation.matrix_exp_mem` for arbitrary real skew matrices, including
 determinant +1; `Rotation.hasDerivAt_exp_act` and `exp_zero_act` prove the actual
 point trajectory has derivative `ω × q(t)` and the prescribed initial point.
@@ -198,7 +198,7 @@ conventions; the general representation results below have separate evidence.
 
 ## Rotation representations and selected coordinates
 
-**Verified - formal statements:** the [final build and audit](../../docs/implogs/gates/E007/20261009T042046818411474Z/summary.json)
+**Verified - formal statements:** the final build and audit
 check [RotationSurjectivity](../../RoboLean/Geometry/RotationSurjectivity.lean),
 including unit-axis representations of identity and half-turns.
 The correctness theorem for the generic axial formula in
@@ -238,15 +238,15 @@ Use twist order `(v, ω)` and wrench order `(f, τ)`, with linear coordinates
 first. Twists are a two-field structure `Twist` with fields `linear` and `angular`,
 the twist coordinates `(v, ω)` of MLS printed p. 41, eq. (2.30), with the componentwise
 real vector-space structure; a `Vec3 × Vec3` value is rejected where a twist is expected
-([E010](../../docs/implogs/E010-twist-structure.md)). Wrenches are a distinct two-field
+(commit `a92475e`). Wrenches are a distinct two-field
 structure `Wrench` with fields `force` and `torque` on the same pattern, so a twist is
 rejected where a wrench is expected and conversely
-([E008](../../docs/implogs/E008-wrench-carrier-and-library-hygiene.md)). The two carriers
+(commit `d33f59e`). The two carriers
 are related only through named maps: the power pairing `Wrench.pair`, the coordinate swaps
 `Twist.swapWrench` and `Wrench.toTwist`, and the dual equivalences `Wrench.pairingEquiv`
 and `Twist.pairingEquiv`. Neither carrier has a norm, metric or topology; a six-coordinate
 norm, if one is ever needed, must be chosen with its metric and length scale and declared
-deliberately. The separation is between the typed values `Twist` and `Wrench`, not between their literals: an anonymous constructor `⟨a, b⟩` elaborates as whichever of the two the slot expects, so the component order inside a literal is a convention the types do not check (E010 review, 2026-10-10). The [ledger](mls-coverage-ledger.md)
+deliberately. The separation is between the typed values `Twist` and `Wrench`, not between their literals: an anonymous constructor `⟨a, b⟩` elaborates as whichever of the two the slot expects, so the component order inside a literal is a convention the types do not check (an observation of 2026-10-10). The [ledger](mls-coverage-ledger.md)
 distinguishes the checked algebra and derivative statements below from remaining
 and partial source obligations. For a differentiable pose trajectory `g(t)`,
 
@@ -287,7 +287,7 @@ interval-work theorems below retain actual derivative and integrability premises
 
 ### Checked subset and assumptions
 
-**Verified - formal statements:** the [I4 build and audit](../../docs/implogs/gates/E005/20261009T032143837813448Z/summary.json)
+**Verified - formal statements:** the I4 build and audit
 check the [Twist](../../RoboLean/Geometry/Twist.lean) hat/vee linear equivalence
 with the independent `se(3)` matrix carrier and
 [TwistAdjoint](../../RoboLean/Geometry/TwistAdjoint.lean)'s coordinate matrix,
@@ -337,8 +337,8 @@ remains separate, as recorded in the ledger.
 
 ### Geometric screws, brackets, and work
 
-The [final formal gate](../../docs/implogs/gates/E007/20261009T042046818411474Z/summary.json)
-and its [source review](../../docs/implogs/gates/E007/20261009T042046818411474Z/source-statement-review.md)
+The final formal check of commit `b2d79fe`
+and its source review
 bind these additional statements to their exact assumptions.
 [TwistScrewMotion](../../RoboLean/Geometry/TwistScrewMotion.lean) defines geometric
 finite-pitch, pure-translation, and stationary data independently of the twist
@@ -365,7 +365,7 @@ full turn; the relative-motion formula includes zero angle.
 [TwistBracket](../../RoboLean/Geometry/TwistBracket.lean) and
 [AdjointBracket](../../RoboLean/Geometry/AdjointBracket.lean) establish coordinate
 Lie-bracket, matrix-commutator, and adjoint compatibility statements. The selected
-[Appendix A inventory](../../docs/implogs/gates/E007/20261009T042046818411474Z/appendix-source-inventory.md)
+Appendix A inventory
 records L01–L04; these coordinate results do not supply a global tangent or
 manifold interface.
 
@@ -402,16 +402,16 @@ for `N` equal to `41, 43, 44, 49, 53, 54, 55, 56, 59, 60, 72, 73, 79, 80, 81`.
 These commands exited zero; the named PNGs were opened and visually inspected.
 The temporary renderings are inspection aids, not durable library artifacts.
 
-**Verified — additional source transcription, 2026-10-09:** the I2 reviewer
-re-rendered and opened printed pp.26–28 and 37–38 to compare cross-product, hat,
+**Verified — additional source transcription, 2026-10-09:** at I2,
+printed pp.26–28 and 37–38 were re-rendered and opened to compare cross-product, hat,
 skew-space, conjugation, and vector-action formulas with the named declarations.
-The [source-inspection record](../../docs/implogs/gates/E003/20261009T015317Z/review.md) and preserved
+The source-inspection record and preserved
 renderings bound that review.
 
-**Verified - additional bounded source inspection, I3:** the reviewer opened
-rendered printed pp27-31 and every page pp39-69, preserved with the
-[source review](../../docs/implogs/gates/E004/20261009T022521Z/source-statement-review.md) and
-[P2 inventory](../../docs/implogs/gates/E004/20261009T022521Z/provenance/robo-e004-source-p2-ledger.md).
+**Verified - additional bounded source inspection, I3:** rendered printed
+pp27-31 and every page pp39-69 were opened, preserved with the
+source review and
+P2 inventory.
 The I4 normalization now proves rescaling of the full twist `(v,ω)`.
 The later screw APIs distinguish zero, finite pitch, and pure translation;
 parameters remain signed while norm-based magnitude scales by abs(θ).
@@ -419,24 +419,24 @@ Reciprocal-system power and dimension statements do not establish physical
 contact feasibility.
 
 **Verified - additional bounded source inspection, I4:** the
-[source-statement review](../../docs/implogs/gates/E005/20261009T032143837813448Z/source-statement-review.md) maps the new declarations
+source-statement review maps the new declarations
 to MLS printed pp39–44 and 51–64 and records the unit-axis premise, full-twist normalization,
 full-turn exclusion, derivative hypotheses, and instantaneous-power scope.
 The [ledger](mls-coverage-ledger.md#implementation-evidence-i4) distinguishes
 these checked statements from partial and remaining source obligations.
 
-The [final source-statement review](../../docs/implogs/gates/E007/20261009T042046818411474Z/source-statement-review.md)
+The final source-statement review
 records the subsequent rotation, logarithm, Euler, bracket, screw, and work scope,
 including the named domain restrictions and remaining partial obligations.
 
 **Unverified here:** numerical refinement, physical interpretation of a particular
-robot, and user acceptance. Named formal-statement evidence is linked above and
+robot, and user acceptance. Named formal-statement evidence is cited above and
 in the coverage ledger; this document does not establish full implementation
 conformance with the book.
 
 ## Kinematics conventions
 
-Recorded 2026-10-09 UTC for increment E009 ([entry](../../docs/implogs/E009-serial-chain-kinematics.md)).
+Recorded 2026-10-09 UTC with commit `3e5bdd1`.
 Source: MLS Chapter 3, printed pp. 83–89, 95 and 115–118, extracted as text and,
 for pp. 87, 88 and 116–118, inspected as rendered images in this increment. These
 are coordinate conventions of the Lean model; they do not certify a physical robot.
@@ -454,7 +454,7 @@ real lift and proves periodicity instead of forming a quotient
 (`SerialChain.fk_add_int_mul_two_pi`, for revolute joints with a unit axis). A
 real vector therefore names a configuration, but two vectors that differ by `2π`
 multiples in revolute coordinates give the same pose; no torus type is defined.
-The admissible set `Q` of p. 84 is an explicit `Set (Fin n → ℝ)`: the chain field `SerialChain.admissible` (default: all of `Fin n → ℝ`), and an explicit argument `Q` of every workspace definition. The field is read by the variants `admissibleCompleteWorkspace`, `admissibleReachableWorkspace`, `admissibleDextrousWorkspace` and `admissibleAlternativeDextrousWorkspace`, which fix `Q := c.admissible`, and by the closed-chain joint space `ClosedChain.admissible`; the forward kinematics and the `Q`-parametrized definitions do not read it ([E020](../../docs/implogs/E020-chapter-3-remainder-inverse-kinematics-and-manipulability.md), resolving E009 review F4 by giving the field a use rather than removing it). MLS p. 84 measures angles with a
+The admissible set `Q` of p. 84 is an explicit `Set (Fin n → ℝ)`: the chain field `SerialChain.admissible` (default: all of `Fin n → ℝ`), and an explicit argument `Q` of every workspace definition. The field is read by the variants `admissibleCompleteWorkspace`, `admissibleReachableWorkspace`, `admissibleDextrousWorkspace` and `admissibleAlternativeDextrousWorkspace`, which fix `Q := c.admissible`, and by the closed-chain joint space `ClosedChain.admissible`; the forward kinematics and the `Q`-parametrized definitions do not read it (commit `c2a2604`, which gave the field a use rather than removing it). MLS p. 84 measures angles with a
 right-handed convention ("clockwise as viewed along the direction of the axis",
 which is the right-hand rule seen with the axis pointing away from the viewer);
 it agrees with the positive quarter turn about `+z` above.
@@ -517,7 +517,7 @@ and a body wrench (moment about the tool origin, tool coordinates) with the body
 `bodyJacobianMatrix` with rows `Sum.inl` = `v`, `Sum.inr` = `ω`, against `Wrench.coordinates`
 with `Sum.inl` = `f`, `Sum.inr` = `τ`. The statements are the instantaneous algebraic
 identity; the book's frictionless work premise is not formalized
-([E011](../../docs/implogs/E011-planar-workspace-certificate-and-force-pullback.md)).
+(commit `f237457`).
 
 **Planar two-link workspace.** The motion plane of `Examples.planarTwoLink` is the third
 coordinate zero, `x 2 = 0` (joint axes `+z`, zero configuration along `+y`), and distances
@@ -537,7 +537,7 @@ explicit hypotheses the book does not state; the branches are paired as printed 
 `−α` with `−β`) and solutions are modulo `2π` in each angle. The workspace row C02's elbow angle
 `arccos((r² − a² − b²)/(2ab))` is the `π − α` branch.
 
-**Supervisor models and the Veil correspondence.** A supervisor model in `RoboLean/Design/` ([E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md), 2026-10-10) is a
+**Supervisor models and the Veil correspondence.** A supervisor model in `RoboLean/Design/` (commit `9c8b539`, 2026-10-10) is a
 transition system over an abstract target type: a `State` structure, an `init` state, an
 inductive `Step` relation with one constructor per action and the action's `require` clauses as
 hypotheses, and reachable states `Relation.ReflTransGen Step init`. It mirrors a Veil model in
@@ -550,11 +550,11 @@ Lean predicate parameter `reachable : Target → Prop` of `Step`; `after_init` i
 conditions have no counterpart because a Lean step cannot fail. For the planar two-link arm the
 guard is `planarGuard a b`, C04's condition verbatim. The two projects run on different Lean
 versions and cannot import each other, so the correspondence is a recorded convention, checked
-only by reading the two files side by side (the table in [E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md)), not by any kernel. The finite
-instance of a Veil model may carry a guard table computed from concrete targets; E018's table is
+only by reading the two files side by side (the table in commit `9c8b539`), not by any kernel. The finite
+instance of a Veil model may carry a guard table computed from concrete targets; the first pilot's table is
 `planarGuard 2 1` at five tool positions, checked on the Lean side. Veil action names must avoid
 the fields `distinct` and `complete` of Veil's generated action-tag class. A Veil `individual x : Nat` is a Lean `ℕ` field, and an immutable (theory) `individual bound : Nat`
-is a Lean parameter `bound : ℕ` of `Step`, like the guard ([E022](../../docs/implogs/E022-veil-second-pilot-timeout-supervisor.md)). A supervisor that extends another one extends
+is a Lean parameter `bound : ℕ` of `Step`, like the guard (commit `7e752fe`). A supervisor that extends another one extends
 its `State` structure (`structure State extends PlanarArmSupervisor.State`), and its relation to
 the smaller supervisor is a simulation theorem (`ReachableState.toState`: forgetting the new fields
 maps each step to a step of the smaller supervisor or to no step), through which the smaller
@@ -563,12 +563,12 @@ supervisor's refinement theorems are reused rather than reproved. The SMT backen
 verification condition over `Nat` reaches cvc5 as linear integer arithmetic. A Lean theorem in a
 Veil file about Veil's generated declarations passes the instance arguments exactly as Veil's
 assembled transition system does (read with `pp.explicit`); left to instance synthesis, the first
-application timed out at `whnf` in E022.
+application timed out at `whnf` in the second pilot (commit `7e752fe`).
 A Veil `function f : target → Nat` is a Lean field `f : Target → ℕ`, and its update
 `f t := e` is `Function.update f t e`, which needs `[DecidableEq Target]` (Veil's generated
 theorems carry `DecidableEq target` too); `Nat` subtraction truncates on both sides. An immutable
 individual that only `after_init` reads (`capacity`, read by `budget := capacity`) is a parameter of
-`init` rather than of `Step` ([E027](../../docs/implogs/E027-veil-third-pilot-budget-supervisor.md)).
+`init` rather than of `Step` (commit `bd7b9e8`).
 A supervisor that extends a supervisor which itself extends another names its parent projection
 (`structure State extends toTimeoutState : PlanarArmTimeoutSupervisor.State Target`), because the
 default name `toState` collides with the inner parent projection; its simulation then maps each
@@ -576,19 +576,18 @@ step to the step of the same name when the new guards only strengthen existing a
 embeds a `Nat`-valued function as an `Int`-valued one with the assertion `∀ a₁, f a₁ ≥ 0`, and
 rewrites `x - y` into `if x ≥ y then x - y else 0`; with such a function in a model, debug with
 `trace.smt` (goal and query), not `trace.smt.solve`, whose proof printer fails on the binder `a₁`
-(E027).
+(commit `bd7b9e8`).
 A Veil model's `/` and `%` on `Nat` are Lean's `Nat.div` and `Nat.mod` (the actions are Lean code),
 with `n / 0 = 0` and `n % 0 = n`, and the Lean mirror uses the same operations; lean-smt sends them
 to cvc5 as integer `div` and `mod` (embedding lemmas `Int.natCast_ediv`, `Int.natCast_emod`), where
 division by zero is unspecified, so a Veil model states a positive divisor as an `assumption` on the
 theory (`assumption [period_pos] period ≥ 1`), which every condition carries as its `Assumptions`
 premise and Veil's `reachable.init` requires, while the Lean mirror takes `1 ≤ period` only where
-Lean's conventions need it ([E032](../../docs/implogs/E032-veil-fourth-pilot-scheduler-
-supervisor.md)). With `veil.smt.trust false`, a condition whose refutation involves `div` or `mod`
+Lean's conventions need it (commit `aa74623`). With `veil.smt.trust false`, a condition whose refutation involves `div` or `mod`
 does not reconstruct at this Veil and lean-smt revision; such conditions are discharged by a solver
 fallback set in the model (`set_option veil.solver "custom"` with a `macro_rules` for `veil_solve`
 that tries `veil_smt` first, then `grind`, core lemmas and hand-proved steps), which leaves every
-condition that SMT reconstruction discharges unchanged (E032). A product clause is mirrored
+condition that SMT reconstruction discharges unchanged (commit `aa74623`). A product clause is mirrored
 literally (`bound * closedCount`, `age * age`, `rate * ticksTotal`); an auxiliary equality such as
 `load = age * age` is a clause of its own on both sides.
 A counter that wraps around at a theory constant is encoded without `div` and `mod`: `if slot + 1 =
@@ -598,12 +597,12 @@ the two updated fields; `ticksTotal % period = slot` and `ticksTotal / period = 
 Lean theorems derived from the two clauses for `1 ≤ period`, not Veil clauses. With `veil.smt.trust
 false` this encoding needs no solver fallback at this Veil and lean-smt revision (every
 per-condition proof reconstructs), and on states with `slot < period` its step relation equals the
-`div`/`mod` one ([E036](../../docs/implogs/E036-veil-fifth-pilot-wrap-around-scheduler.md)), so it
-is the preferred form; the E032 fallback chain remains the route for a model that must keep `div` or
+`div`/`mod` one (commit `44a91b2`), so it
+is the preferred form; the fallback chain of commit `aa74623` remains the route for a model that must keep `div` or
 `mod`. A bounded exclusion is recorded as a theorem only in Veil's proof-term form `unsat trace [n] {
 … } by veil_bmc`, followed by `#print axioms n`: Veil's ordinary `unsat trace` keeps no proof term and
 reports an `unsat` solver result as holding even when the proof was not rebuilt or would fail the
-kernel (E036: silent over four actions, rejected by the kernel in the proof-term form).
+kernel (commit `44a91b2`: silent over four actions, rejected by the kernel in the proof-term form).
 
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
 [p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis
@@ -616,9 +615,9 @@ solutions are stated modulo `2π`. Subproblem 2 models intersecting axes by one 
 `r` for both twists and treats the non-parallel case `ω₁ × ω₂ ≠ 0`; its zero, one or two
 solutions are counted as intermediate points `c = e^{ξ̂₂θ₂} p` (eq. (3.21)). Subproblem 3
 takes `δ ≥ 0` and the nondegeneracy `u′ ≠ 0`, `v′ ≠ 0`, which the book does not state
-([E014](../../docs/implogs/E014-inverse-kinematics-subproblems-and-singularities.md)). MLS
+(commit `fc99877`). MLS
 [p. 98](../../references/MLS.pdf#page=116), eq. (3.16), prints the closed-form planar two-link
-inverse kinematics; the existence half of the workspace row C02 is its `π − α` branch. The polar-form lemmas of `Rotation.atan2` are `Rotation.sqrt_mul_cos_atan2` and `Rotation.sqrt_mul_sin_atan2` in `Geometry/EulerAngles.lean`; the axis-fixing fact of MLS p. 104 is `Twist.exp_revolute_applyPoint_of_mem_axisLine` ([E020](../../docs/implogs/E020-chapter-3-remainder-inverse-kinematics-and-manipulability.md)).
+inverse kinematics; the existence half of the workspace row C02 is its `π − α` branch. The polar-form lemmas of `Rotation.atan2` are `Rotation.sqrt_mul_cos_atan2` and `Rotation.sqrt_mul_sin_atan2` in `Geometry/EulerAngles.lean`; the axis-fixing fact of MLS p. 104 is `Twist.exp_revolute_applyPoint_of_mem_axisLine` (commit `c2a2604`).
 
 **Elbow manipulator.** MLS Example 3.2 ([pp. 89–91](../../references/MLS.pdf#page=107)) is `Examples.elbowManipulator l₀ l₁ l₂`, the base
 frame with the first axis along `+z` and the arm along `+y` at height `l₀`; the twists are built
@@ -636,7 +635,7 @@ Jacobian's columns; for `n > 6` it is the library's extension. For the planar tw
 arm, the p. 123 definition gives no singular configuration when the first link length is
 nonzero; the folded configurations `sin θ₂ = 0` are singular for the `2 × 2` position
 Jacobian `∂p/∂θ` (`Examples.planarTwoLinkPositionJacobian`, in the sense of eq. (3.64)),
-which is a different map. Example 3.12 (three parallel coplanar revolute axes) is `SerialChain.isSingular_of_three_parallel_coplanar_revolute`, for every `n ≤ 6`; the elbow manipulator's reference configuration is its printed instance ([E020](../../docs/implogs/E020-chapter-3-remainder-inverse-kinematics-and-manipulability.md)).
+which is a different map. Example 3.12 (three parallel coplanar revolute axes) is `SerialChain.isSingular_of_three_parallel_coplanar_revolute`, for every `n ≤ 6`; the elbow manipulator's reference configuration is its printed instance (commit `c2a2604`).
 
 **Manipulability.** The Jacobian of MLS §4.4 ([pp. 127–129](../../references/MLS.pdf#page=145)) is the body Jacobian matrix
 `SerialChain.bodyJacobianMatrix` (the book's preference, p. 128). Its singular values are Mathlib's
@@ -660,17 +659,16 @@ exactly `(0, 0) ∈ Q′`. The differential constraint `J₁ˢθ̇₁ = J₂ˢθ
 along trajectories that keep the loop closed near the time considered, and `ρ` (eq. (3.70))
 is the dimension of the intersection of the two Jacobian ranges.
 
-**Evidence scope.** The declarations named here were elaborated by the E009
-shadow-tree checks and axiom audit recorded in the
-[E009 gate](../../docs/implogs/gates/E009/); the integrated `lake build` of the
-root import list is root's landing check and is recorded separately. K13 and the planar workspace rows are covered by the [E011 gate](../../docs/implogs/gates/E011/20261009T093129Z/) and the
-integrated [E010/E011 gate](../../docs/implogs/gates/E010/20261009T100204Z/), which built them against the `Twist` structure. The subproblem, singularity and closed-chain declarations are covered by the [E014 gate](../../docs/implogs/gates/E014/20261010T002522Z/) and root's integrated gate [E014/20261010T010046Z](../../docs/implogs/gates/E014/20261010T010046Z/). The E020 declarations are covered by the [E020 gate](../../docs/implogs/gates/E020/20261010T211850Z/) and root's integrated gate [E020/20261010T215401Z](../../docs/implogs/gates/E020/20261010T215401Z/).
+**Evidence scope.** The declarations named here were elaborated and audited for axioms with
+commit `3e5bdd1`, and the `lake build` of `RoboLean.lean` was checked
+separately. K13 and the planar workspace rows were checked with commit `f237457`, built against
+the `Twist` structure. The subproblem, singularity and closed-chain declarations were checked with commit `fc99877`, and the manipulability and elbow-manipulator declarations with commit `c2a2604`.
 
 ## Dynamics conventions
 
 
-Recorded 2026-10-09 10:11:43 UTC for increment E012 (root applied the lead's proposal). Source: MLS Chapter 4, printed pp. 161–178, read this
-session as text and, for pp. 162, 168, 176–177, as rendered images. These are conventions of the
+Recorded 2026-10-09 10:11:43 UTC with commit `18f4de2`. Source: MLS Chapter 4, printed pp. 161–178, read
+as text and, for pp. 162, 168, 176–177, as rendered images. These are conventions of the
 Lean model; they do not certify a physical robot or its inertial parameters.
 
 **Generalized inertia and block order.** A generalized inertia is a real matrix indexed by
@@ -695,7 +693,7 @@ the case `g = g_{sl_i}(0)⁻¹`. For a pure translation `g = (I, p)` the result 
 `k : Fin n` is the link distal to Lean joint `k` (the book's link `k + 1`) and is moved by Lean
 joints `0..k`: \(g_{sl_k}(\theta)=e^{\widehat\xi_0\theta_0}\cdots e^{\widehat\xi_k\theta_k}g_{sl_k}(0)\)
 (p. 168). This is the forward kinematics of `linkChain k`, the chain whose later joints have twist
-`0`; its E009 body Jacobian is the book's \(J^b_{sl_k}=[\xi^\dagger_0\cdots\xi^\dagger_k\;0\cdots0]\). The
+`0`; its body Jacobian is the book's \(J^b_{sl_k}=[\xi^\dagger_0\cdots\xi^\dagger_k\;0\cdots0]\). The
 6×n matrix `linkJacobianMatrix` has rows `Twist.coordinates`, like `spatialJacobianMatrix`.
 
 **Mass matrix and kinetic energy.** \(M(\theta)=\sum_kJ_k^{\mathsf T}\mathcal M_kJ_k\) (eq. (4.19)) and
@@ -711,8 +709,8 @@ derivation of `𝓘` from a mass density, physical realizability of inertial par
 numerical conditioning.
 
 **Units.** Masses, lengths, times and inertias are real numbers; units (for example kg, m, s,
-kg·m²) are a convention of the user and are not tracked by types. The linear and angular blocks
-of a twist carry different units, so `𝓜` is the only metric used here on twists; `Twist` carries no norm (E010).
+kg·m²) are chosen by the model's author and are not tracked by types. The linear and angular blocks
+of a twist carry different units, so `𝓜` is the only metric used here on twists; `Twist` carries no norm.
 
 **Christoffel symbols and the Coriolis matrix.** For partial derivatives `dM k = ∂M/∂θₖ`,
 `Christoffel.symbol dM i j k = (dM k i j + dM j i k − dM i k j)/2` (eq. (4.22)),
@@ -723,8 +721,8 @@ chain rule). Derivative data are inputs: either the family `dM`, or Fréchet der
 choice of `C` (as MLS notes on p. 171) and on symmetric partials, which follow from `M` symmetric at
 every configuration.
 
-Recorded 2026-10-10 01:05 UTC for increment E013 (root applied the lead's proposal). Source: MLS
-printed pp. 155-178 and p. 209 (Exercise 8), read by the E013 lead as text; p. 175 rendered.
+Recorded 2026-10-10 01:05 UTC with commit `f042580`. Source: MLS
+printed pp. 155-178 and p. 209 (Exercise 8), read as text; p. 175 rendered.
 
 **Lagrange's equations (Theorem 4.1, p. 158).** A Lagrangian is a real function
 `L : (Fin n → ℝ) → (Fin n → ℝ) → ℝ` of configuration and velocity. Its partial derivatives
@@ -782,11 +780,10 @@ established. The book's \(A_{lj}\) (4.27) is the adjoint of the rigid motion
 up to joint `l`, for `j ≤ l` (Lean indices). The case \(A_{lj} = 0\) for \(l < j\) is not
 represented, and the sums are restricted to \(l \ge \max(i,j)\). Internally the proofs use the
 operator norm on homogeneous matrices (`Matrix.Norms.Operator`); every public statement concerns
-real-valued entries and does not depend on that choice. Evidence: the
-[E013 gate](../../docs/implogs/gates/E013/20261010T002511Z/) and root's integrated gate
-[E013/20261010T005937Z](../../docs/implogs/gates/E013/20261010T005937Z/).
+real-valued entries and does not depend on that choice. Evidence: the build
+and axiom audit of commit `f042580`.
 
-**Mass distributions and the inertia tensor (pp. 161–163; [E021](../../docs/implogs/E021-dynamics-remainder-inertia-tensor-scara-and-bracket-formula.md)).** A mass distribution is a
+**Mass distributions and the inertia tensor (pp. 161–163; commit `7854d59`).** A mass distribution is a
 measure `μ` on `Vec3`, the body-frame coordinates `r` of body points (the book's `ρ(r) dV` on
 `V`); it is nonnegative by type, and a density `ρ ≥ 0` is the case `volume.withDensity ρ`. The
 mass is `μ(univ)` as a real number (`RigidBody.mass`, `0` for an infinite measure), the center of
@@ -795,12 +792,12 @@ mass is `(1/m)∫ r dμ` (`RigidBody.centerOfMass`), and the inertia tensor is
 (`RigidBody.inertiaTensor`), with Mathlib's Bochner integral; it is a real `3 × 3` matrix in the
 body frame, the `𝓘` argument of `generalizedInertia`. The origin of the body frame need not be
 the center of mass. Where integrals must exist, theorems assume `Integrable (‖r‖²) μ`. For such
-distributions the hypotheses that E012 places on `𝓘` mean: symmetric always; positive
+distributions the hypotheses that the generalized inertia places on `𝓘` mean: symmetric always; positive
 semidefinite always; positive definite exactly when `μ` is not concentrated on a line through
 the body-frame origin (`inertiaTensor_posDef_iff`). The homogeneous bar of Example 4.2 is
 `(m/(lwh))·volume` on the box `[−l/2, l/2] × [−w/2, w/2] × [−h/2, h/2]` (length along `x`).
 
-**The bracket formula (4.30) (pp. 176–177; [E021](../../docs/implogs/E021-dynamics-remainder-inertia-tensor-scara-and-bracket-formula.md)).** MLS's `A_{lj}` (4.27), including the printed
+**The bracket formula (4.30) (pp. 176–177; commit `7854d59`).** MLS's `A_{lj}` (4.27), including the printed
 case `A_{lj} = 0` for `l < j`, is `InertialChain.relativeAdjoint l j θ`: the adjoint of
 `relativeMotion l j θ` (the inverse of the product of the joint motions strictly after joint `j`
 up to joint `l`) for `j ≤ l`, and `0` otherwise. With the library bracket `Twist.bracket`, the vee
@@ -812,18 +809,18 @@ line `θ + s eₖ`, i.e. `massMatrixDeriv θ i j eₖ = Christoffel.partials (ma
 The proof splits `relativeMotion l j` at joint `k` (`g_{lj}(θ + s eₖ) = g_{lk}(θ) exp(−sξ̂ₖ)
 g_{kj}(θ)` for `j < k ≤ l`) and uses `d/ds Ad_{exp(−sξ̂)} η |₀ = [η, ξ]`.
 
-**Frame freedom of the link frames (p. 168, eq. (4.28); [E021](../../docs/implogs/E021-dynamics-remainder-inertia-tensor-scara-and-bracket-formula.md)).** `InertialChain.reframe ch h`
+**Frame freedom of the link frames (p. 168, eq. (4.28); commit `7854d59`).** `InertialChain.reframe ch h`
 moves the frame of link `k` by the constant body-fixed transform `h k` (reference pose
 `g_{sl_k}(0) h_k`) and re-expresses its inertia as `transformInertia (h k)`, that is
 `Ad_{h_k}ᵀ 𝓜_k Ad_{h_k}`; the link body Jacobian becomes `Ad_{h_k⁻¹} J_k` and `M(θ)` is unchanged
 (`massMatrix_reframe`). So the choice of the link frames, in particular placing them at the mass
 centers, does not affect `M(θ)` once the inertias are moved with them. `linkJacobianMatrix k θ` is
-E011's `(linkChain k).bodyJacobianMatrix θ` by definition (`linkJacobianMatrix_eq_bodyJacobianMatrix`).
+`(linkChain k).bodyJacobianMatrix θ` by definition (`linkJacobianMatrix_eq_bodyJacobianMatrix`).
 
 ## Stability and control conventions
 
-Recorded 2026-10-10 02:08 UTC for increment E016 (root applied the lead's proposal; integrated gate [E016/20261010T020417Z](../../docs/implogs/gates/E016/20261010T020417Z/)). Source: MLS printed
-pp. 179–199, read by the E016 lead as text; pp. 182, 191, 193, 194 rendered.
+Recorded 2026-10-10 02:08 UTC with commit `70fcc3b`. Source: MLS printed
+pp. 179–199, read as text; pp. 182, 191, 193, 194 rendered.
 
 **Systems and solutions (p. 179).** A system `ẋ = f(x, t)` is `f : ℝ → E → E` with time first,
 `f t x`; likewise a Lyapunov function is `V : ℝ → E → ℝ`, `V t x`. `E` is a real normed space; for
@@ -833,7 +830,7 @@ quadratic forms are compared with `‖x‖²` through compactness of the unit sp
 is continuous on `[t₀, ∞)` and has the actual derivative `f t (x t)` at every `t > t₀`. Initial
 times are `t₀ ≥ 0` (MLS's `ℝ₊`). Every stability notion quantifies over all solutions, so a
 stability theorem by itself says nothing about whether solutions exist. An autonomous system
-`ẋ = f(x)` (eq. (4.46)) is written `fun _ => F`. ([E019](../../docs/implogs/E019-lasalle-solution-interface-and-pd-asymptotic-stability.md))
+`ẋ = f(x)` (eq. (4.46)) is written `fun _ => F`. (commit `9968ea8`)
 
 **Solution flows (pp. 179, 188).** Where existence matters (Lasalle's principle and its
 applications), it is the hypothesis `Stability.HasFlow F φ` for an autonomous field `F`: `φ 0 x = x`;
@@ -842,9 +839,9 @@ it from every `t₀`; every solution from `t₀ ≥ 0` equals `t ↦ φ (t − t
 `φ t` with `t ≥ 0` is continuous. Only forward time is used; joint continuity in `(t, x)` and
 backward solutions are not required, so Mathlib's two-sided `Flow ℝ E` is not used. The interface
 presupposes solutions for all forward time. A flow is constructed for every globally Lipschitz `F`
-on a Banach space (`exists_hasFlow_of_lipschitzWith`, E023), for every locally Lipschitz `F` on a
+on a Banach space (`exists_hasFlow_of_lipschitzWith`, commit `f926ad4`), for every locally Lipschitz `F` on a
 proper space with a Lyapunov function whose sublevel sets are compact and which does not increase
-along local solutions (`exists_hasFlow_of_lyapunov`, E023), and explicitly for linear fields
+along local solutions (`exists_hasFlow_of_lyapunov`, commit `f926ad4`), and explicitly for linear fields
 (`exp(t A)`, `hasFlow_linear`); shifting the state shifts the flow (`HasFlow.comp_sub_const`).
 "Local solution" means Mathlib's form: `HasDerivWithinAt γ (F (γ s)) (Icc 0 T) s` for `s ∈ [0, T]`.
 
@@ -858,7 +855,7 @@ tends to `M`" is formalized as: it eventually enters every open set containing `
 ω-limit set is nonempty and contained in `M`).
 
 **Lasalle's principle (Theorem 4.7, p. 188).** `V` is time-invariant and continuous, `V̇` is its
-derivative along solutions (E016's `HasDerivAlongSolutions` with `fun _ => V`), continuous on
+derivative along solutions (`HasDerivAlongSolutions` with `fun _ => V`), continuous on
 `Ω_c`, and `Ω_c = {V ≤ c}` is compact (`IsCompact`). The principle is proved for compact
 positively invariant sets and, in MLS's sublevel form, for trajectories starting in `{V < c}`:
 a trajectory starting on the level `{V = c}` may leave `Ω_c` when `V̇ ≤ 0` holds only on `Ω_c`.
@@ -880,7 +877,7 @@ there only at `σ = 0`. With continuity it gives `h(0) = 0`. MLS's "smooth" is r
 
 **Proposition 4.10 (p. 194).** The augmented PD law (4.53) is `augmentedPDTorque`; the closed loop
 is (4.54) at each time. `V = ½ ėᵀM(θ)ė + ½ eᵀK_pe + ε eᵀM(θ)ė` with `θ = θ_d(t) + e`;
-`Ṁ(θ, θ̇) = ∑ₖ θ̇ₖ ∂M/∂θₖ` (`Mdot`) from E013's actual partial derivatives; the derivative along
+`Ṁ(θ, θ̇) = ∑ₖ θ̇ₖ ∂M/∂θₖ` (`Mdot`) from the actual partial derivatives of `M`; the derivative along
 (4.54) is `−ėᵀ(K_v − εM)ė − ε eᵀK_pe + ε eᵀ(−K_v + Ṁ − C)ė`, not the printed `½Ṁ` in the last
 term. Bounds are stated with the sup norm, on the tube `‖(e, ė)‖ ≤ R` around `(θ_d, θ̇_d)`; the
 smallness of `ε` is the pair of explicit inequalities `2εμ ≤ min(λ, k_p)` and
@@ -913,7 +910,7 @@ differentiable `V` it holds with `Vdot = ∂V/∂t + ∂V/∂x f`.
 
 **The manipulator as a system (eq. (4.47)).** `ManipulatorModel n` bundles an `InertialChain n`,
 link masses, `g`, `up` and further joint forces `Nₑ(θ, θ̇)`; `N = ∂V/∂θ + Nₑ`. The equations of
-motion are Lagrange's equations for `L = T − V` with generalized force `τ − Nₑ` (E013's predicate),
+motion are Lagrange's equations for `L = T − V` with generalized force `τ − Nₑ` (the predicate `Lagrangian.LagrangeEquationsAt`),
 equivalent to (4.47) with symmetric link inertias. The state is `(θ, θ̇) ∈ ℝⁿ × ℝⁿ`; under a feedback
 law `τ = u(t, θ, θ̇)` the closed loop is `f(t, (q, v)) = (v, M(q)⁻¹(u − C(q, v)v − N(q, v)))` with
 Mathlib's `Matrix.inv`, used only under the hypothesis that `M(q)` is positive definite.
@@ -928,7 +925,7 @@ actuator limits and model error are outside these statements. For the asymptotic
 uniformly positive definite, `λ‖v‖² ≤ vᵀ M(q) v` for one `λ > 0` and all `q, v` (MLS p. 191's
 phrase; it makes the sublevel sets of `½ θ̇ᵀ M θ̇ + ½ eᵀ K_p e` compact), `K_v` is positive
 definite, and the closed loop `ManipulatorModel.pdClosedLoop` has a solution flow; for constant inertia the closed
-loop is linear and its flow is constructed; since E023 the flow is constructed for every locally
+loop is linear and its flow is constructed; since commit `f926ad4` the flow is constructed for every locally
 Lipschitz closed loop with uniformly positive definite `M` (the energy traps the solutions), in
 particular for the planar two-link arm, whose closed loop is `C¹`.
 
@@ -953,7 +950,7 @@ the end-effector xy position in the frame of the dynamic arm `planarTwoLinkArm` 
 `θ = 0`, joint 2 at `(l₁, 0, 0)`, `l₂` the distance from joint 2 to the end effector); the kinematic
 arm `planarTwoLink` of Chapter 3 (along `+y`) is a different convention and is not used.
 
-**Linearization and the eigenvalue criterion (Theorem 4.6, pp. 184–185; E026).** The uniform
+**Linearization and the eigenvalue criterion (Theorem 4.6, pp. 184–185; commit `a6e35d6`).** The uniform
 linearization (4.39) is `Stability.IsUniformLinearization f A` with `A : ℝ → (E →L[ℝ] E)`, time
 first: for every `γ > 0` some `r > 0` gives `‖f(t, x) − A(t)x‖ ≤ γ‖x‖` for all `t ≥ 0` and
 `‖x‖ ≤ r`; it implies `f(t, 0) = 0` for `t ≥ 0`, MLS's assumption on (4.37). MLS's
@@ -969,14 +966,14 @@ exponential is `NormedSpace.exp`; a matrix statement elaborates `exp` with the p
 topology and the normed lemmas meet it by definitional unfolding (`exact`), not by `rw`. Theorem
 4.6 is formalized on `ℝⁿ`, with the conclusion exponential stability (Definition 4.3), from which
 the printed local uniform asymptotic stability follows: for a constant linearization `A(t) ≡ L`
-(E026) and for a time-varying `A(t)` (E033). Other finite-dimensional
+(commit `a6e35d6`) and for a time-varying `A(t)` (commit `88a6f54`). Other finite-dimensional
 state spaces, such as `ℝ × ℝ`, are reached by `ExponentiallyStable.of_continuousLinearEquiv`
 (constants change by `‖e‖‖e⁻¹‖`). No continuity of `f`, no Lipschitz condition (p. 179) and no
 existence of solutions is assumed. The Lyapunov function of the proof is `xᵀPx` with `P` twice the
 finite-horizon Gramian `∫₀^T exp(sL)ᵀ exp(sL) ds` in the Euclidean dot product, compared with the
 sup norm through `‖x‖² ≤ x ⬝ x ≤ n‖x‖²` and `QuadraticBounds`.
 
-**Time-varying linearization (E033).** `A : ℝ → (ℝⁿ →L[ℝ] ℝⁿ)` is "bounded" when `‖A(t)‖ ≤ M` for `t
+**Time-varying linearization (commit `88a6f54`).** `A : ℝ → (ℝⁿ →L[ℝ] ℝⁿ)` is "bounded" when `‖A(t)‖ ≤ M` for `t
 ≥ 0` (operator norm of the sup norm), and is in addition assumed continuous on `[0, ∞)`, a
 hypothesis MLS does not state (its p. 179 conditions allow piecewise continuity in `t`; the
 library's solutions need a derivative at every `t > t₀`). A state-transition matrix is a family of
@@ -987,14 +984,12 @@ s)Φ(s, r) = Φ(t, r)` and `∂Φ(t, s)/∂t = A(t)Φ(t, s)` (derivative within 
 ∞)` and is unique; for constant `A ≡ L` it is `exp((t − s)L)`. The exponential bound is written
 `‖Φ(t, s)‖ ≤ C e^{−α(t − s)}` for `0 ≤ s ≤ t`. The Lyapunov function of the proof is the Gramian
 `V(t, x) = ∫_t^{t+T} ‖Φ(s, t)x‖₂² ds` in the Euclidean dot product with `T = 1 + log(2nC'² +
-1)/(2α)` (E026's horizon, `C' = max(C, 0)`).
+1)/(2α)` (the horizon of the constant case, `C' = max(C, 0)`).
 
 ## Grasp and contact conventions
 
-Recorded 2026-10-11 14:31 UTC for increment E025 (root applied the lead's proposal; integrated gate
-[E025/20261011T015438Z](../../docs/implogs/gates/E025/20261011T015438Z/)). Source: MLS Chapter 5 §§2–3, printed pp. 214–228,
-read by the E025 lead as text, with the formula pages inspected as renders
-([E025 gate](../../docs/implogs/gates/E025/20261011T011616Z/source/)).
+Recorded 2026-10-11 14:31 UTC with commit `cc0fd5f`. Source: MLS Chapter 5 §§2–3, printed pp. 214–228,
+read as text, with the formula pages inspected as renders.
 
 **Frames.** The object frame `O` sits at the object's center of mass (p214); nothing in the
 library uses that choice. The contact frame `Cᵢ` has its origin at the contact point and its
@@ -1056,14 +1051,12 @@ coefficients; `Grasp.positivelySpans_iff_nonneg` proves it equivalent to spannin
 nonnegative coefficients, the form used in proofs.
 
 **Deferred (Q5).** The §6 normal orientation (above) is not settled. Q6, the strictness of the
-antipodal conditions of Theorem 5.6, is settled by E031 (below).
+antipodal conditions of Theorem 5.6, is settled with commit `e736100` (below).
 
 ### Hands, finger kinematics and manipulability
 
-Recorded 2026-10-11 15:46 UTC for increment E028 (root applied the lead's proposal; integrated gate
-[E028/20261011T154334Z](../../docs/implogs/gates/E028/20261011T154334Z/)). Source: MLS Chapter 5 §5, printed pp. 234–242, read by
-the E028 lead as text with the formula pages inspected as renders
-([E028 gate](../../docs/implogs/gates/E028/20261011T150120Z/source/)).
+Recorded 2026-10-11 15:46 UTC with commit `be8093a`. Source: MLS Chapter 5 §5, printed pp. 234–242, read
+as text with the formula pages inspected as renders.
 
 **Hand frames.** The palm frame `P` is fixed and the object configuration is `x_o = g_{po}` (p215,
 p237). Finger `i` is a serial chain (`SerialChain`) from its base frame `Sᵢ`, fixed in the palm, to
@@ -1103,7 +1096,7 @@ hand Jacobian from any real joint-rate space and a spatial grasp (`Multifingered
 object side is `Wrench`/`Twist` (`p = 6`). Manipulability (Definition 5.5) quantifies over every
 object twist and unbounded joint rates at maintained contacts; like force-closure it says nothing
 about actuator limits, contact persistence or a physical hand. Table 5.4's "internal forces" are
-Definition 5.3's strictly internal forces (E025); its "structural forces" row (`G⁺`) is not used;
+Definition 5.3's strictly internal forces; its "structural forces" row (`G⁺`) is not used;
 "structurally dependent forces" are contact forces with `J_hᵀ f_c = 0` (p239).
 
 **Summary item 6 (p257).** For a general multifingered grasp, manipulable and surjective `J_h` are
@@ -1113,9 +1106,9 @@ contact constraint maps (every Table 5.2 model) they are equivalent without forc
 
 ### Grasp planning and antipodal grasps
 
-Recorded 2026-10-13 for increment E031 (gate [E031/20261013T213811Z](../../docs/implogs/gates/E031/20261013T213811Z/)).
-Source: MLS Chapter 5 §4, printed pp. 229–234, and Exercises 5, 7, 8 (pp. 260–261), read by the
-E031 lead as renders and text extracts.
+Recorded 2026-10-13 with commit `e736100`.
+Source: MLS Chapter 5 §4, printed pp. 229–234, and Exercises 5, 7, 8 (pp. 260–261), read as
+renders and text extracts.
 
 **2-D cross product and `n^⊥`.** `a ⊗ b = det[a b] = a_x b_y - a_y b_x` (`Grasp.cross2`, p. 232);
 `n^⊥ = (-n_y, n_x)` (`Grasp.perp2`), the unique unit vector with `n · n^⊥ = 0` and
@@ -1160,8 +1153,8 @@ hypothesis. Only the "if" direction holds in the library's model.
 
 ## Constrained dynamics conventions
 
-Recorded 2026-10-13 for increment E034 (gate [E034/20261013T224821Z](../../docs/implogs/gates/E034/20261013T224821Z/)).
-Source: MLS Chapter 6, printed pp. 265–284, read by the E034 lead as renders and text extracts.
+Recorded 2026-10-13 with commit `d9b95e6`.
+Source: MLS Chapter 6, printed pp. 265–284, read as renders and text extracts.
 These are conventions of the Lean model; they do not certify a physical constrained system.
 
 **Constraint carrier.** Configurations and velocities are `Fin n → ℝ`; the book's open set `Q` is
@@ -1183,7 +1176,7 @@ rank hypothesis), so the two formulations are equivalent; nothing derives the pr
 Existence of `λ` from (6.7)–(6.8) needs no rank hypothesis; uniqueness holds exactly when the rows of
 `A(q(t))` are independent. In (6.7)–(6.8) (`LagrangeDAlembertAt`), as in Lagrange's equations, the
 existence of the derivative of `s ↦ ∂L/∂q̇(q(s), q̇(s))` at `t` is part of the predicate. The force
-split of E013 is kept: `Υ = F − Nₑ`, `N = ∂V/∂q + Nₑ`.
+split of Lagrange's equations above is kept: `Υ = F − Nₑ`, `N = ∂V/∂q + Nₑ`.
 
 **The multiplier formula (6.6).** `multiplier A M w a = (A M⁻¹ Aᵀ)⁻¹ ((A M⁻¹) w + a)` with
 `Matrix.inv`, `w = F − Cq̇ − N` and `a = Ȧq̇`. Hypotheses where used: `M(q(t))` positive definite;
@@ -1208,8 +1201,8 @@ fingers receiving `−J_hᵀλ`), the `f_c` of (5.16) (`τ = J_hᵀ f_c`, p. 238
 `M_fθ̈ + C_fθ̇ + N_f = 0`. MLS p. 280 prints `A = [−J_h  Gᵀ]`,
 which gives `−λ`; the displayed contact-force formula of p. 280 is that of p. 267's sign.
 
-**Object chart (E037).** `J_h` and `G` may be abstract functions of the
-composite configuration `q` (E034), or derived from the twist-level grasping constraint
+**Object chart (commit `0361f5d`).** `J_h` and `G` may be abstract functions of the
+composite configuration `q` (commit `d9b95e6`), or derived from the twist-level grasping constraint
 `HandGrasp.GraspingConstraint` (5.15) through a chart `x_o = φ(x)` of the object pose,
 `φ : (Fin p → ℝ) → RigidTransform`, with a body-velocity Jacobian `Jφ(x) ∈ ℝ^{6×p}` (rows in twist
 order `(v, ω)`): `IsBodyJacobian φ Jφ` is a hypothesis structure stating that along every motion `x`
@@ -1228,23 +1221,23 @@ entrywise derivative of `s ↦ J_h(s)⁻¹ G(s)ᵀ` wherever (6.21) or Lemma 6.1
 the composite theorems: `M_f`, `M_o` symmetric; `J_h` invertible along the motion near `t`; (6.18)
 on a neighborhood of `t`; positive definiteness from `M_o > 0` (any `J_h`, `G`) or from `M_f > 0`,
 `J_h` invertible and `G` onto (force-closure); skew symmetry of `Ṁ_o − 2C_o` and `Ṁ_f − 2C_f` as
-hypotheses, or from Christoffel matrices of symmetric inertia fields (E013, Lemma 4.2(2)). The
+hypotheses, or from Christoffel matrices of symmetric inertia fields (Lemma 4.2(2)). The
 object Coriolis block printed in (6.17) is not used (it is symmetric, O2). Assumptions 1 and 3 of
 p. 277 (force-closure and manipulable; contact forces in the friction cone) are not formalized:
 the algebra does not use them and the friction-cone condition is a property of the controller.
 
 **Workspace form (6.26).** `G = I` (`p = n`); with `M_o = 0` the effective inertia and Coriolis
-matrix are E029's `workspaceM` and `workspaceC` (N42).
+matrix are `workspaceM` and `workspaceC` of `Control/WorkspaceControl` (N42).
 
-Recorded 2026-10-14 for increment E037 (gate [E037/20261014T073708Z](../../docs/implogs/gates/E037/20261014T073708Z/)).
-Source: MLS Chapter 6, printed pp. 274–277, 281–303 and Exercises 2 and 4 (p. 314), read by the
-E037 lead as renders and text extracts.
+Recorded 2026-10-14 with commit `0361f5d`.
+Source: MLS Chapter 6, printed pp. 274–277, 281–303 and Exercises 2 and 4 (p. 314), read as
+renders and text extracts.
 
 **Object dynamics in local coordinates (Exercise 4, (6.17)).** In body coordinates the Newton–Euler
 equations read `M V̇ + C(V) V = F` with `M = [[mI, 0], [0, 𝓘]]` (constant) and
 `C(V) = [[m ω̂, 0], [0, −(𝓘ω)^]]` (`objectCoriolis`), skew, so `Ṁ − 2C = −2C` is skew; the block
 `½(ω̂ᵇ𝓘 − 𝓘ω̂ᵇ)` printed in (6.17) is not used. With gravity, (6.17) is stated with the printed sign,
-`Fᵇ = −(Rᵀ(m g⃗), 0)`, the direction of `g⃗` left to the user. In local coordinates
+`Fᵇ = −(Rᵀ(m g⃗), 0)`, the direction of `g⃗` left to the model. In local coordinates
 `M̄ = JφᵀMJφ`, `C̄ = JφᵀC(V)Jφ + JφᵀMJ̇φ`, with `J̇φ` the actual derivative of `s ↦ Jφ(x(s))`;
 Newton–Euler implies `M̄ẍ + C̄ẋ = JφᵀFᵇ`, and the converse holds for `Jφ` onto.
 
@@ -1256,7 +1249,7 @@ of a feedback law is `field u` (state `(x, ẋ)`, `Matrix.inv`); the computed to
 `F = M(ẍ_d − K_vė − K_pe) + Cẋ + N`, `e = x − x_d` (`computedTorque`; for matrix curves
 `computedTorqueAlong`). Proposition 4.8 holds for every robot with `M` positive definite, and along
 any motion whose `M(s)` is positive definite, the matrices possibly depending on coordinates outside
-the robot's state (p. 301). `ManipulatorModel.toRobotSystem` is E015's model as a robot (same
+the robot's state (p. 301). `ManipulatorModel.toRobotSystem` is the manipulator model of eq. (4.47) as a robot (same
 `field` and computed torque, by definition). The hand–object system is a robot on the object
 coordinates when the finger fields are written in object coordinates (`handRobot`, the holonomic
 case of p. 301); inputs and outputs of robots and the operations `attach`, `control` are not modeled.

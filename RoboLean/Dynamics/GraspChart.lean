@@ -4,11 +4,11 @@ import RoboLean.Grasp.HandJacobian
 /-!
 # The grasp constraint in local coordinates and coordinated lifting (MLS §6.2, (6.18), Fig. 6.3)
 
-MLS Chapter 6, §2.1, printed p. 277, eq. (6.18), and §2.3, pp. 281–282 (renders inspected this
-session); Chapter 5, eq. (5.15), pp. 236–237.
+MLS Chapter 6, §2.1, printed p. 277, eq. (6.18), and §2.3, pp. 281–282;
+Chapter 5, eq. (5.15), pp. 236–237.
 
 **The chart link.** The library's fundamental grasping constraint `HandGrasp.GraspingConstraint`
-(MLS (5.15), E028) is written with the body velocity `V^b_{po}` of the object relative to the palm.
+(MLS (5.15)) is written with the body velocity `V^b_{po}` of the object relative to the palm.
 MLS writes (6.18) `J_h(θ, x) θ̇ = Gᵀ(θ, x) ẋ` "in local coordinates" `x` of the object pose. For a
 chart `x_o = φ(x)` with body-velocity Jacobian `Jφ` (`IsBodyJacobian`, Exercise 4(b), p. 314),
 `V^b_{po} = Jφ(x) ẋ`, so (5.15) along a motion is (6.18) with `J_h(θ, x) = J_h(θ, φ(x))` and

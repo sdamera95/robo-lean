@@ -5,7 +5,7 @@ import RoboLean.Control.StabilityTheorems
 /-!
 # Asymptotic stability of PD set-point control (MLS Proposition 4.9, pp. 193–194)
 
-**What MLS prints (read this session).** Proposition 4.9 (p. 193): "If `θ̇_d ≡ 0` and
+**What MLS prints.** Proposition 4.9 (p. 193): "If `θ̇_d ≡ 0` and
 `K_v, K_p > 0`, the control law (4.51) applied to the system (4.47) renders the equilibrium point
 `θ = θ_d` globally asymptotically stable." After `V̇ = −θ̇ᵀ K_v θ̇` the proof continues (p. 194):
 "To check for asymptotic stability, we appeal to Lasalle's principle. The set `S` for which
@@ -15,10 +15,10 @@ we substitute `θ̇ ≡ 0` into the closed loop equations 4.52. This gives `K_p 
 contained within `S` is the single point `θ = 0`." Computed torque (p. 191) uses that `M(θ)` is
 "uniformly positive definite in `θ`".
 
-**Formalized** for the law with compensation of `N` (E016: the bare law (4.51) has `θ_d` as a
+**Formalized** for the law with compensation of `N` (the bare law (4.51) has `θ_d` as a
 rest point only where `N(θ_d, 0) = 0`), whose closed loop is (4.52) (`pdClosedLoop_apply`), under:
 
-* symmetric link inertias and `M(q)` positive definite for every `q` (as in E016);
+* symmetric link inertias and `M(q)` positive definite for every `q` (as in `PDControl`);
 * `M` uniformly positive definite: `λ‖v‖² ≤ vᵀ M(q) v` for one `λ > 0` and all `q, v` (MLS
   p. 191's phrase, used for computed torque; here it makes the sublevel sets of
   `V = ½ θ̇ᵀ M θ̇ + ½ eᵀ K_p e` bounded, hence compact, which Lasalle's principle needs);
@@ -233,7 +233,7 @@ theorem tendsto_pdCompensatedTorque (h : ∀ k, (P.chain.linkInertia k).IsSymm)
 /-- **MLS Proposition 4.9 (p. 193): global asymptotic stability, for PD control with
 compensation of `N`.** Under the hypotheses of `tendsto_pdCompensatedTorque`, the set point
 `(θ_d, 0)` of the closed loop (4.52) is globally asymptotically stable at every initial time
-`t₀ ≥ 0`: stable (Theorem 4.4(1), E016) and attracting every solution. -/
+`t₀ ≥ 0`: stable (Theorem 4.4(1)) and attracting every solution. -/
 theorem globallyAsymptoticallyStableAt_pdCompensatedTorque (h : ∀ k, (P.chain.linkInertia k).IsSymm)
     (hM : ∀ q, (P.M q).PosDef)
     (hMu : ∃ lam > 0, ∀ q v : Fin n → ℝ, lam * ‖v‖ ^ 2 ≤ v ⬝ᵥ (P.M q *ᵥ v))

@@ -5,8 +5,7 @@ import RoboLean.Geometry.RigidVelocity
 /-!
 # Object dynamics in local coordinates: Exercise 4 and a chart of the object pose (MLS §6.2)
 
-MLS Chapter 6, §2.1, printed pp. 276–277, eq. (6.17), and Exercise 4, p. 314 (renders inspected this
-session).
+MLS Chapter 6, §2.1, printed pp. 276–277, eq. (6.17), and Exercise 4, p. 314.
 
 **What MLS states.** The object obeys the Newton–Euler equations
 `[[mI, 0], [0, 𝓘]] V̇ᵇ + (ωᵇ × m vᵇ, ωᵇ × 𝓘 ωᵇ) = Fᵇ` (p. 276; Exercise 4) at its center of mass;
@@ -26,8 +25,8 @@ nonsingular, the equations become `M̄(x) ẍ + C̄(x, ẋ) ẋ = Jᵀ(x) Fᵇ` 
   generalized inertia is constant in body coordinates, so `Ṁ − 2C = −2C` is skew
   (`skew_zero_sub_two_objectCoriolis`), and the Newton–Euler equation is `M V̇ + C(V) V = F`
   (`newtonEulerEquation_iff_coordinates`). The printed (6.17) block is not used: it is symmetric and
-  gives half the gyroscopic term (E034 observation O2); the corrected (6.17) is
-  `newtonEulerEquation_gravity_iff`.
+  gives half the gyroscopic term (source observation O2 in the coverage ledger); the corrected
+  (6.17) is `newtonEulerEquation_gravity_iff`.
 * A chart of the object pose: `IsBodyJacobian φ Jφ`, a hypothesis structure (the style of
   `IsStateTransition`): along every motion `x` with velocity `ẋ` the pose curve `φ ∘ x` has a
   derivative and its body velocity is `Jφ(x) ẋ`. Column `i` of `Jφ(x)` is then the book's
@@ -57,7 +56,7 @@ namespace Composite
 /-- **A Coriolis matrix for the Newton–Euler equations (MLS Exercise 4(a), printed p. 314):**
 `C(V) = [[m ω̂, 0], [0, −(𝓘 ω)^]]` for the body velocity `V = (v, ω)`, so that
 `C(V) V = (ω × m v, ω × 𝓘 ω)`. It replaces the block `½(ω̂ᵇ 𝓘 − 𝓘 ω̂ᵇ)` printed in (6.17), p. 277
-(E034 observation O2). -/
+(source observation O2 in the coverage ledger). -/
 def objectCoriolis (m : ℝ) (𝓘 : Matrix (Fin 3) (Fin 3) ℝ) (V : Twist) :
     Matrix (Fin 3 ⊕ Fin 3) (Fin 3 ⊕ Fin 3) ℝ :=
   Matrix.fromBlocks (m • Vec3.hat V.angular) 0 0 (-Vec3.hat (RigidBody.inertiaAct 𝓘 V.angular))
@@ -92,7 +91,7 @@ theorem skew_zero_sub_two_objectCoriolis (m : ℝ) (𝓘 : Matrix (Fin 3) (Fin 3
 /-- **MLS Exercise 4(a), p. 314: "the Newton–Euler equations can be written as
 `M(x_o) V̇ᵇ + C(x_o, ẋ_o) Vᵇ = Fᵇ`"**, with `M = [[mI, 0], [0, 𝓘]]` (`generalizedInertia`, positive
 definite for `m > 0`, `𝓘 > 0`: `RigidBody.generalizedInertia_posDef`) and `C = objectCoriolis`; the
-body acceleration `A` is the twist of derivatives of `V` (E012). -/
+body acceleration `A` is the twist of derivatives of `V`. -/
 theorem newtonEulerEquation_iff_coordinates (m : ℝ) (𝓘 : Matrix (Fin 3) (Fin 3) ℝ)
     (V A : Twist) (F : Wrench) :
     RigidBody.NewtonEulerEquation m 𝓘 V A F ↔

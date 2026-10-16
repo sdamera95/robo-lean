@@ -6,7 +6,7 @@ import Mathlib.MeasureTheory.Integral.DominatedConvergence
 /-!
 # The converse of the exponential stability theorem, three bounds (MLS Theorem 4.5, p. 183)
 
-**What MLS prints (read this session, p. 183).** Theorem 4.5: "`x* = 0` is an exponentially stable
+**What MLS prints (p. 183).** Theorem 4.5: "`x* = 0` is an exponentially stable
 equilibrium point of `ẋ = f(x, t)` if and only if there exists an `ε > 0` and a function `V(x, t)`
 which satisfies `α₁‖x‖² ≤ V(x, t) ≤ α₂‖x‖²`, `V̇|_{ẋ = f(x, t)} ≤ −α₃‖x‖²`,
 `‖∂V/∂x (x, t)‖ ≤ α₄‖x‖` for some positive constants `α₁, α₂, α₃, α₄`, and `‖x‖ ≤ ε`." MLS gives no
@@ -24,9 +24,9 @@ every solution; `V` is continuous (`exists_quadratic_lyapunov_of_exponentiallySt
 
 **Not formalized: the fourth bound `‖∂V/∂x‖ ≤ α₄‖x‖`.** It needs `V` differentiable in `x`, i.e.
 differentiable dependence of solutions on initial conditions, which the pinned Mathlib does not
-provide (E019's assessment; `Mathlib/Analysis/ODE` has no `fderiv` of a flow). Time-varying
+provide (`Mathlib/Analysis/ODE` has no `fderiv` of a flow). Time-varying
 systems are not covered (the flow interface is autonomous). The sufficiency direction (all three
-bounds, local form) is E019's `exponentiallyStable_of_quadratic_lyapunov_local`; the fourth bound
+bounds, local form) is `exponentiallyStable_of_quadratic_lyapunov_local`; the fourth bound
 is not needed there.
 
 Conventions: as in `RoboLean.Stability` (system `fun _ => F`, solutions `IsSolution`, initial
@@ -260,8 +260,8 @@ theorem exists_quadratic_lyapunov_of_exponentiallyStable [CompleteSpace E] {F : 
 Lipschitz field (MLS p. 179).** On a real Banach space, with `F` Lipschitz, the origin of
 `ẋ = F(x)` is exponentially stable (Definition 4.3) if and only if there are a continuous
 time-invariant `V`, its derivative `V̇` along the solutions, and constants `a₁, a₂, a₃, ε > 0`
-with `a₁‖x‖² ≤ V(x) ≤ a₂‖x‖²` and `V̇(x) ≤ −a₃‖x‖²` for `‖x‖ ≤ ε`. "If": E019's local sufficiency
-(`exponentiallyStable_of_quadratic_lyapunov_local`); "only if":
+with `a₁‖x‖² ≤ V(x) ≤ a₂‖x‖²` and `V̇(x) ≤ −a₃‖x‖²` for `‖x‖ ≤ ε`. "If": the local sufficiency
+theorem (`exponentiallyStable_of_quadratic_lyapunov_local`); "only if":
 `exists_quadratic_lyapunov_of_exponentiallyStable`. The fourth bound `‖∂V/∂x‖ ≤ α₄‖x‖` of the
 printed theorem is not part of this statement (module docstring). -/
 theorem exponentiallyStable_iff_exists_quadratic_lyapunov [CompleteSpace E] {F : E → E}

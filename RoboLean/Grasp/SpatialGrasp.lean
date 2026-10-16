@@ -9,10 +9,10 @@ MLS Chapter 5, §2, printed pp. 214–219, with §5.1, printed pp. 235–236.
 `SpatialGrasp ι m` keeps what a spatial grasp with fixed contacts is made of: for each contact
 `i : ι` a spatial contact model `(B_{cᵢ}, FC_{cᵢ})` (MLS p. 218; Table 5.2, p. 219) and the contact
 frame `g_{ocᵢ} = (p_{cᵢ}, R_{cᵢ})` (MLS pp. 214–215), which takes contact coordinates to object
-coordinates. E025's `ContactGrasp.spatial model frame` is derived from it
+coordinates. The contact grasp `ContactGrasp.spatial model frame` is derived from it
 (`SpatialGrasp.toContactGrasp`), so the grasp map (5.6), the product friction cone and the grasp
-`(G, FC)` of Definition 5.1 are E025's, unchanged; the bridge lemmas below restate them in terms
-of the frames.
+`(G, FC)` of Definition 5.1 are those of `ContactGrasp`, unchanged; the bridge lemmas below restate
+them in terms of the frames.
 
 The velocity side. The constraint of a contact with wrench basis `B_c` on a twist `V` is
 `B_cᵀ V` (MLS eq. (5.9), p. 235); here `ContactModel.constraint` (in `Grasp/Contact`, with its
@@ -25,7 +25,7 @@ the twist–wrench pairing on the object side and the dot product of coefficient
 side (`sum_graspTranspose_mul`), and in six coordinates it is the matrix transpose of the grasp
 matrix (`stack_graspTranspose`).
 
-Conventions are E025's ("Grasp and contact conventions" in `geometry-conventions.md`): wrench
+Conventions as in "Grasp and contact conventions" of `geometry-conventions.md`: wrench
 order `(f, τ)`, twist order `(v, ω)`, contact `z`-axis along the inward normal (a convention
 the types do not enforce), `Wrench.transform g_{oc}` is the book's `Ad_{g_{oc}⁻¹}ᵀ`. Rigid bodies,
 fixed and maintained contacts and accurate models are standing assumptions (MLS p. 214); nothing
@@ -56,13 +56,13 @@ namespace SpatialGrasp
 
 variable {ι : Type*} [Fintype ι] {m : ι → ℕ}
 
-/-- The contact grasp of E025 built from the frames, `ContactGrasp.spatial model frame` (MLS
+/-- The contact grasp built from the frames, `ContactGrasp.spatial model frame` (MLS
 printed pp. 218–219): contact `i`'s wrench is carried to the object frame by
 `Wrench.transform g_{ocᵢ}`, the book's `Ad_{g_{ocᵢ}⁻¹}ᵀ`. -/
 def toContactGrasp (g : SpatialGrasp ι m) : ContactGrasp Wrench ι m :=
   ContactGrasp.spatial g.model g.frame
 
-/-- The derived contact grasp is E025's `ContactGrasp.spatial` of the models and frames (MLS
+/-- The derived contact grasp is `ContactGrasp.spatial` of the models and frames (MLS
 printed pp. 218–219). -/
 theorem toContactGrasp_eq (g : SpatialGrasp ι m) :
     g.toContactGrasp = ContactGrasp.spatial g.model g.frame := rfl

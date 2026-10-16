@@ -4,7 +4,7 @@ import RoboLean.Dynamics.PseudoInverse
 /-!
 # Control of robot hands: the torques (6.36) and computed torque for (6.21) (MLS §6.5.1)
 
-MLS Chapter 6, §5.1, printed pp. 300–302 (text and renders read this session).
+MLS Chapter 6, §5.1, printed pp. 300–302.
 
 **What MLS states.** For a constrained robot system `M(q) ẍ + C(q, q̇) ẋ + N(q, q̇) = F = G J⁻ᵀ τ`
 with `G J⁻ᵀ` surjective, `M(q) > 0` and `Ṁ − 2C` skew (p. 300), `F` is treated as a virtual input:

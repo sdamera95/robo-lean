@@ -6,8 +6,8 @@ import RoboLean.Examples.ThreeLinkGravity
 
 MLS Proposition 4.9 (p. 193) claims that for `θ̇_d ≡ 0` and `K_v, K_p > 0` the PD law (4.51)
 `τ = −K_v ė − K_p e` applied to (4.47) "renders the equilibrium point `θ = θ_d` globally
-asymptotically stable". For the three-link arm of MLS Example 4.3 (pp. 172–175, `threeLinkArm`,
-E013) in uniform gravity along `−z`, with no further joint forces, the gravity term at `θ = 0` is
+asymptotically stable". For the three-link arm of MLS Example 4.3 (pp. 172–175, `threeLinkArm`)
+in uniform gravity along `−z`, with no further joint forces, the gravity term at `θ = 0` is
 `(0, −g (m₂ r₁ + m₃ l₁ + m₃ r₂), −g m₃ r₂)` (from `threeLinkArm_gravityTerm`, the formalized
 (4.25) with `g` restored). So for `θ_d = 0`, `g ≠ 0` and `m₂ r₁ + m₃ l₁ + m₃ r₂ ≠ 0` (for example
 positive masses and lengths) the constant motion `θ ≡ θ_d` does not satisfy (4.47) under (4.51),

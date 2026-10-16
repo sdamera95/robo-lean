@@ -8,7 +8,7 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 /-!
 # Stability by linearization (MLS Theorem 4.6, printed pp. 184–185)
 
-**What MLS prints (read this session, pp. 184–185).** For `ẋ = f(x, t)` with `f(0, t) = 0` for
+**What MLS prints (pp. 184–185).** For `ẋ = f(x, t)` with `f(0, t) = 0` for
 all `t ≥ 0` (4.37), `A(t) = ∂f(x, t)/∂x |_{x=0}` (4.38) and the remainder
 `f₁(x, t) = f(x, t) − A(t)x`, the linearization `ż = A(t)z` (4.40) is called uniform if
 `lim_{‖x‖→0} sup_{t≥0} ‖f₁(x, t)‖/‖x‖ = 0` (4.39). "Theorem 4.6. Stability by linearization.
@@ -46,11 +46,11 @@ stable." MLS gives no proof.
 `2 xᵀP(Lx) = 2(‖exp(TL)x‖₂² − ‖x‖₂²) ≤ −‖x‖²` for `T` large (fundamental theorem of calculus;
 `exists_posDef_lyapunov_of_norm_exp_le`). Then `V(x) = xᵀPx` is a Lyapunov function for the
 nonlinear system on a small ball, where `‖f(t, x) − Lx‖ ≤ γ‖x‖`, and the local form of Theorem 4.5
-(`exponentiallyStable_of_quadratic_lyapunov_local`, E019) concludes. No continuity of `f` is used:
+(`exponentiallyStable_of_quadratic_lyapunov_local`) concludes. No continuity of `f` is used:
 `V̇` is computed along each solution from its derivative.
 
 **Theorem 4.6 with a time-varying `A(t)`: in `Control/StateTransition`, `Control/LinearTimeVarying`
-and `Control/LinearizationTimeVarying` (E033, with the added hypothesis `A` continuous on
+and `Control/LinearizationTimeVarying` (with the added hypothesis `A` continuous on
 `[0, ∞)`).** Its proof needs uniform asymptotic
 stability of `ż = A(t)z` to give a uniform exponential bound and a Lyapunov function `xᵀP(t)x`,
 i.e. solutions of `ż = A(t)z` from every `(t₀, z₀)` (the state-transition matrix) and their
@@ -62,7 +62,8 @@ state-transition matrix. `IsUniformLinearization` already takes a time-dependent
 Fréchet derivative at `0` (`HasFDerivAt`), which for an autonomous field with `F(0) = 0` is exactly
 (4.39). The linear map of a real matrix `A` is `LinearMap.toContinuousLinearMap (Matrix.toLin' A)`,
 `x ↦ A x`; `‖·‖` on such maps is the operator norm. Exponential stability is MLS Definition 4.3 as
-formalized in E016 (constants independent of `t₀`); it implies uniform asymptotic stability.
+formalized in `Control/Stability` (constants independent of `t₀`); it implies uniform asymptotic
+stability.
 -/
 
 noncomputable section
@@ -480,7 +481,7 @@ theorem exponentiallyStable_of_isUniformLinearization_of_uniformlyAsymptotically
 uniformly asymptotically stable equilibrium point of `ż = Lz` (4.40) and (4.39) holds, then `0` is
 a (locally) uniformly asymptotically stable equilibrium point of `ẋ = f(x, t)` (4.37), on `ℝⁿ`
 with the sup norm. The library's uniform asymptotic stability is local (a ball of initial
-states). The time-varying `A(t)` case is in `Control/LinearizationTimeVarying` (E033). -/
+states). The time-varying `A(t)` case is in `Control/LinearizationTimeVarying`. -/
 theorem uniformlyAsymptoticallyStable_of_isUniformLinearization
     {f : ℝ → (Fin n → ℝ) → (Fin n → ℝ)} {L : (Fin n → ℝ) →L[ℝ] (Fin n → ℝ)}
     (hL : UniformlyAsymptoticallyStable (fun _ z => L z) 0)

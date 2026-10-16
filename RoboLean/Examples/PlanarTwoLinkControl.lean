@@ -8,7 +8,7 @@ import RoboLean.Examples.PlanarTwoLinkDynamics
 /-!
 # The planar two-link arm under PD and computed torque control (MLS §5.2–5.3, pp. 190–195)
 
-The arm of MLS Figure 4.4 (p. 164, `planarTwoLinkArm`, E012) as a `ManipulatorModel 2`, with link
+The arm of MLS Figure 4.4 (p. 164, `planarTwoLinkArm`) as a `ManipulatorModel 2`, with link
 masses `m₁, m₂`, an arbitrary gravitational constant `g` and upward vector `up` (MLS treats the arm
 as horizontal, `up = +z`, p. 165; any `up`, for example a vertical plane with `up = +y`, is allowed
 here) and an arbitrary field `Nₑ` of further joint forces. For positive masses and principal
@@ -25,7 +25,7 @@ statement fixes them:
 * given a solution flow of the closed loop, PD control with compensation of `N` makes `(θ_d, 0)`
   globally asymptotically stable
   (`planarTwoLinkArm_globallyAsymptoticallyStableAt_pdCompensatedTorque`, MLS Proposition 4.9 as
-  formalized, E019); since E023 the flow is constructed
+  formalized); the flow is constructed
   (`planarTwoLinkArm_exists_hasFlow_pdClosedLoop`, below), and the conclusion holds with no flow
   hypothesis (`planarTwoLinkArm_globallyAsymptoticallyStableAt_pdCompensatedTorque'`);
 * the Coriolis matrix of the model is the printed matrix of MLS eq. (4.11), p. 165
@@ -68,7 +68,7 @@ def planarTwoLinkModel (m₁ m₂ r₁ r₂ l₁ : ℝ) (I₁ I₂ : Fin 3 → �
 
 variable (m₁ m₂ r₁ r₂ l₁ : ℝ) (I₁ I₂ : Fin 3 → ℝ)
 
-/-- The inertia matrix of the model is the arm's `M(θ)` (MLS eq. (4.10), E012). -/
+/-- The inertia matrix of the model is the arm's `M(θ)` (MLS eq. (4.10)). -/
 theorem planarTwoLinkModel_M (g : ℝ) (up : Vec3) (Ne : (Fin 2 → ℝ) → (Fin 2 → ℝ) → Fin 2 → ℝ) :
     (planarTwoLinkModel m₁ m₂ r₁ r₂ l₁ I₁ I₂ g up Ne).M =
       (planarTwoLinkArm m₁ m₂ r₁ r₂ l₁ I₁ I₂).massMatrix := by

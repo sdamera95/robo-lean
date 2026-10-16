@@ -44,8 +44,8 @@ the clauses `slot_bounded` and `rounds_balance` are `PlanarArmSchedulerSuperviso
 `PlanarArmSchedulerSupervisor.RoundsBalance`. The Veil model states no clause with `%` or `/`; the
 two recovered theorems exist only here. The two projects run on different Lean versions (4.32.0
 for Veil, 4.34.1 here) and cannot import each other, so the correspondence, and reading Veil's
-uninterpreted `reachable` as `planarGuard a b`, are recorded conventions (decision D003, entries
-E018, E022, E027, E032 and E036), not kernel-checked links.
+uninterpreted `reachable` as `planarGuard a b`, are recorded conventions (see
+`research/reports/veil-robotics-verification.md`), not kernel-checked links.
 
 Sources. The guard is the annulus condition of the workspace certificate C04, which for positive
 link lengths characterizes the reachable workspace `W_R = {p(θ) : θ ∈ Q}` of MLS eq. (3.12),
@@ -84,9 +84,9 @@ theorem wrapRounds_eq_add_div {slot rounds period : ℕ} (h : slot < period) :
 
 /-- The slot phase from the two scheduler invariants: if the slot is below the period and
 `period * rounds + slot = ticksTotal`, then the slot is `ticksTotal % period`, the clause
-`PlanarArmSchedulerSupervisor.SlotPhase` (Veil clause `slot_phase` of the E032 model). Holds for
-every `period` (the hypothesis `slot < period` forces `0 < period`). Design row C17, not from
-MLS. -/
+`PlanarArmSchedulerSupervisor.SlotPhase` (Veil clause `slot_phase` of the `div`/`mod` model).
+Holds for every `period` (the hypothesis `slot < period` forces `0 < period`). Design row C17, not
+from MLS. -/
 theorem slotPhase_of_roundsBalance {Target : Type*} {period : ℕ}
     {s : PlanarArmSchedulerSupervisor.State Target}
     (hb : PlanarArmSchedulerSupervisor.SlotBounded period s)
@@ -99,9 +99,9 @@ theorem slotPhase_of_roundsBalance {Target : Type*} {period : ℕ}
 
 /-- The round count from the two scheduler invariants: if the slot is below the period and
 `period * rounds + slot = ticksTotal`, then the completed periods are `ticksTotal / period`, the
-clause `PlanarArmSchedulerSupervisor.RoundsCount` (Veil clause `rounds_count` of the E032 model).
-Holds for every `period` (the hypothesis `slot < period` forces `0 < period`). Design row C17, not
-from MLS. -/
+clause `PlanarArmSchedulerSupervisor.RoundsCount` (Veil clause `rounds_count` of the `div`/`mod`
+model). Holds for every `period` (the hypothesis `slot < period` forces `0 < period`). Design row
+C17, not from MLS. -/
 theorem roundsCount_of_roundsBalance {Target : Type*} {period : ℕ}
     {s : PlanarArmSchedulerSupervisor.State Target}
     (hb : PlanarArmSchedulerSupervisor.SlotBounded period s)

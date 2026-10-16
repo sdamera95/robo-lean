@@ -56,8 +56,8 @@ the nine new clause predicates mirror the clauses `closed_ticks_bounded`, `load_
 and `rounds_balance`; the cases of the step lemmas are the counterparts of Veil's verification
 conditions `<action>_<clause>`. The two projects run on different Lean versions (4.32.0 for Veil,
 4.34.1 here) and cannot import each other, so the correspondence, and reading Veil's
-uninterpreted `reachable` as `planarGuard a b`, are recorded conventions (decision D003, entries
-E018, E022, E027 and E032), not kernel-checked links.
+uninterpreted `reachable` as `planarGuard a b`, are recorded conventions (see
+`research/reports/veil-robotics-verification.md`), not kernel-checked links.
 
 Sources. The guard is the annulus condition of the workspace certificate C04, which for positive
 link lengths characterizes the reachable workspace `W_R = {p(θ) : θ ∈ Q}` of MLS eq. (3.12),

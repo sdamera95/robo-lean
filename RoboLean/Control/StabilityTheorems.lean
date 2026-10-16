@@ -4,11 +4,11 @@ import Mathlib.Analysis.SpecialFunctions.Log.Basic
 /-!
 # Further Lyapunov theorems: global notions, Theorem 4.4(4), Theorem 4.5 local form
 
-MLS Chapter 4, Section 4, printed pp. 180–184, continuing `RoboLean.Control.Stability` (E016)
+MLS Chapter 4, Section 4, printed pp. 180–184, continuing `RoboLean.Control.Stability`
 with the same conventions (system `f t x` with time first, solutions `IsSolution`, initial times
 `t₀ ≥ 0`, comparison functions `IsClassK` with `α(0) = 0`).
 
-**What MLS prints (read this session).**
+**What MLS prints.**
 
 * p. 180: "We say an equilibrium point `x*` is globally stable if it is stable for all initial
   conditions `x₀ ∈ ℝⁿ`"; p. 181: exponential stability "implies uniform, asymptotic stability".

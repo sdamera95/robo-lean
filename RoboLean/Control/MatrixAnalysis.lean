@@ -21,11 +21,11 @@ Conventions: vectors are `Fin n → ℝ` with Mathlib's dot product `⬝ᵥ` and
 `*ᵥ`; the norm on `Fin n → ℝ` and on products is Mathlib's sup norm (maximum of the components);
 "positive definite" is Mathlib's `Matrix.PosDef`, which includes symmetry.
 
-These lemmas were collected here in E019 from `ManipulatorSystem` and `PDControl` (E016); their
-names are unchanged. E030 added the product rule for a time-varying matrix applied to a curve and
+These lemmas were collected here from `ManipulatorSystem` and `PDControl`; their names are
+unchanged. Later additions: the product rule for a time-varying matrix applied to a curve and
 the bilinear bounds `|vᵀ A w| ≤ κ ‖v‖ ‖w‖` (from `AugmentedPD`, names unchanged), and the
 entry-by-entry derivatives of matrix-valued curves (`hasDerivAt_matrix_iff`, `_mul`, `_transpose`,
-`_inv`, from `MapJacobian`, whose old names are deprecated aliases). E035 added the rectangular
+`_inv`, from `MapJacobian`, whose old names are deprecated aliases); the rectangular
 product rule `hasDerivAt_matrix_mulVec_rect` (from `ConstrainedLagrangian`) and the congruence
 identity `reduced_sub_two_eq`, `skew_reduced` of Lemmas 4.11(2) and 6.1(2) (from
 `CompositeDynamics`); the old names are deprecated aliases.

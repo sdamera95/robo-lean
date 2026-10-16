@@ -37,15 +37,15 @@ Proved here: Theorem 4.4 parts (1) (stability), (2) (uniform stability) and (3) 
 asymptotic stability) of the basic theorem of Lyapunov (pp. 182–183), the sufficiency half of
 Theorem 4.5 (exponential stability from quadratic bounds, p. 183) in its global form with the rate
 bounds printed on p. 184, and the facts that exponential stability implies stability and
-asymptotic stability (p. 181). Continued in E019: Theorem 4.4(4), the local form of Theorem 4.5
-and the uniform consequences of exponential stability (`StabilityTheorems`), a solution-flow
-interface with uniqueness for Lipschitz fields (`SolutionFlow`) and Lasalle's principle
-(`LaSalle`). Elsewhere: the converse half of Theorem 4.5 with the first three bounds for
-autonomous Lipschitz fields in `Control/ConverseLyapunov` (E023), and with all four bounds for
-linear time-varying systems in `Control/LinearTimeVarying` (E033); Theorem 4.6 (linearization) in
-`Control/Linearization` (E026, constant `A`) and, with a time-varying `A(t)`, in
+asymptotic stability (p. 181). Continued in later modules: Theorem 4.4(4), the local form of
+Theorem 4.5 and the uniform consequences of exponential stability (`StabilityTheorems`), a
+solution-flow interface with uniqueness for Lipschitz fields (`SolutionFlow`) and Lasalle's
+principle (`LaSalle`). Elsewhere: the converse half of Theorem 4.5 with the first three bounds for
+autonomous Lipschitz fields in `Control/ConverseLyapunov`, and with all four bounds for
+linear time-varying systems in `Control/LinearTimeVarying`; Theorem 4.6 (linearization) in
+`Control/Linearization` (constant `A`) and, with a time-varying `A(t)`, in
 `Control/StateTransition`, `Control/LinearTimeVarying` and `Control/LinearizationTimeVarying`
-(E033, with the added hypothesis `A` continuous on `[0, ∞)`). Not formalized: a general existence
+(with the added hypothesis `A` continuous on `[0, ∞)`). Not formalized: a general existence
 theory.
 -/
 
@@ -216,7 +216,7 @@ theorem IsClassK.le {α : ℝ → ℝ} (hα : IsClassK α) {r s : ℝ} (hr : 0 �
   hα.2.1.monotoneOn hr (hr.trans hrs) hrs
 
 /-- **The quadratic comparison function `r ↦ c r²` is a comparison function** in the sense of MLS
-Definition 4.4 (p. 182) for `c > 0` (`IsClassK`). Moved here from `PDControl` in E019. -/
+Definition 4.4 (p. 182) for `c > 0` (`IsClassK`). Moved here from `PDControl`. -/
 theorem isClassK_mul_sq {c : ℝ} (hc : 0 < c) : IsClassK (fun r => c * r ^ 2) := by
   refine ⟨(continuous_const.mul (continuous_pow 2)).continuousOn, ?_, by simp⟩
   intro r hr s _ hrs

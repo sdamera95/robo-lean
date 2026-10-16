@@ -46,10 +46,10 @@ Veil currently pins [Lean v4.32.0](https://github.com/verse-lab/veil/blob/b05ef6
 
 **Evidence status:** This report is a source-based assessment of current capabilities and limits. A formal robotics guarantee would require a stated model and discharged proof or model-checking obligations, with the trust boundary identified. Empirical validation would require traces, tests, or physical evidence about a particular implementation and environment. Neither has been established for the robotics system by this report.
 
-## First evaluation, 2026-10-10 (E018)
+## First evaluation, 2026-10-10
 
 The evaluation recommended above was run on Veil
-`main` at 0263f6c (Lean 4.32.0) with a five-target supervisor for the planar two-link arm ([entry E018](../../docs/implogs/E018-veil-pilot-planar-arm-supervisor.md), [gate](../../docs/implogs/gates/E018/20261010T212023Z/)) whose
+`main` at 0263f6c (Lean 4.32.0) with a five-target supervisor for the planar two-link arm (the Veil model in the sibling evaluation project `robo-lean-veil`, the Lean mirror in commit `9c8b539`) whose
 guard the Robo Lean workspace certificate makes sound. All four kinds of check ran, each file in
 about 6 s: an exhaustive `#model_check` of one finite instance, `sat trace` non-vacuity queries,
 a bounded `unsat trace` over six actions and `#check_invariants`; a deliberately unsafe variant
@@ -68,19 +68,19 @@ says nothing about reconstruction for arithmetic, for larger models or for quant
 protocols. The link from Veil's uninterpreted guard to the continuous Lean theorem remains a
 recorded convention while the two projects use different Lean versions.
 
-## Second evaluation, 2026-10-11 (E022)
+## Second evaluation, 2026-10-11
 
 The arithmetic follow-up of the first evaluation was run
-on the same Veil commit with the E018 supervisor extended by a command age: `tick` increments an
+on the same Veil commit with the first evaluation's supervisor extended by a command age: `tick` increments an
 integer `age` while `age < bound`, `timeout` clears the command when `age = bound`, and the clauses
-include `age ≤ bound` ([entry E022](../../docs/implogs/E022-veil-second-pilot-timeout-supervisor.md),
-[gate](../../docs/implogs/gates/E022/20261011T001058Z/)). Integer state needed no special treatment in
+include `age ≤ bound` (Lean mirror in
+commit `7e752fe`). Integer state needed no special treatment in
 the explicit-state checker: the reachable ages are bounded, so `#model_check` exhausted 9216 states
 of a five-target instance with `bound := 3`, and the deliberately unsafe variant (the bound guard
 removed from `tick`) was refuted by every check that should fail. With `veil.smt.trust false`, all
 21 clause conditions reached cvc5 and were reconstructed into Lean proofs that depend only on
 `propext`, `Classical.choice` and `Quot.sound`; no condition failed, timed out or needed
-`veil.smt.timeout`, `veil.solver grind` or a hand proof, and the replays took 35 to 68 ms each in the final gate run. The
+`veil.smt.timeout`, `veil.solver grind` or a hand proof, and the replays took 35 to 68 ms each in the final run. The
 arithmetic exercised was small: one condition (`tick` preserves `age ≤ bound`) needed a linear
 integer inference, which cvc5 proved with its arithmetic rewriting and bound-tightening rules and
 lean-smt replayed through its integer polynomial normalizer; two frame conditions used arithmetic
@@ -97,12 +97,12 @@ instance arguments written out. Veil's DSL elaboration (actions to programs, cla
 predicates) remains part of the trusted base, and the link to the continuous Lean theorems remains
 a recorded convention.
 
-## Third evaluation, 2026-10-11 (E027)
+## Third evaluation, 2026-10-11
 
 The question left by the second evaluation, where reconstruction stops as the arithmetic gets
 richer, was run on the same Veil commit with the timeout supervisor extended by three counters
-([entry E027](../../docs/implogs/E027-veil-third-pilot-budget-supervisor.md),
-[gate](../../docs/implogs/gates/E027/20261011T150354Z/)): a per-target admission count
+(Lean mirror in
+commit `bd7b9e8`): a per-target admission count
 `attempts : target → Nat` bounded by `maxAttempts` (arithmetic under a quantifier), the sum
 invariant `ticksClosed + age = ticksTotal` (which needs the auxiliary clause that an idle supervisor
 has age zero), and a tick budget decremented by `budget := budget - 1` under `require budget ≥ 1`
@@ -126,12 +126,12 @@ queries. As before, Veil's DSL elaboration is trusted, a composition of the per-
 over the reachable states was proved in Lean inside the Veil file, and the link to the continuous
 Lean theorems remains a recorded convention.
 
-## Fourth evaluation, 2026-10-13 (E032)
+## Fourth evaluation, 2026-10-13
 
 The question left by the third evaluation, where reconstruction stops, was run on the same Veil
 commit with the budget supervisor extended by cost counters and a round-robin scheduler
-([entry E032](../../docs/implogs/E032-veil-fourth-pilot-scheduler-supervisor.md),
-[gate](../../docs/implogs/gates/E032/20261013T222456Z/)): `ticksClosed ≤ bound * closedCount`, a
+(Lean mirror in
+commit `aa74623`): `ticksClosed ≤ bound * closedCount`, a
 quadratic load with `load = age * age` and `load ≤ bound * bound`, an energy counter with `energy =
 rate * ticksTotal` and `energy ≤ rate * capacity`, and a slot and period count advanced by
 `slot := (slot + 1) % period` and `rounds := rounds + (slot + 1) / period` with the clauses
@@ -150,21 +150,21 @@ the remaining six need core lemmas or hand-proved arithmetic steps, which the mo
 a custom solver chain that keeps SMT first. The bounded exclusion check fails with trust off on this
 model (lean-smt cannot rebuild the trace query's proof; Veil keeps no trace proof in any case) and is
 answered unsat with trust on; its cvc5 proof grows from 4478 steps over two actions to 107965 over
-six (E027: 27129), and over eight actions cvc5 does not answer within 300 s. As the model grows by
+six (third evaluation: 27129), and over eight actions cvc5 does not answer within 300 s. As the model grows by
 energy lanes, every condition still reconstructs up to four extra lanes, the condition whose
 refutation needs all lanes grows from 278 to 5180 proof steps, and with eight lanes one file did not
 finish within ten minutes. The explicit-state search, the non-vacuity traces, the unsafe variant and
 the composition over reachable states behave as in the earlier evaluations. As before, Veil's DSL
 elaboration is trusted and the link to the continuous Lean theorems remains a recorded convention.
 
-## Fifth evaluation, 2026-10-14 (E036)
+## Fifth evaluation, 2026-10-14
 
 The fourth evaluation's `div`/`mod` boundary was retested on the same Veil commit by re-encoding the
 scheduler without division: a tick that reaches the end of the period resets the slot to zero and
 counts a completed round, and the clauses are `slot < period` and `period * rounds + slot =
 ticksTotal`, from which the quotient and remainder clauses follow as Lean theorems
-([entry E036](../../docs/implogs/E036-veil-fifth-pilot-wrap-around-scheduler.md),
-[gate](../../docs/implogs/gates/E036/20261014T071255Z/)). With `veil.smt.trust false`, no solver
+(Lean mirror in
+commit `44a91b2`). With `veil.smt.trust false`, no solver
 fallback and Veil's default solver, every one of the 91 inductive verification conditions now has a
 reconstructed, kernel-checked proof (89 through cvc5, 2 closed before it), where the fourth
 evaluation needed a custom fallback chain for 16 of 105; the per-condition proofs are of the same
@@ -176,8 +176,8 @@ as holding even when reconstruction left the proof unfinished; in Veil's proof-t
 elaborates the trace statement as a theorem, the two-action exclusion is a kernel-checked theorem, the first bounded exclusion with a kept proof in these evaluations, while over four actions the
 rebuilt proof is rejected by the kernel and over six it cannot be rebuilt, and over eight cvc5 gives
 no answer within 60 s. Those remaining failures come from products, not from division: two defects in
-lean-smt's integer reconstruction (a sum of equalities declared as an inequality, and E032's
-`mul_abs₂` error, which therefore also arises without `div`/`mod`) and its lack of rational
+lean-smt's integer reconstruction (a sum of equalities declared as an inequality, and the fourth
+evaluation's `mul_abs₂` error, which therefore also arises without `div`/`mod`) and its lack of rational
 reconstruction for certificates with fractional coefficients. cvc5's proofs of the trace queries are
 about a third smaller than with `div`/`mod` (71015 against 107965 steps over six actions). As the model grows by energy lanes, the per-condition
 proofs grow as in the fourth evaluation (the condition that needs every lane: 5305 steps with four

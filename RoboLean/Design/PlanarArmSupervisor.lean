@@ -23,7 +23,8 @@ and `busy`; `init` mirrors `after_init`; the constructors of `Step` mirror the a
 inductive check. A Veil relation `r : target → Bool` is a Lean set, with `t ∈ s.r` read as
 `r t = true`. The two projects run on different Lean versions (4.32.0 for Veil, 4.34.1 here)
 and cannot import each other, so reading Veil's uninterpreted `reachable` as `planarGuard a b`
-is a recorded convention (decision D003, entry E018), not a kernel-checked link.
+is a recorded convention (see `research/reports/veil-robotics-verification.md`), not a
+kernel-checked link.
 
 Sources. The guard is the annulus condition `x₃ = 0`, `|a - b| ≤ ‖x‖ ≤ a + b`, which for
 positive link lengths characterizes the reachable workspace `W_R = {p(θ) : θ ∈ Q}` of MLS
@@ -156,7 +157,7 @@ coordinate `x 2`) with `|a - b| ≤ ‖x‖ ≤ a + b`. This is exactly the cond
 certificate `Examples.planarTwoLink_workspace_certificate` (design row C04), which for positive
 link lengths characterizes the reachable workspace of MLS eq. (3.12), printed p. 95, of
 `Examples.planarTwoLink a b` with unrestricted joints
-(`Examples.planarTwoLink_subset_reachableWorkspace_iff`). Convention (E018): the uninterpreted
+(`Examples.planarTwoLink_subset_reachableWorkspace_iff`). Convention: the uninterpreted
 relation `reachable` of the Veil model `PlanarArmSupervisor` is read as `planarGuard a b`. -/
 def planarGuard (a b : ℝ) (x : Vec3) : Prop :=
   x 2 = 0 ∧ |a - b| ≤ ‖x‖ ∧ ‖x‖ ≤ a + b

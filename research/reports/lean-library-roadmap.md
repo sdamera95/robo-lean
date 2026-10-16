@@ -2,7 +2,7 @@
 
 Date: 2026-10-08
 
-Status updated 2026-10-09 UTC: **Verified - formal checking:** the [final integrated build and audit](../../docs/implogs/gates/E007/20261009T042046818411474Z/summary.json) and [independent readback](../../docs/implogs/gates/E007/20261009T042046818411474Z/independent-evidence-review.json) check the named rotation, twist, screw, velocity, bracket, and wrench/work foundations. The [coverage ledger](mls-coverage-ledger.md) records the actual selected obligations and their assumptions, including partial and remaining rows. These are not independent theorem counts or a whole-book percentage. P0–P10 below remain a dependency roadmap, not blanket completion claims.
+Status updated 2026-10-09 UTC: **Verified - formal checking:** the build and axiom audit of commit `b2d79fe`, with an independent readback of its evidence, check the named rotation, twist, screw, velocity, bracket, and wrench/work foundations. The [coverage ledger](mls-coverage-ledger.md) records the actual selected obligations and their assumptions, including partial and remaining rows. These are not independent theorem counts or a whole-book percentage. P0–P10 below remain a dependency roadmap, not blanket completion claims.
 
 ## Objective and scope
 
@@ -18,9 +18,9 @@ Read the [research assessment](mls-lean-assessment.md) for chapter-level evidenc
 
 - Lean toolchain: `leanprover/lean4:v4.34.1`.
 - mathlib dependency: `v4.34.1`, with resolved dependencies in `lake-manifest.json`.
-- Package/library: `roboLean` / `RoboLean`, renamed from the original `rooboLean` / `RooboLean` spelling in the implementation session.
+- Package/library: `roboLean` / `RoboLean`, renamed from the original `rooboLean` / `RooboLean` spelling.
 - Setup theorem: `RoboLean.add_sq`, in `RoboLean/Smoke.lean`, proved by `ring`.
-- Original setup evidence: `lake build` compiled the algebra project; `#print axioms add_sq` reported only `propext`, `Classical.choice`, and `Quot.sound`. The implementation session rechecked the renamed theorem in the combined audit.
+- Original setup evidence: `lake build` compiled the algebra project; `#print axioms add_sq` reported only `propext`, `Classical.choice`, and `Quot.sound`. The renamed theorem was rechecked in the combined audit.
 - The Lean 4 VS Code extension was installed; interactive editor behavior was not tested.
 
 The original setup established only the algebra proof/build baseline. Later increments add proper rigid-transform and homogeneous-matrix laws, cross-product/hat identities, actual rotation and rigid exponential existence, explicit rotation-parameter domains, noncomputable selected exponential coordinates, coordinate brackets and adjoints, geometric screw motion, velocity laws, and wrench power/work and reciprocity. The [repository README](../../README.md) links modules and the [ledger](mls-coverage-ledger.md) preserves each increment's evidence. Exact-real definitions remain noncomputable; frame/unit types and separate point/vector types are not enforced. Remaining rotation/quaternion, reciprocal-geometry, general kinematics, and arbitrary rigid-map characterization obligations stay explicit.
@@ -142,9 +142,9 @@ Possible routes include exact finite/rational computation, symbolic expressions,
 
 ## First implementation slice
 
-The first session established rigid-transform foundations; the recorded increments extend rotation representations, geometric screws, velocities, brackets, and wrench/work interfaces. The ledger identifies the exact checked subset. Continue in this order:
+The first increment established rigid-transform foundations; later increments extend rotation representations, geometric screws, velocities, brackets, and wrench/work interfaces. The ledger identifies the exact checked subset. Continue in this order:
 
-1. Resume from the current handover and inspect the ledger's status and evidence.
+1. Inspect the ledger's status and evidence.
 2. Review the written rigid-transform statements and concrete examples against the conventions; user acceptance remains separate from the compiled proofs.
 3. Address the remaining rigid-motion obligations, including the converse representation statement, before claiming all of P1; cross-product preservation is recorded in I2.
 4. Use the checked exponential, screw, bracket, adjoint, velocity, and wrench/work interfaces as prerequisites for selected kinematics; keep the remaining quaternion/rotation and reciprocal-geometry gaps explicit.
@@ -160,7 +160,7 @@ This sequence exercises geometry, design, differentiation, and mechanics without
 - Audit dependencies for placeholder proofs and custom trust assumptions. Standard foundational axioms differ from assuming a robotics theorem.
 - Include meaningful concrete instances when they check conventions or show satisfiable hypotheses; avoid tests that repeat definitions.
 - Keep incomplete explorations visibly separate from established claims.
-- Let the user judge fidelity, usefulness, and acceptance from the artifact and evidence. Kernel acceptance proves the formal derivation, not that the specification captures the intended physical robot.
+- Leave fidelity, usefulness, and acceptance to human judgment of the artifact and evidence. Kernel acceptance proves the formal derivation, not that the specification captures the intended physical robot.
 
 Use **Failed**, **Verified**, and **Unverified** with precise scope. A verified statement must name the theorem/build and evidence, rather than label the whole physical model or research direction.
 

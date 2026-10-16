@@ -364,7 +364,7 @@ theorem planarTwoLink_reachableWorkspace_nonempty (a b : ℝ) (Q : Set (Fin 2 �
 /-! ### Body Jacobian columns (MLS eq. (3.55), p. 117) -/
 
 /-- MLS eq. (3.55), p. 117: body Jacobian column of the planar two-link arm, the joint axis
-seen in tool coordinates. Convention check derived by hand in the E009 review. The second
+seen in tool coordinates. Convention check derived by hand. The second
 column (Lean joint `1`, the book's joint 2) is `ξ₂† = (-b, 0, 0, 0, 0, 1)` for every `q`,
 in the order `(v, ω)`. -/
 theorem planarTwoLink_bodyJacobian_one (a b : ℝ) (q : Fin 2 → ℝ) :
@@ -383,7 +383,7 @@ theorem planarTwoLink_bodyJacobian_one (a b : ℝ) (q : Fin 2 → ℝ) :
   ring_nf
 
 /-- MLS eq. (3.55), p. 117: body Jacobian column of the planar two-link arm, the joint axis
-seen in tool coordinates. Convention check derived by hand in the E009 review. The first
+seen in tool coordinates. Convention check derived by hand. The first
 column (Lean joint `0`, the book's joint 1) is
 `ξ₁† = (-a cos θ₂ - b, a sin θ₂, 0, 0, 0, 1)` for every `q`, in the order `(v, ω)`; it
 depends on `θ₂ = q 1` only. -/

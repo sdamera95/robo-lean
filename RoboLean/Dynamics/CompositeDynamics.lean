@@ -4,7 +4,7 @@ import RoboLean.Control.WorkspaceControl
 /-!
 # Robot hand dynamics: the composite system, eqs. (6.18)–(6.26) and Lemma 6.1
 
-MLS Chapter 6, §2, printed pp. 276–284 (renders inspected this session).
+MLS Chapter 6, §2, printed pp. 276–284.
 
 **Setting (MLS pp. 276–278).** Fingers with joint angles `θ ∈ ℝⁿ` and dynamics
 `M_f(θ) θ̈ + C_f θ̇ + N_f = τ` (6.16); an object with local coordinates `x ∈ ℝᵖ` and dynamics
@@ -14,25 +14,25 @@ here it is `q ∈ ℝᴺ` with a relabeling `e : Fin p ⊕ Fin n ≃ Fin N`, `x 
 `θ = q ∘ e ∘ inr` (`Constrained.splitFst`, `splitSnd`), so that MLS's ordering `q = (θ, x)` is one
 choice of `e` (`mlsSplit`).
 
-**The object chart is abstract** (E034 ruling): `J_h` and `Gᵀ` are matrix-valued functions of the
+**The object chart is abstract**: `J_h` and `Gᵀ` are matrix-valued functions of the
 composite configuration, or matrix curves along a motion with actual entrywise derivatives as
 hypotheses, as MLS treats every system of §2.3. The library's twist-level grasping constraint
-`HandGrasp.GraspingConstraint` (`J_h θ̇ = Gᵀ V^b_po`, MLS (5.15), E028) is the origin of (6.18); its
+`HandGrasp.GraspingConstraint` (`J_h θ̇ = Gᵀ V^b_po`, MLS (5.15)) is the origin of (6.18); its
 link to a local chart `x ↦ x_o ∈ SE(3)` with Jacobian `J_φ(x)` is not formalized here.
 
 **Sign convention.** The constraint matrix is `A = [J_h −Gᵀ]` (MLS p. 267, `handPfaffian`), so that
 the multiplier `λ` of (6.4) satisfies `J_hᵀ λ = τ − (M_f θ̈ + C_f θ̇ + N_f)` and
 `G λ = M_o ẍ + C_o ẋ + N_o`: `λ` is the contact force in the sense of MLS (5.16), `τ = J_hᵀ f_c` (p.
 238), at rest without finger gravity. MLS p. 280 prints `A = [−J_h Gᵀ]` together with
-`λ = J_h⁻ᵀ (τ − M_f θ̈ − C_f θ̇ − N_f)`; that `λ` is the one of `A = [J_h −Gᵀ]` (E034 source
-observation, one-input evaluation in the gate's `Observation.lean`).
+`λ = J_h⁻ᵀ (τ − M_f θ̈ − C_f θ̇ − N_f)`; that `λ` is the one of `A = [J_h −Gᵀ]` (source
+observation O3 in the coverage ledger, checked on one input).
 
 **Formalized.**
 
 * The congruence identity behind Lemma 4.11(2) and Lemma 6.1(2), for rectangular `S`:
   `S'ᵀ M S + Sᵀ Ṁ S + Sᵀ M S' − 2 Sᵀ (C S + M S') = Sᵀ (Ṁ − 2C) S + S'ᵀ M S − Sᵀ M S'`, skew when
-  `M` is symmetric and `Ṁ − 2C` is skew (`Control.skew_reduced`, in `Control/MatrixAnalysis`
-  since E035). It covers `S = J⁻¹` (Lemma 4.11),
+  `M` is symmetric and `Ṁ − 2C` is skew (`Control.skew_reduced`, in `Control/MatrixAnalysis`).
+  It covers `S = J⁻¹` (Lemma 4.11),
   `S = J_h⁻¹ Gᵀ` (Lemma 6.1) and the augmented Jacobians of §3.
 * The effective parameters (6.22) `effectiveMass`, `effectiveCoriolis`, `effectiveN`,
   `effectiveForce`, with the book's `(d/dt)(J_h⁻¹ Gᵀ)` an explicit argument, and the algebra of
@@ -43,7 +43,7 @@ observation, one-input evaluation in the gate's `Observation.lean`).
   `M̃˙ − 2C̃` skew for every actual derivative `M̃˙` along a motion, given the skew symmetry of
   `Ṁ_o − 2C_o` and `Ṁ_f − 2C_f` (the "usual structural properties", p. 283) and an actual derivative
   of `J_h⁻¹ Gᵀ`.
-* The workspace form (6.26) with `G = I` and its overlap with E029's Lemma 4.11 (`M_o = 0`).
+* The workspace form (6.26) with `G = I` and its overlap with the workspace Lemma 4.11 (`M_o = 0`).
 * The composite Lagrangian (6.19), (6.18) as a Pfaffian constraint with independent rows, (6.20) as
   the instance of (6.9) with `q₁ = x`, `q₂ = θ`, `A₁ = −Gᵀ`, `A₂ = J_h`, (6.21) along a motion, the
   multiplier equations (6.24) and the displayed contact-force formula of p. 280.
@@ -51,7 +51,7 @@ observation, one-input evaluation in the gate's `Observation.lean`).
 **Hypotheses the book does not print, all explicit:** symmetric `M_f`, `M_o`; `J_h` invertible along
 the motion near `t` (assumption 2, p. 277, at the configurations used); the constraint (6.18) on a
 neighborhood of `t`; an actual derivative of `s ↦ J_h⁻¹ Gᵀ` at `t`; the skew symmetry of the finger
-and object pieces as hypotheses (for Christoffel matrices it is E013's Lemma 4.2(2)). Existence or
+and object pieces as hypotheses (for Christoffel matrices it is Lemma 4.2(2)). Existence or
 uniqueness of motions of the composite system is not claimed; force-closure and friction-cone
 conditions (assumptions 1 and 3, p. 277) are not used by the algebra and are not formalized here.
 -/
@@ -284,7 +284,7 @@ theorem skew_deriv_effectiveMass_sub_two_effectiveCoriolis {Mo : ℝ → Matrix 
 and `M_f(θ)` are symmetric at every configuration, with Fréchet derivative data at `x(t)` and
 `θ(t)`, and `C_o`, `C_f` are their Christoffel Coriolis matrices (MLS eq. (4.23)) at the velocities
 `x'`, `θ'` of the motion, then the structural hypotheses of
-`skew_deriv_effectiveMass_sub_two_effectiveCoriolis` hold by MLS Lemma 4.2(2) (E013), and
+`skew_deriv_effectiveMass_sub_two_effectiveCoriolis` hold by MLS Lemma 4.2(2), and
 `M̃˙ − 2C̃` is skew-symmetric for every actual derivative `M̃˙` along the motion. -/
 theorem skew_deriv_effectiveMass_sub_two_effectiveCoriolis_christoffel
     {Mo : (Fin p → ℝ) → Matrix (Fin p) (Fin p) ℝ} {Mo' : Fin p → Fin p → ((Fin p → ℝ) →L[ℝ] ℝ)}
@@ -337,7 +337,7 @@ theorem effectiveMass_one_posDef {Mo Mf J : Matrix (Fin n) (Fin n) ℝ} (hMo : M
     (hMf : Mf.PosDef) (hJ : IsUnit J.det) : (effectiveMass Mo Mf J 1).PosDef :=
   effectiveMass_posDef_of_surjective hMo hMf hJ fun v => ⟨v, Matrix.one_mulVec v⟩
 
-/-- **MLS p. 283 with E029 (N42): without an object (`M_o = 0`, `G = I`), `M̃` is the workspace
+/-- **MLS p. 283, workspace case: without an object (`M_o = 0`, `G = I`), `M̃` is the workspace
 inertia `J⁻ᵀ M J⁻¹` of MLS eq. (4.55), p. 197**, for a manipulator model `P` and a coordinate map
 `f` with Jacobian `J = ∂f/∂θ`. -/
 theorem effectiveMass_zero_one_eq_workspaceM {n : ℕ} (P : ManipulatorModel n)
@@ -346,7 +346,7 @@ theorem effectiveMass_zero_one_eq_workspaceM {n : ℕ} (P : ManipulatorModel n)
   rw [effectiveMass_one, zero_add]
   rfl
 
-/-- **MLS p. 283 with E029 (N42): without an object, `C̃` is the workspace Coriolis matrix of MLS
+/-- **MLS p. 283, workspace case: without an object, `C̃` is the workspace Coriolis matrix of MLS
 eq. (4.55), p. 197**, along a motion `θ` with velocity `θ'` at `t`, `f` of class `C²`, `J(θ(t))`
 invertible and `X'` the actual derivative of `s ↦ J(θ(s))⁻¹` at `t` (the book's `(d/dt)(J⁻¹)`). -/
 theorem effectiveCoriolis_zero_one_eq_workspaceC {n : ℕ} (P : ManipulatorModel n)
@@ -704,7 +704,8 @@ theorem lagrangeDAlembertAt_handPfaffian_iff_effective (e : Fin p ⊕ Fin n ≃ 
 /-- **MLS eq. (6.24), p. 280: the full equations of motion of the hand with multipliers,** in the
 sign convention `A = [J_h −Gᵀ]` of p. 267: (6.4) holds at `t` with multipliers `λ ∈ ℝⁿ` exactly when
 `M_f θ̈ + C_f θ̇ + N_f + J_hᵀ λ = τ` and `M_o ẍ + C_o ẋ + N_o − G λ = 0`. MLS p. 280 prints
-`A = [−J_h Gᵀ]` and `+ [−J_hᵀ ; G] λ`, the same equations with `−λ` (E034 source observation).
+`A = [−J_h Gᵀ]` and `+ [−J_hᵀ ; G] λ`, the same equations with `−λ` (source observation O3
+in the coverage ledger).
 Hypotheses as in `lagrangeDAlembertAt_handPfaffian_iff`, without invertibility of `J_h`. -/
 theorem multiplierEquationsAt_handPfaffian_iff (e : Fin p ⊕ Fin n ≃ Fin N)
     {Mo : (Fin p → ℝ) → Matrix (Fin p) (Fin p) ℝ} {Mo' : Fin p → Fin p → ((Fin p → ℝ) →L[ℝ] ℝ)}

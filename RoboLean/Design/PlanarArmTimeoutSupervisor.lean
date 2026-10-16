@@ -30,8 +30,8 @@ are the counterparts of Veil's verification conditions `<action>_<clause>`. A Ve
 `r : target → Bool` is a Lean set, with `t ∈ s.r` read as `r t = true`, and Veil's `Nat` is
 Lean's `ℕ`. The two projects run on different Lean versions (4.32.0 for Veil, 4.34.1 here) and
 cannot import each other, so the correspondence, and reading Veil's uninterpreted `reachable` as
-`planarGuard a b`, are recorded conventions (decision D003, entries E018 and E022), not
-kernel-checked links.
+`planarGuard a b`, are recorded conventions (see
+`research/reports/veil-robotics-verification.md`), not kernel-checked links.
 
 Sources. The guard is the annulus condition of the workspace certificate C04, which for positive
 link lengths characterizes the reachable workspace `W_R = {p(θ) : θ ∈ Q}` of MLS eq. (3.12),

@@ -5,7 +5,7 @@ import RoboLean.Dynamics.Tendons
 # Examples 6.3–6.5: a redundant planar arm and tendon-driven fingers
 
 MLS Chapter 6, Example 6.3 (printed pp. 287–289, Figure 6.5), Example 6.4 (pp. 296, Figure 6.9),
-Example 6.5 (p. 298, Figure 6.10), and the tendon counts of p. 299 (renders inspected this session).
+Example 6.5 (p. 298, Figure 6.10), and the tendon counts of p. 299.
 Lean indices `0, 1, 2` stand for the book's `θ₁, θ₂, θ₃`; tendons `0, …, 3` for the book's
 `1, …, 4`.
 
@@ -21,8 +21,8 @@ space. The second choice `K = [sin(θ₂ − θ₃) −sin(θ₁ − θ₃) sin(
 (`det_threeLink_augmentedJacobian_nullRow`), so `J̄` is invertible exactly when the three links are
 not all aligned (`isUnit_det_threeLink_nullRow_iff`), and it is not the differential of any `C²`
 function (`not_exists_contDiff_fderiv_eq_nullRow`, "there is no `h` such that `∂h/∂θ = K`"). The
-third row of `J̄` printed on p. 289 differs from this `K` in its second entry (E037 source
-observation).
+third row of `J̄` printed on p. 289 differs from this `K` in its second entry (source
+observation O9 in the coverage ledger).
 
 **Example 6.5, elastic tendons (p. 298).** For the linear extension functions of Figure 6.10 the
 coupling matrix is the printed constant `P` (`couplingMatrix_elasticFinger`), the stiffness is the
@@ -140,7 +140,7 @@ theorem threeLinkJacobian_mul_nullRow_transpose (θ : Fin 3 → ℝ) :
 
 /-- **MLS Example 6.3, p. 289: `J̄ = [J(θ); K(θ)]`** with the second `K` of p. 288, rows in the
 printed order. (The third row printed on p. 289 reads `sin(θ₃ − θ₂)` in place of `−sin(θ₁ − θ₃)`,
-E037 source observation.) -/
+source observation O9 in the coverage ledger.) -/
 theorem threeLink_augmentedJacobian_nullRow (θ : Fin 3 → ℝ) :
     augmentedJacobian finSumFinEquiv (threeLinkJacobian θ) (threeLinkNullRow θ) =
       !![-sin (θ 0), -sin (θ 1), -sin (θ 2); cos (θ 0), cos (θ 1), cos (θ 2);

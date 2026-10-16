@@ -24,9 +24,9 @@ Representation.
   (`HandGrasp.torque_toMultifingeredGrasp`). The work premise of p. 238 is not formalized.
 
 Table 5.4 (printed p. 239), row by row: force-closure `G(FC) = ℝᵖ` is
-`Grasp.isForceClosure_iff_image_eq_univ` (E025); manipulable `R(Gᵀ) ⊂ R(J_h)` is
+`Grasp.isForceClosure_iff_image_eq_univ`; manipulable `R(Gᵀ) ⊂ R(J_h)` is
 `MultifingeredGrasp.isManipulable_iff_range_le`; "internal forces `f_N ∈ N(G) ∩ int(FC)`" is
-E025's `Grasp.IsStrictlyInternalForce` (Definition 5.3's *strictly* internal force; the library
+`Grasp.IsStrictlyInternalForce` (Definition 5.3's *strictly* internal force; the library
 keeps Definition 5.3's names); internal motions `θ̇_N ∈ N(J_h)` is
 `MultifingeredGrasp.IsInternalMotion`. The row "structural forces, `G⁺ F_I ∈ N(J_hᵀ)`" uses a `G⁺`
 that the book does not define and is not formalized; the text's "structurally dependent forces",
@@ -52,7 +52,7 @@ and concludes "a grasp is prehensile if and only if the grasp is force-closure"
 (`Grasp.image_interior_eq_image_of_image_eq_univ`, `Grasp.prehensile_iff_forceClosure`). Only the
 convex-cone structure of `FC` and a nonempty interior are used; closedness is not.
 
-Finite-force and maintained-contact caveat (E025): force-closure, manipulability and
+Finite-force and maintained-contact caveat: force-closure, manipulability and
 prehensility quantify over unbounded contact forces and arbitrary joint rates at maintained,
 rigid, fixed contacts (MLS p. 214, p. 234); none of them concerns actuator limits, contact
 persistence or a physical hand.

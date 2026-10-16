@@ -6,7 +6,7 @@ import RoboLean.Control.Linearization
 
 For MLS Theorem 4.6 (printed p. 184) with a time-varying linearization `ż = A(t)z` (4.40).
 
-**What MLS prints (read this session, pp. 183–185).** Theorem 4.6 assumes that `0` is a uniformly
+**What MLS prints (pp. 183–185).** Theorem 4.6 assumes that `0` is a uniformly
 asymptotically stable equilibrium point of (4.40) and that `A(·)` is bounded; p. 185 adds that
 "global uniform asymptotic stability of the linearization implies local uniform asymptotic
 stability of the original nonlinear system". Theorem 4.5 (p. 183) characterizes exponential
@@ -183,7 +183,7 @@ theorem exists_norm_le_of_uniformlyAsymptoticallyStable [CompleteSpace E]
 /-- **Uniform asymptotic stability of `ż = A(t)z` is an exponential bound on `Φ`** (MLS Theorem
 4.6's hypothesis on (4.40), p. 184): the origin of `ż = A(t)z` is uniformly asymptotically
 stable (MLS p. 180) if and only if `‖Φ(t, s)‖ ≤ C e^{−α(t − s)}` for `0 ≤ s ≤ t`, some `C` and
-`α > 0`. The time-varying analogue of E026's
+`α > 0`. The time-varying analogue of
 `uniformlyAsymptoticallyStable_iff_globallyExponentiallyStable`; `E` is a real Banach space. -/
 theorem uniformlyAsymptoticallyStable_iff_exists_norm_le [CompleteSpace E]
     (h : IsStateTransition A Φ) :

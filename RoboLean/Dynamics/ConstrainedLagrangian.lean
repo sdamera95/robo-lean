@@ -14,7 +14,7 @@ d'Alembert's principle (pp. 268, 271), the multiplier formula (6.6) and the redu
 configurations and velocities are `Fin n → ℝ`, and a Pfaffian constraint is a field
 `A : (Fin n → ℝ) → Matrix (Fin k) (Fin n) ℝ`, read as `A(q) q̇ = 0` (eq. (6.3)). The open set `Q` is
 the whole of `ℝⁿ` unless a statement names a set or a neighborhood. The library's Lagrange predicate
-`Lagrangian.LagrangeEquationsAt` (MLS Theorem 4.1, E013) is reused unchanged.
+`Lagrangian.LagrangeEquationsAt` (MLS Theorem 4.1) is reused unchanged.
 
 **Formalized.**
 
@@ -315,7 +315,7 @@ theorem lagrangeDAlembertAt_iff_of_lagrangeEquationsAt {L : (Fin n → ℝ) → 
 
 /-- **MLS eq. (6.5), p. 269: for `L = ½ q̇ᵀ M(q) q̇ − V(q)`, the multiplier equations (6.4) are
 `M(q) q̈ + C(q, q̇) q̇ + ∂V/∂q + Aᵀ(q) λ = Υ`,** with `C` the Christoffel Coriolis matrix of MLS eq.
-(4.23). Hypotheses as in `Lagrangian.lagrangeEquationsAt_mechanical_iff` (E013): `M(q)` symmetric at
+(4.23). Hypotheses as in `Lagrangian.lagrangeEquationsAt_mechanical_iff`: `M(q)` symmetric at
 every configuration, Fréchet derivative data of `M` and `V` at `q(t)`, velocity `θ'` near `t` and
 acceleration `θ''` at `t` as actual derivatives. -/
 theorem multiplierEquationsAt_mechanical_iff {M : (Fin n → ℝ) → Matrix (Fin n) (Fin n) ℝ}
@@ -392,7 +392,7 @@ theorem lagrangeDAlembertAt_mechanical_iff {M : (Fin n → ℝ) → Matrix (Fin 
 Along a motion satisfying the Pfaffian constraint at `t` and the multiplier equations (6.4) for
 `L = ½ q̇ᵀ M q̇ − V`, the total energy `½ q̇ᵀ M(q) q̇ + V(q)` has derivative `q̇ ⬝ Υ` at `t`: the
 constraint force `Aᵀ λ` contributes no power. Same hypotheses as
-`multiplierEquationsAt_mechanical_iff` (E013's `Lagrangian.hasDerivAt_energy`). -/
+`multiplierEquationsAt_mechanical_iff` (compare `Lagrangian.hasDerivAt_energy`). -/
 theorem hasDerivAt_energy_of_multiplierEquationsAt {M : (Fin n → ℝ) → Matrix (Fin n) (Fin n) ℝ}
     {M' : Fin n → Fin n → ((Fin n → ℝ) →L[ℝ] ℝ)} {V : (Fin n → ℝ) → ℝ}
     {V' : (Fin n → ℝ) →L[ℝ] ℝ} {A : (Fin n → ℝ) → Matrix (Fin k) (Fin n) ℝ}

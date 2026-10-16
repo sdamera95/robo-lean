@@ -11,7 +11,7 @@ inertias `[[mᵢ I, 0], [0, diag(I_xi, I_yi, I_zi)]]`. Everything below is compu
 general constructions of the library and compared with the printed displays; nothing is taken
 from the book:
 
-* the columns of the link body Jacobians `J₁, J₂, J₃` (p. 173) from the E009 body Jacobian of
+* the columns of the link body Jacobians `J₁, J₂, J₃` (p. 173) from the body Jacobian of
   the link chains (`InertialChain.linkBodyJacobian`);
 * the inertia matrix `M(θ) = ∑ Jᵢᵀ 𝓜ᵢ Jᵢ` of eq. (4.19), which equals the printed `M₁₁, …, M₃₃`
   of p. 173;

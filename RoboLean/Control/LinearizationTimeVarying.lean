@@ -3,7 +3,7 @@ import RoboLean.Control.LinearTimeVarying
 /-!
 # Stability by linearization with a time-varying linearization (MLS Theorem 4.6, p. 184)
 
-**What MLS prints (read this session, pp. 184–185).** For `ẋ = f(x, t)` with `f(0, t) = 0` for
+**What MLS prints (pp. 184–185).** For `ẋ = f(x, t)` with `f(0, t) = 0` for
 `t ≥ 0` (4.37), `A(t) = ∂f(x, t)/∂x |_{x=0}` (4.38) and the uniform linearization condition
 `lim_{‖x‖→0} sup_{t≥0} ‖f(x, t) − A(t)x‖/‖x‖ = 0` (4.39): "Theorem 4.6. Stability by
 linearization. Consider the system (4.37) and assume [(4.39)]. Further, let `A(·)` defined in
@@ -26,11 +26,11 @@ proof.
 
 **Route.** Uniform asymptotic stability of `ż = A(t)z` gives `‖Φ(t, s)‖ ≤ C e^{−α(t − s)}`
 (`IsStateTransition.exists_norm_le_of_uniformlyAsymptoticallyStable`). The Lyapunov function is the
-Gramian `V(t, x) = ∫_t^{t+T} ‖Φ(s, t)x‖₂² ds` with `T = 1 + log(2nC'² + 1)/(2α)` (E026's horizon):
-`T e^{−2MT} ‖x‖² ≤ V ≤ T n C'² ‖x‖²` (the lower bound uses `A` bounded), and along a solution
-`V̇ = 2 ∫ Φ(s,t)(f − Ax) ⬝ Φ(s,t)x ds + ‖Φ(t + T, t)x‖₂² − ‖x‖₂² ≤ −‖x‖²/4` on the ball where
-`‖f(t, x) − A(t)x‖ ≤ ‖x‖/(8TnC'² + 1)`. The local form of Theorem 4.5
-(`exponentiallyStable_of_quadratic_lyapunov_local`, E019) concludes. No continuity of `f` and no
+Gramian `V(t, x) = ∫_t^{t+T} ‖Φ(s, t)x‖₂² ds` with `T = 1 + log(2nC'² + 1)/(2α)` (the horizon of
+`Control/Linearization`): `T e^{−2MT} ‖x‖² ≤ V ≤ T n C'² ‖x‖²` (the lower bound uses `A` bounded),
+and along a solution `V̇ = 2 ∫ Φ(s,t)(f − Ax) ⬝ Φ(s,t)x ds + ‖Φ(t + T, t)x‖₂² − ‖x‖₂² ≤ −‖x‖²/4` on
+the ball where `‖f(t, x) − A(t)x‖ ≤ ‖x‖/(8TnC'² + 1)`. The local form of Theorem 4.5
+(`exponentiallyStable_of_quadratic_lyapunov_local`) concludes. No continuity of `f` and no
 existence of solutions of `ẋ = f(x, t)` is assumed.
 
 **Hypotheses MLS does not state.** `A` continuous on `[0, ∞)`, so that the state-transition
@@ -38,7 +38,7 @@ matrix exists (`exists_isStateTransition`); MLS's standing conditions (p. 179) a
 continuity in `t`, which the library's notion of solution (a derivative at every `t > t₀`) does
 not accommodate. The versions with `IsStateTransition A Φ` as a hypothesis do not need it.
 
-**Conventions.** As in `RoboLean.Stability` and E026: time first, (4.39) as
+**Conventions.** As in `RoboLean.Stability` and `Control/Linearization`: time first, (4.39) as
 `IsUniformLinearization f A` (which gives `f(t, 0) = 0` for `t ≥ 0`), `A : ℝ → (ℝⁿ →L[ℝ] ℝⁿ)`,
 "bounded" as `‖A(t)‖ ≤ M` for `t ≥ 0` (operator norm of the sup norm), exponential stability
 (Definition 4.3, constants independent of `t₀`), which implies uniform asymptotic stability.

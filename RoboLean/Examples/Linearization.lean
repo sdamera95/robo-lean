@@ -19,9 +19,9 @@ real and negative (`isHurwitz_pendulumMatrix`).
   is globally exponentially stable (`globallyExponentiallyStable_pendulumLinearization`);
 * moving back to `ℝ × ℝ` (`ExponentiallyStable.of_continuousLinearEquiv`), the origin of
   `springField (b ·) (k sin ·)` is exponentially stable
-  (`exponentiallyStable_springField_pendulum`), in particular for E023's damped pendulum `springField id sin`
-  (`exponentiallyStable_dampedPendulum`). E023 proved only asymptotic stability, by Lasalle's
-  principle (`asymptoticallyStableAt_dampedPendulum`, MLS Example 4.7);
+  (`exponentiallyStable_springField_pendulum`), in particular for the damped pendulum
+  `springField id sin` (`exponentiallyStable_dampedPendulum`). Lasalle's principle gives only
+  asymptotic stability (`asymptoticallyStableAt_dampedPendulum`, MLS Example 4.7);
 * the conclusion concerns actual trajectories: the flow of `springField id sin` exists and decays
   exponentially from every initial state within some `ε` (`exists_hasFlow_decay_dampedPendulum`).
 
@@ -136,9 +136,9 @@ theorem exponentiallyStable_springField_pendulum {k b : ℝ} (hk : 0 < k) (hb : 
   rw [hconj]
   exact exponentiallyStable_pendulumField hk hb
 
-/-- **E023's damped pendulum `ẋ₁ = x₂`, `ẋ₂ = −x₂ − sin x₁` is exponentially stable** (MLS
-Definition 4.3, p. 181), by the indirect method (MLS Theorem 4.6, p. 184, and p. 185). E023 proved
-asymptotic stability by Lasalle's principle (`asymptoticallyStableAt_dampedPendulum`). -/
+/-- **The damped pendulum `ẋ₁ = x₂`, `ẋ₂ = −x₂ − sin x₁` is exponentially stable** (MLS
+Definition 4.3, p. 181), by the indirect method (MLS Theorem 4.6, p. 184, and p. 185). Lasalle's
+principle gives asymptotic stability (`asymptoticallyStableAt_dampedPendulum`). -/
 theorem exponentiallyStable_dampedPendulum :
     ExponentiallyStable (fun _ => springField id Real.sin) 0 := by
   have h := exponentiallyStable_springField_pendulum one_pos one_pos
@@ -148,7 +148,7 @@ theorem exponentiallyStable_dampedPendulum :
   rw [hf]
   exact h
 
-/-- **The trajectories of E023's damped pendulum decay exponentially** (MLS Definition 4.3, p. 181,
+/-- **The trajectories of the damped pendulum decay exponentially** (MLS Definition 4.3, p. 181,
 applied to the flow): the field `springField id sin` is Lipschitz, so its flow `φ` exists
 (`exists_hasFlow_of_lipschitzWith`), and for some `m, α, ε > 0` every trajectory from
 `‖x₀‖ ≤ ε` satisfies `‖φ(t, x₀)‖ ≤ m e^{−αt} ‖x₀‖` for `t ≥ 0`. This shows that the stability

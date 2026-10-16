@@ -4,7 +4,7 @@ import RoboLean.Control.AugmentedPD
 /-!
 # The book's "robot" `(M, C, N)` and computed torque for it (MLS §6.5, Proposition 4.8)
 
-MLS Chapter 6, §5, printed pp. 300–303 (renders and text read this session), with Proposition 4.8
+MLS Chapter 6, §5, printed pp. 300–303, with Proposition 4.8
 (p. 192).
 
 **What MLS states.** For a constrained robot system `M(q) ẍ + C(q, q̇) ẋ + N(q, q̇) = F` (p. 300),
@@ -30,7 +30,7 @@ The quantities `M`, `C`, and `N` completely parameterize the dynamics of the mec
   tracking error decays exponentially. Only positive definiteness is used; the skew property is not
   needed by computed torque (it is needed by the PD-type laws, not formalized here).
 * `ManipulatorModel.toRobotSystem`: the open-chain manipulator model (4.47) is a robot; its field
-  and computed torque law are E015's by definition (`toRobotSystem_field`,
+  and computed torque law are those of `ManipulatorModel` by definition (`toRobotSystem_field`,
   `toRobotSystem_computedTorque`) and it has the skew property for symmetric link inertias
   (`toRobotSystem_hasSkewProperty`, Lemma 4.2(2)).
 
@@ -233,18 +233,19 @@ namespace ManipulatorModel
 variable {n : ℕ} (P : ManipulatorModel n)
 
 /-- **The open-chain manipulator (4.47) as a robot (MLS printed p. 303: "we model an actuated,
-open-chain manipulator" as a robot):** `M`, `C`, `N` of E015's `ManipulatorModel` (MLS eqs. (4.19),
+open-chain manipulator" as a robot):** `M`, `C`, `N` of `ManipulatorModel` (MLS eqs. (4.19),
 (4.23), p. 170). -/
 def toRobotSystem : Control.RobotSystem n :=
   ⟨P.M, P.C, P.N⟩
 
-/-- **The robot's first-order system is E015's closed loop of MLS eq. (4.47)** (eq. (4.31)), by
-definition. -/
+/-- **The robot's first-order system is the closed loop of MLS eq. (4.47) of `ManipulatorModel`**
+(eq. (4.31)), by definition. -/
 theorem toRobotSystem_field (u : ℝ → (Fin n → ℝ) → (Fin n → ℝ) → Fin n → ℝ) :
     P.toRobotSystem.field u = P.field u :=
   rfl
 
-/-- **The robot's computed torque law is E015's law, MLS eq. (4.49), p. 191**, by definition. -/
+/-- **The robot's computed torque law is the law of `ManipulatorModel`, MLS eq. (4.49), p. 191**, by
+definition. -/
 theorem toRobotSystem_computedTorque (Kp Kv : Matrix (Fin n) (Fin n) ℝ)
     (θd θd' θd'' : ℝ → Fin n → ℝ) :
     P.toRobotSystem.computedTorque Kp Kv θd θd' θd'' = P.computedTorque Kp Kv θd θd' θd'' :=
@@ -252,7 +253,7 @@ theorem toRobotSystem_computedTorque (Kp Kv : Matrix (Fin n) (Fin n) ℝ)
 
 /-- **The open-chain manipulator has the skew property (MLS Lemma 4.2(2), p. 171)** for symmetric
 link inertias: along every motion, every actual derivative of `s ↦ M(θ(s))` minus `2C` is
-skew-symmetric (`Ṁ = C + Cᵀ`, E016's `Mdot_sub_C`). -/
+skew-symmetric (`Ṁ = C + Cᵀ`, `Mdot_sub_C`). -/
 theorem toRobotSystem_hasSkewProperty (h : ∀ k, (P.chain.linkInertia k).IsSymm) :
     P.toRobotSystem.HasSkewProperty := by
   intro x x' t Md hx hMd

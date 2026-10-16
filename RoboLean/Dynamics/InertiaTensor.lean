@@ -28,8 +28,8 @@ distribution is built into the type. Integrals are Mathlib's Bochner integrals. 
 integrable, `Integrable (fun r => ‖r‖²) μ`; MLS presupposes that the integrals exist and states
 no such condition. Symmetry needs no hypothesis.
 
-**What E012's hypotheses on `𝓘` mean for a distribution.** `RigidBody.generalizedInertia m 𝓘`
-was used with `𝓘` symmetric and positive (semi)definite as explicit hypotheses. For
+**What the hypotheses on `𝓘` mean for a distribution.** `RigidBody.generalizedInertia m 𝓘`
+is used with `𝓘` symmetric and positive (semi)definite as explicit hypotheses. For
 `𝓘 = inertiaTensor μ`: symmetry always holds (`inertiaTensor_isSymm`); positive
 semidefiniteness holds for every distribution with integrable second moment
 (`inertiaTensor_posSemidef`), since `ωᵀ 𝓘 ω = ∫ (r̂ω)ᵀ(r̂ω) dμ` (`dotProduct_inertiaTensor_mulVec`,

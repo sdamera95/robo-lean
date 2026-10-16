@@ -4,7 +4,7 @@ import RoboLean.Control.LyapunovFlow
 /-!
 # The solution flow of the PD closed loop (MLS (4.52), p. 193; standing assumption, p. 179)
 
-E019 proved asymptotic stability of PD set-point control with compensation of `N`
+The library first proved asymptotic stability of PD set-point control with compensation of `N`
 (`ManipulatorModel.globallyAsymptoticallyStableAt_pdCompensatedTorque`, MLS Proposition 4.9 as
 formalized) under a solution-flow hypothesis `Stability.HasFlow` for the closed loop (4.52), and
 constructed the flow only for constant inertia. This module supplies the a-priori bound that the

@@ -12,7 +12,7 @@ With `k` contacts, wrenches written in the one object frame superpose, and the g
 `G = [Ad_{g_{oc₁}⁻¹}ᵀ B_{c₁} ⋯ Ad_{g_{oc_k}⁻¹}ᵀ B_{c_k}]` (eq. (5.6), p. 219), with
 `F_o = G f_c`, `f_c ∈ FC = FC_{c₁} × ⋯ × FC_{c_k}` (eq. (5.7), pp. 219–220).
 
-Representation (the brief's design question Q2). `ContactGrasp W ι m` holds, for each contact
+Representation (design question Q2). `ContactGrasp W ι m` holds, for each contact
 `i : ι`, a contact model (`ContactModel W (m i)`) and the linear wrench transformation from its
 contact frame to the object frame. The grasp map is a real linear map on the contact force space
 `(i : ι) → Fin (m i) → ℝ` (the book's `f_c = (f_{c₁}, …, f_{c_k})`); its friction cone is the

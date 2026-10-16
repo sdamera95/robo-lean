@@ -4,7 +4,7 @@ import Mathlib.Dynamics.OmegaLimit
 /-!
 # Lasalle's invariance principle (MLS Theorem 4.7, Definitions 4.7–4.8, pp. 188–189)
 
-**What MLS prints (read this session, p. 188).** For the autonomous system `ẋ = f(x)` (4.46) with
+**What MLS prints (p. 188).** For the autonomous system `ẋ = f(x)` (4.46) with
 solutions `s(t, x₀, t₀)`:
 
 * Definition 4.7: "The set `S ⊂ ℝⁿ` is the ω limit set of a trajectory `s(·, x₀, t₀)` if for every
@@ -36,14 +36,14 @@ solutions `s(t, x₀, t₀)`:
 **Hypotheses the book does not state.**
 
 * `Ω_c` positively invariant. As printed, with `V̇ ≤ 0` only on `Ω_c`, a trajectory starting on
-  the level `{V = c}` can leave `Ω_c` (derivation in E019, not formalized: on `ℝ` with
+  the level `{V = c}` can leave `Ω_c` (a derivation not formalized here: on `ℝ` with
   `V = 2x² − x⁴` on `[−1, 1]`, `V = 1` on `[1, 3]`, `V = 1 + (x − 3)²` beyond, and a Lipschitz
   field `f = −x` on `x ≤ 1`, `f > 0` on `(3/2, 4)`, `f(4) = 0`, the trajectory from `x₀ = 2 ∈ Ω₁`
   tends to `4 ∉ Ω₁`, while `S ⊆ Ω₁`). Trajectories from `{V < c}` cannot leave `Ω_c`
   (`le_of_lyapunov_sublevel`), and that is the form proved;
 * `V̇` continuous on `Ω_c`. MLS takes `V̇ = (∂V/∂x) f`, continuous when `V` is `C¹`; it is used to
   show that `V̇` vanishes on the ω-limit set;
-* the derivative along solutions is E016's `HasDerivAlongSolutions` for the time-invariant `V`,
+* the derivative along solutions is `HasDerivAlongSolutions` for the time-invariant `V`,
   as in Theorem 4.4.
 
 The trajectory from `x₀` at time `t₀` is `t ↦ φ (t − t₀) x₀`; its ω-limit set does not depend on

@@ -8,8 +8,8 @@ The box of MLS Example 5.2 (printed p. 221, Figure 5.5; frames `boxFrame r`, con
 `p_{c₁} = (0, -r, 0)` and `p_{c₂} = (0, r, 0)`) is used for concrete instances of the general
 results of `Grasp/HandJacobian` and `Grasp/Manipulability`.
 
-* `boxSpatialGrasp` is Example 5.2 as a `SpatialGrasp`; its contact grasp is E025's `boxGrasp`, so
-  it is force-closure for `r ≠ 0` (the claim of MLS p. 242, E025).
+* `boxSpatialGrasp` is Example 5.2 as a `SpatialGrasp`; its contact grasp is `boxGrasp`, so
+  it is force-closure for `r ≠ 0` (the claim of MLS p. 242).
 * **Summary item 6 (MLS p. 257) is false for a general multifingered grasp** (Definition 5.4):
   `summaryItem6_counterexample` takes the force-closure box grasp with `J_h = Gᵀ` (six joint
   rates, read as twist coordinates); it is manipulable, and `J_h` is not surjective, since the
@@ -23,8 +23,8 @@ results of `Grasp/HandJacobian` and `Grasp/Manipulability`.
   and the hand is manipulable at no configuration (the fingers cannot rotate about the contact
   normals, so the fourth row of each block of `J_h` vanishes). These are the cases "not
   force-closure, manipulable" and "force closure, not manipulable" of MLS Figure 5.16 (p. 240),
-  for these hands; the second matches the conclusion MLS draws for the SCARA hand of Example 5.6
-  (p. 242), not re-derived here.
+  for these hands; the second matches the conclusion MLS draws for the SCARA hand of the example of
+  §5.3 (p. 242), not re-derived here.
 
 These are convention checks and satisfying instances on concrete inputs. Finite-force caveat:
 force-closure and manipulability assume unbounded contact forces and joint rates at maintained
@@ -42,13 +42,13 @@ soft-finger contacts (eq. (5.4), `μ, γ > 0`) at the frames `boxFrame r`. -/
 def boxSpatialGrasp (μ γ r : ℝ) (hμ : 0 < μ) (hγ : 0 < γ) : SpatialGrasp (Fin 2) fun _ => 4 :=
   ⟨fun _ => ContactModel.softFinger μ γ hμ hγ, boxFrame r⟩
 
-/-- The contact grasp of `boxSpatialGrasp` is E025's `boxGrasp` (MLS Example 5.2, printed
+/-- The contact grasp of `boxSpatialGrasp` is `boxGrasp` (MLS Example 5.2, printed
 p. 221). -/
 theorem boxSpatialGrasp_toContactGrasp (μ γ r : ℝ) (hμ : 0 < μ) (hγ : 0 < γ) :
     (boxSpatialGrasp μ γ r hμ hγ).toContactGrasp = boxGrasp μ γ r hμ hγ := rfl
 
 /-- The grasp of MLS Example 5.2 is force-closure for `r ≠ 0` (the claim of MLS printed p. 242,
-proved by E025 as `boxGrasp_isForceClosure`). Finite-force caveat (MLS p. 214). -/
+proved as `boxGrasp_isForceClosure`). Finite-force caveat (MLS p. 214). -/
 theorem boxSpatialGrasp_isForceClosure (μ γ r : ℝ) (hμ : 0 < μ) (hγ : 0 < γ) (hr : r ≠ 0) :
     (boxSpatialGrasp μ γ r hμ hγ).toGrasp.IsForceClosure :=
   boxGrasp_isForceClosure μ γ r hμ hγ hr

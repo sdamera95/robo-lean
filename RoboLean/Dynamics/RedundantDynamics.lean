@@ -4,7 +4,7 @@ import Mathlib.Data.Matrix.ColumnRowPartitioned
 /-!
 # Redundant manipulators and redundant grasps (MLS Chapter 6, §3.1, eqs. (6.29)–(6.31))
 
-MLS Chapter 6, §3.1, printed pp. 285–290 (renders of pp. 287–289 inspected this session).
+MLS Chapter 6, §3.1, printed pp. 285–290.
 
 **What MLS states.** For a manipulator Jacobian `J(θ) ∈ ℝ^{p×n}` of full row rank, "we define a
 matrix `K(θ) ∈ ℝ^{(n−p)×n}` whose rows span the null space of `J(θ)`" and the internal motion

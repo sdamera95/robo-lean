@@ -3,7 +3,7 @@ import RoboLean.Dynamics.CompositeDynamics
 /-!
 # Stacked finger dynamics, eq. (6.16) (MLS Chapter 6, §2.1)
 
-MLS Chapter 6, §2.1, printed p. 276, eq. (6.16) (render inspected this session).
+MLS Chapter 6, §2.1, printed p. 276, eq. (6.16).
 
 **What MLS states.** "the finger dynamics have the form
 `M_f(θ) θ̈ + C_f(θ, θ̇) θ̇ + N_f(θ, θ̇) = τ`, where `θ = (θ_{f₁}, …, θ_{f_k}) ∈ ℝⁿ` is the vector of
@@ -27,9 +27,9 @@ stacked joint vector is `θ ∈ ℝᴺ` with the relabeling `e : (Σ i, Fin (n i
   (`lagrangeEquationsAt_stack_iff`): the hand's `C_f` is "formed by appropriately stacking" the
   fingers' `C_{fᵢ}`.
 
-Hypotheses as in E013: symmetric inertia fields with Fréchet derivative data at the configuration,
-actual velocity and acceleration of the motion. Nothing here models couplings between fingers other
-than through the object (none in (6.16)).
+Hypotheses as in `Dynamics/Lagrangian`: symmetric inertia fields with Fréchet derivative data at the
+configuration, actual velocity and acceleration of the motion. Nothing here models couplings between
+fingers other than through the object (none in (6.16)).
 -/
 
 noncomputable section

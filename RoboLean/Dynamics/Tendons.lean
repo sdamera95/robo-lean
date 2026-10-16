@@ -7,16 +7,16 @@ import RoboLean.Grasp.Steinitz
 /-!
 # Kinematics and statics of tendon actuation (MLS Chapter 6, §4, eqs. (6.34)–(6.35))
 
-MLS Chapter 6, §4, printed pp. 293–300 (renders inspected this session).
+MLS Chapter 6, §4, printed pp. 293–300.
 
 **Setting (MLS pp. 294–295).** A finger with joint angles `θ ∈ ℝⁿ` is driven by `p` tendons. The
 routing of tendon `i` is an extension function `hᵢ : ℝⁿ → ℝ` (`h : ℝⁿ → ℝᵖ`); the coupling matrix is
 `P(θ) = (∂h/∂θ)ᵀ ∈ ℝ^{n×p}` (`couplingMatrix`, with `∂h/∂θ = MapJacobian.jac h θ`), so that
 `ė = Pᵀ(θ) θ̇` along a motion (`hasDerivAt_extension`). "Since the work done by the tendons must
 equal that done by the fingers ... we can use conservation of energy to conclude `τ = P(θ) f`" (p.
-295): as for (5.16) in E028, the energy argument is a premise of the model and is not derived; only
-the power identity `(P f) ⬝ θ̇ = f ⬝ (Pᵀ θ̇)` (`dotProduct_tendonTorque`) and its uniqueness step
-(`eq_mulVec_of_forall_dotProduct`) are formalized.
+295): as for (5.16) in `Grasp/HandJacobian`, the energy argument is a premise of the model and is
+not derived; only the power identity `(P f) ⬝ θ̇ = f ⬝ (Pᵀ θ̇)` (`dotProduct_tendonTorque`) and its
+uniqueness step (`eq_mulVec_of_forall_dotProduct`) are formalized.
 
 **Elastic tendons (p. 297).** `f = K (e + h(0) − h(θ))` (`elasticForce`), the stiffness
 `S(θ) = P K (h(θ) − h(0))` (`tendonStiffness`) and the coupling `Q = P K`; the dynamics
@@ -34,7 +34,7 @@ both for `n ≥ 1` (the hypothesis G28 and G38 add). The tensions `f = P⁺ τ +
 (`IsTendonForceClosure.exists_rightPinv_add`), and the position-controlled case (6.35) is solved by
 `e = (P K)⁺ τ + c e_N` for large `c` (`IsTendonForceClosure.exists_extension`), for a diagonal
 stiffness matrix with positive entries (p. 297; the printed reason "since `K` is invertible" does
-not suffice, see the E037 source observations).
+not suffice, source observation O11 in the coverage ledger).
 
 Nothing here models friction, tendon or actuator dynamics, slack tendons or limits on the forces.
 -/

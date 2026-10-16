@@ -8,14 +8,14 @@ MLS Example 4.8 (printed pp. 198–199) controls "a planar two degree of freedom
 workspace variables the xy position of the end-effector"; it is a numerical comparison (Figures
 4.10–4.11) with no printed link lengths, masses, gains or step size, so it is not reproduced. Here
 the workspace map of that setting is defined for the dynamic arm of MLS Figure 4.4
-(`planarTwoLinkArm`, E012), and the hypotheses of the general workspace theorems
+(`planarTwoLinkArm`), and the hypotheses of the general workspace theorems
 (`RoboLean.Control.WorkspaceControl`) are discharged for it:
 
 * `planarArmXY l₁ l₂` is the end-effector position
   `(l₁ cos θ₁ + l₂ cos(θ₁ + θ₂), l₁ sin θ₁ + l₂ sin(θ₁ + θ₂))`, in the frame of `planarTwoLinkArm`:
   the arm lies along `+x` at `θ = 0`, joint 2 at `(l₁, 0, 0)`, and `l₂` is the distance from joint 2
-  to the end effector. The kinematic arm `planarTwoLink` of Chapter 3 lies along `+y` at `θ = 0`
-  (E005); the two conventions are kept, and this map is not `planarTwoLinkPosition`;
+  to the end effector. The kinematic arm `planarTwoLink` of Chapter 3 lies along `+y` at `θ = 0`;
+  the two conventions are kept, and this map is not `planarTwoLinkPosition`;
 * its Jacobian matrix is computed (`jac_planarArmXY`) and `det J = l₁ l₂ sin θ₂`
   (`det_jac_planarArmXY`), so `J` is invertible exactly off the folded and stretched
   configurations `sin θ₂ = 0` when `l₁, l₂ ≠ 0` (the singular configurations relative to `x` of

@@ -4,7 +4,7 @@ import RoboLean.Control.StabilityTheorems
 /-!
 # Augmented PD control and exponential trajectory tracking (MLS Proposition 4.10, pp. 194–195)
 
-**What MLS prints (read this session, pp. 194–195, rendered).** The augmented PD control law is
+**What MLS prints (pp. 194–195).** The augmented PD control law is
 (4.53), `τ = M(θ) θ̈_d + C(θ, θ̇) θ̇_d + N(θ, θ̇) − K_v ė − K_p e` with `e = θ − θ_d`, and
 Proposition 4.10 states: "The control law (4.53) applied to the system (4.47) results in
 exponential trajectory tracking if `K_v, K_p > 0`." The proof writes the closed loop as (4.54),
@@ -29,7 +29,7 @@ and hence the system is exponentially stable using Theorem 4.5."
   last line differs: MLS's `½ Ṁ` is `Ṁ − C` here. Since `Ṁ = C + Cᵀ` (`Mdot_sub_C`, from the skew
   symmetry of `Ṁ − 2C`, Lemma 4.2), the difference is `ε eᵀ(½ Ṁ − C)ė`, the bilinear form of a
   skew-symmetric matrix at `(e, ė)`, which vanishes for `e = ė` but not in general (on the planar
-  two-link arm it is nonzero at one evaluated point, E023 gate `Observation.lean`); it does not
+  two-link arm it is nonzero at one evaluated point); it does not
   change the order of the terms, and the argument below bounds the corrected term;
 * the bounds that make the argument work, with an explicit smallness condition on `ε`, on the
   tube `‖(e, ė)‖ ≤ R` around the desired trajectory (`augmentedEnergy_bounds`,
@@ -110,7 +110,7 @@ variable {n : ℕ} (P : ManipulatorModel n)
 /-! ### The rate `Ṁ` of the inertia matrix and the identity `Ṁ = C + Cᵀ` -/
 
 /-- **The rate `Ṁ` of the manipulator inertia matrix along a motion** (MLS pp. 169–171):
-`Ṁ(θ, θ̇) = ∑ₖ θ̇ₖ ∂M/∂θₖ`, from the actual partial derivatives of `M` at `θ` (E013's
+`Ṁ(θ, θ̇) = ∑ₖ θ̇ₖ ∂M/∂θₖ`, from the actual partial derivatives of `M` at `θ` (the library's
 `InertialChain.massMatrixDeriv`). -/
 def Mdot (q v : Fin n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
   Christoffel.rate (Christoffel.partials (P.chain.massMatrixDeriv q)) v

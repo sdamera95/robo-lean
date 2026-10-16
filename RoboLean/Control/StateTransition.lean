@@ -4,7 +4,7 @@ import Mathlib.Analysis.Calculus.FDeriv.Mul
 /-!
 # State-transition matrices of linear time-varying systems (for MLS Theorem 4.6, printed p. 184)
 
-**What MLS prints (read this session, pp. 179 and 184).** The linearization of `ẋ = f(x, t)`
+**What MLS prints (pp. 179 and 184).** The linearization of `ẋ = f(x, t)`
 (4.37) about the origin is the linear time-varying system `ż = A(t)z` (4.40), with
 `A(t) = ∂f(x, t)/∂x |_{x=0}` (4.38); Theorem 4.6 assumes `A(·)` bounded and `0` uniformly
 asymptotically stable for (4.40). MLS assumes "the standard conditions for the existence and

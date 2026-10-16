@@ -4,8 +4,8 @@ import RoboLean.Examples.HandGrasp
 /-!
 # The point-contact Cartesian hand as an instance of (6.18)–(6.22) through a chart
 
-MLS Chapter 6, §2.1, printed pp. 277–278, eqs. (6.18)–(6.22), with the hand of E028 (G26): the box
-of Example 5.2 (p. 221) held by two Cartesian fingers with point contacts with friction
+MLS Chapter 6, §2.1, printed pp. 277–278, eqs. (6.18)–(6.22), with the hand of ledger row G26: the
+box of Example 5.2 (p. 221) held by two Cartesian fingers with point contacts with friction
 (`Examples.pointHand`), and the object pose parameterized by the translational chart `x ↦ (I, x)`
 (`Composite.translationalChart`, `Composite.isBodyJacobian_translationalChart`).
 

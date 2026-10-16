@@ -4,7 +4,7 @@ import RoboLean.Control.QuadraticBounds
 /-!
 # PD set-point control of a manipulator (MLS §5.3, Proposition 4.9, pp. 193–195)
 
-**What MLS prints (read this session, pp. 193–195).** The PD law (4.51) is `τ = −K_v ė − K_p e`
+**What MLS prints (pp. 193–195).** The PD law (4.51) is `τ = −K_v ė − K_p e`
 with `e = θ − θ_d`. Proposition 4.9 (p. 193): "If `θ̇_d ≡ 0` and `K_v, K_p > 0`, the control law
 (4.51) applied to the system (4.47) renders the equilibrium point `θ = θ_d` globally
 asymptotically stable." The proof writes the closed loop as (4.52),
@@ -31,7 +31,7 @@ for `θ̇_d ≡ 0` "the control law (4.53) simplifies to the original PD control
   (`isEquilibrium_pdCompensatedTorque`), and it is stable in the sense of Lyapunov
   (`stableAt_pdCompensatedTorque`, Theorem 4.4(1)).
 
-**Asymptotic stability** (the printed conclusion) is proved in `PDAsymptotic` (E019) by Lasalle's
+**Asymptotic stability** (the printed conclusion) is proved in `PDAsymptotic` by Lasalle's
 principle (Theorem 4.7, p. 188), under a solution-flow hypothesis and a uniform bound on `M`.
 Gain hypotheses: `K_p` symmetric positive definite
 (Mathlib's `PosDef` includes symmetry; MLS writes `K_p > 0`); for stability `K_v` positive
@@ -113,7 +113,8 @@ theorem isEquilibrium_pdCompensatedTorque (Kp Kv : Matrix (Fin n) (Fin n) ℝ) {
 velocity `θ'` near `t` and acceleration `θ''` at `t` are actual derivatives and which satisfies
 the equations of motion (4.47) at `t` under `τ = N(θ, θ̇) − K_v θ̇ − K_p (θ − θ_d)`, the function
 `V = ½ θ̇ᵀ M(θ) θ̇ + ½ (θ − θ_d)ᵀ K_p (θ − θ_d)` has derivative `−θ̇ᵀ K_v θ̇` at `t`. The proof uses
-the power balance `Ṫ = θ̇ ⬝ (τ − N)`, which rests on the skew symmetry of `Ṁ − 2C` (E013). -/
+the power balance `Ṫ = θ̇ ⬝ (τ − N)`, which rests on the skew symmetry of `Ṁ − 2C`
+(MLS Lemma 4.2(2)). -/
 theorem hasDerivAt_pdEnergy (h : ∀ k, (P.chain.linkInertia k).IsSymm)
     {Kp Kv : Matrix (Fin n) (Fin n) ℝ} (hKp : Kp.IsSymm) (θd : Fin n → ℝ)
     {θ θ' : ℝ → Fin n → ℝ} {θ'' : Fin n → ℝ} {t : ℝ}

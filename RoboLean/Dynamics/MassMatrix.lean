@@ -25,7 +25,7 @@ Construction: the frame of link `k` is the tool frame of `InertialChain.linkChai
 chain whose joints after `k` are frozen (their twists replaced by `0`, so their motions are the
 identity) and whose reference tool pose is `g_{sl_k}(0)`. Its body Jacobian, defined in
 `RoboLean.Kinematics.Jacobian`, is then exactly the printed `n`-column `Jₖ` with zero columns
-after `k` (`linkBodyJacobian_of_le`, `linkBodyJacobian_of_lt`), and E009's
+after `k` (`linkBodyJacobian_of_le`, `linkBodyJacobian_of_lt`), and
 `SerialChain.bodyVelocity_fk` gives `Vᵇ = Jₖ θ̇` for actual trajectories.
 
 Positivity: MLS Lemma 4.2 (p. 171) states that `M(θ)` is symmetric and positive definite,
@@ -79,7 +79,7 @@ def linkPose (k : Fin n) (θ : Fin n → ℝ) : RigidTransform :=
   (ch.linkChain k).fk θ
 
 /-- The body Jacobian `J_k = J^b_{sl_k}(θ)` of the frame of link `k` (MLS p. 168), as the
-columns of the E009 body Jacobian (eq. (3.55)) of `linkChain k`. Twist order `(v, ω)`; Lean
+columns of the body Jacobian (eq. (3.55)) of `linkChain k`. Twist order `(v, ω)`; Lean
 column `j` is the book's column `j + 1`. -/
 def linkBodyJacobian (k : Fin n) (θ : Fin n → ℝ) : Fin n → Twist :=
   (ch.linkChain k).bodyJacobian θ
@@ -178,7 +178,7 @@ theorem linkJacobianMatrix_mulVec (k : Fin n) (θ θ' : Fin n → ℝ) :
   simp only [linkJacobianMatrix, Matrix.mulVec, dotProduct, Matrix.of_apply,
     Twist.coordinates_smul, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, mul_comm]
 
-/-- The link Jacobian matrix of MLS p. 168 is the E011 body Jacobian matrix (MLS p. 117,
+/-- The link Jacobian matrix of MLS p. 168 is the body Jacobian matrix (MLS p. 117,
 eq. (3.55)) of the chain `linkChain k` that carries the frame of link `k`; the two definitions
 agree by unfolding. -/
 theorem linkJacobianMatrix_eq_bodyJacobianMatrix (k : Fin n) (θ : Fin n → ℝ) :
@@ -423,8 +423,7 @@ theorem linkJacobianMatrix_reframe (h : Fin n → RigidTransform) (k : Fin n) (�
 link frame by a constant body-fixed rigid transform `h k`, and re-expressing every link inertia
 in the moved frame by `transformInertia (h k)`, leaves the manipulator inertia matrix
 `M(θ) = ∑ₖ Jₖᵀ 𝓜ₖ Jₖ` unchanged at every configuration, for every chain and every choice of
-`h`: `Jₖ ↦ Ad_{h_k⁻¹} Jₖ` and `𝓜ₖ ↦ Ad_{h_k}ᵀ 𝓜ₖ Ad_{h_k}` cancel. (Statement and proof from
-the E012 review probe.) -/
+`h`: `Jₖ ↦ Ad_{h_k⁻¹} Jₖ` and `𝓜ₖ ↦ Ad_{h_k}ᵀ 𝓜ₖ Ad_{h_k}` cancel. -/
 theorem massMatrix_reframe (h : Fin n → RigidTransform) (θ : Fin n → ℝ) :
     (ch.reframe h).massMatrix θ = ch.massMatrix θ := by
   unfold massMatrix

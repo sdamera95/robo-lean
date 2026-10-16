@@ -11,7 +11,7 @@ import Mathlib.Topology.Algebra.Module.FiniteDimension
 /-!
 # Decay of `exp(tA)` from the eigenvalues of `A` (for MLS Theorem 4.6, printed pp. 184–185)
 
-**What MLS prints (read this session, pp. 184–185).** After Theorem 4.6 (stability by
+**What MLS prints (pp. 184–185).** After Theorem 4.6 (stability by
 linearization, p. 184), p. 185 states: "If the system (4.37) is time-invariant, then the indirect
 method says that if the eigenvalues of `A = ∂f(x)/∂x |_{x=0}` are in the open left half complex
 plane, then the origin is asymptotically stable." The linear fact behind it, that `ż = Az` is then

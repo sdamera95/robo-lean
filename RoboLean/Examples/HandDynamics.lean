@@ -18,8 +18,8 @@ MLS Chapter 6, §2, printed pp. 276–284. Two small systems that satisfy every 
   configuration, and, for `I > 0`, growing without bound as `cos θ → 0` (p. 283's singular
   configurations).
 
-The SCARA hand of MLS Example 5.6 (E028, G27) is not an instance: with the object pose of the
-example its hand Jacobian is not onto at any finger configuration
+The SCARA hand of the example of MLS §5.3 (ledger row G27) is not an instance: with the object pose
+of the example its hand Jacobian is not onto at any finger configuration
 (`Examples.scaraHand_graspTranspose_rotY_not_mem_range`), so it is not invertible. These are
 mathematical instances; nothing here models a physical hand.
 -/

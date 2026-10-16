@@ -80,7 +80,7 @@ def gravityJacobian (m : Fin n → ℝ) (g : ℝ) (up : Vec3) (θ : Fin n → �
 
 /-- **Rate of change of a link height along a motion (MLS p. 169, with p. 117).** For every
 differentiable joint trajectory, `d/dt h_k(θ(t)) = ⟪up, ω × p_k + v⟫` with `(v, ω) = J θ̇` the
-spatial velocity of the frame of link `k` (E009 `SerialChain.hasDerivAt_fk_translation`). -/
+spatial velocity of the frame of link `k` (`SerialChain.hasDerivAt_fk_translation`). -/
 theorem hasDerivAt_linkHeight (up : Vec3) (k : Fin n) {θ : ℝ → Fin n → ℝ} {θ' : Fin n → ℝ}
     {t : ℝ} (hθ : ∀ i, HasDerivAt (fun s => θ s i) (θ' i) t) :
     HasDerivAt (fun s => ch.linkHeight up k (θ s))

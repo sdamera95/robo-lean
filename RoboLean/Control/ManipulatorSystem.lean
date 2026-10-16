@@ -12,11 +12,11 @@ Here:
 * a `ManipulatorModel n` is an `InertialChain n` with link masses, a gravitational constant, an
   upward vector and a field `Nₑ(θ, θ̇)` of further joint forces (for example friction, MLS p. 170);
 * `M` is the manipulator inertia matrix (4.19), `C` the Christoffel Coriolis matrix (4.23) built
-  from the actual partial derivatives of `M` (E013), and `N(θ, θ̇) = ∂V/∂θ + Nₑ(θ, θ̇)` with `V` the
+  from the actual partial derivatives of `M`, and `N(θ, θ̇) = ∂V/∂θ + Nₑ(θ, θ̇)` with `V` the
   gravitational potential energy (p. 169);
-* `EquationsOfMotionAt θ τ t` is Lagrange's equations (Theorem 4.1, E013's predicate) for
-  `L = T − V` with generalized force `τ − Nₑ`, and it is equivalent to (4.47) at `t`
-  (`equationsOfMotionAt_iff`; only symmetric link inertias are assumed);
+* `EquationsOfMotionAt θ τ t` is Lagrange's equations (Theorem 4.1, the predicate
+  `Lagrangian.LagrangeEquationsAt`) for `L = T − V` with generalized force `τ − Nₑ`, and it is
+  equivalent to (4.47) at `t` (`equationsOfMotionAt_iff`; only symmetric link inertias are assumed);
 * `field u` is the first-order system `ẋ = f(t, x)` of MLS eq. (4.31) on the state
   `x = (θ, θ̇) ∈ ℝⁿ × ℝⁿ` under a feedback law `τ = u(t, θ, θ̇)`:
   `f(t, (q, v)) = (v, M(q)⁻¹ (u(t, q, v) − C(q, v) v − N(q, v)))`. With `M(q)` positive definite,
@@ -38,7 +38,7 @@ namespace RoboLean
 
 /-- **The manipulator model of MLS eq. (4.47), p. 190:** an open chain with link inertias
 (`InertialChain`, p. 168), the link masses `m_k`, the gravitational constant `g`, the upward
-vector `up` (gravity is `−g • up`, E013) and a field `Nₑ(θ, θ̇)` of further joint forces, such as
+vector `up` (gravity is `−g • up`) and a field `Nₑ(θ, θ̇)` of further joint forces, such as
 friction, collected with gravity in `N` (p. 170). The masses are not tied by type to the
 generalized inertias. -/
 structure ManipulatorModel (n : ℕ) where
@@ -48,7 +48,7 @@ structure ManipulatorModel (n : ℕ) where
   mass : Fin n → ℝ
   /-- The gravitational constant `g` (MLS p. 169). -/
   gravity : ℝ
-  /-- The upward vector, opposite to gravity, in base coordinates (E013 convention). -/
+  /-- The upward vector, opposite to gravity, in base coordinates (gravity is `−g • up`). -/
   up : Vec3
   /-- Further joint forces `Nₑ(θ, θ̇)`, for example viscous friction (MLS p. 170). -/
   jointForce : (Fin n → ℝ) → (Fin n → ℝ) → Fin n → ℝ
@@ -62,12 +62,12 @@ def M (q : Fin n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
   P.chain.massMatrix q
 
 /-- **The manipulator inertia matrix depends continuously on the configuration** (its entries are
-differentiable, MLS Proposition 4.3, p. 176, E013). -/
+differentiable, MLS Proposition 4.3, p. 176). -/
 theorem continuous_M : Continuous P.M :=
   continuous_matrix fun i j => (P.chain.differentiable_massMatrix i j).continuous
 
 /-- The Coriolis matrix `C(θ, θ̇)` of MLS eq. (4.23), p. 170, from the actual partial derivatives
-of `M` (E013 `InertialChain.massMatrixDeriv`). -/
+of `M` (`InertialChain.massMatrixDeriv`). -/
 def C (q v : Fin n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
   Christoffel.coriolisMatrix (Christoffel.partials (P.chain.massMatrixDeriv q)) v
 

@@ -3,7 +3,7 @@ import RoboLean.Dynamics.ConstrainedLagrangian
 /-!
 # Examples 6.1 and 6.2 of MLS: the idealized planar pendulum and the rolling disk
 
-MLS Chapter 6, §1, printed pp. 270–274 (renders inspected this session).
+MLS Chapter 6, §1, printed pp. 270–274.
 
 **Example 6.1 (pp. 270–271), the idealized planar pendulum.** Configuration `q = (x, y) ∈ ℝ²`,
 holonomic constraint `x² + y² = l²`, Pfaffian constraint `A(q) = [x y]` ("Differentiating this
@@ -12,8 +12,8 @@ equations of motion (6.5) are `m q̈ + (0, m g) + (x, y) λ = 0`, and (6.6) give
 `λ = (m / (x² + y²)) (ẋ² + ẏ² − g y) = (m / l²)(ẋ² + ẏ² − g y)` on the circle
 (`pendulum_multiplierEquationsAt_iff`). MLS prints `λ = −(m / l²)(g y + ẋ² + ẏ²)`, from a version of
 (6.6) with `− Ȧ q̇` in place of the `+ Ȧ q̇` of (6.6) on p. 270, and the tension
-`(m g / l) y + (m / l)(ẋ² + ẏ²)`; both differ from the values computed here (E034 source
-observation, one-input evaluation in the gate's `Observation.lean`). The tension `‖(x, y) λ‖` is
+`(m g / l) y + (m / l)(ẋ² + ẏ²)`; both differ from the values computed here (source
+observation O1 in the coverage ledger, checked on one input). The tension `‖(x, y) λ‖` is
 computed with the Euclidean norm, written out (`pendulum_tension`).
 
 **Example 6.2 (pp. 272–274), the rolling disk.** Configuration `q = (x, y, θ, φ)` (Lean indices
@@ -25,7 +25,7 @@ satisfying the constraint near `t`, (6.12) is (6.14), `diag(I₁, I₂ + m ρ²)
 MLS describes `I₁` as the inertia "about the horizontal (rolling) axis" and `I₂` "about the vertical
 axis" and calls `τ_θ` the driving and `τ_φ` the steering torque, while `θ` is the heading and `φ`
 the rolling angle; the formulas use only the symbols, so these labels do not enter the statements
-(E034 source observation).
+(source observation O6 in the coverage ledger).
 
 Nothing here concerns a physical pendulum or disk, friction, or existence of motions.
 -/
@@ -174,7 +174,7 @@ private theorem pendulum_multiplier {m : ℝ} (hm : 0 < m) (g : ℝ) {x : Fin 2 
 along a motion on the circle `x² + y² = l²` near `t` with velocity `θ'` near `t` and acceleration
 `θ''` at `t`, the multiplier equations (6.4) with no applied force hold at `t` exactly when
 `m q̈ + (0, m g) + (x, y) λ = 0` and `λ = (m / l²)(ẋ² + ẏ² − g y)`, the value of (6.6). MLS prints
-`λ = −(m / l²)(g y + ẋ² + ẏ²)` (E034 source observation). -/
+`λ = −(m / l²)(g y + ẋ² + ẏ²)` (source observation O1 in the coverage ledger). -/
 theorem pendulum_multiplierEquationsAt_iff {m g l : ℝ} (hm : 0 < m) (hl : 0 < l)
     {θ θ' : ℝ → Fin 2 → ℝ} {θ'' : Fin 2 → ℝ} {t : ℝ}
     (hθ : ∀ᶠ s in 𝓝 t, HasDerivAt θ (θ' s) s) (hθ' : HasDerivAt θ' θ'' t)
@@ -234,7 +234,7 @@ theorem pendulum_lagrangeDAlembertAt_iff {m g l : ℝ} (hm : 0 < m) (hl : 0 < l)
 
 /-- **MLS Example 6.1, p. 271: the tension `‖(x, y) λ‖`** (Euclidean norm, written out) on the
 circle `x² + y² = l²` with `λ = (m / l²)(ẋ² + ẏ² − g y)` is `(m / l) |ẋ² + ẏ² − g y|`. MLS prints
-`(m g / l) y + (m / l)(ẋ² + ẏ²)` (E034 source observation). -/
+`(m g / l) y + (m / l)(ẋ² + ẏ²)` (source observation O1 in the coverage ledger). -/
 theorem pendulum_tension {m g l : ℝ} (hm : 0 < m) (hl : 0 < l) {q v : Fin 2 → ℝ}
     (hq : q 0 ^ 2 + q 1 ^ 2 = l ^ 2) :
     Real.sqrt ((q 0 * (m / l ^ 2 * (v 0 ^ 2 + v 1 ^ 2 - g * q 1))) ^ 2 +

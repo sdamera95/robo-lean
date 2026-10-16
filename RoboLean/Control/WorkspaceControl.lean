@@ -5,7 +5,7 @@ import RoboLean.Control.AugmentedPD
 /-!
 # Workspace dynamics and workspace computed torque (MLS §5.4, eq. (4.55), Lemma 4.11, pp. 195–198)
 
-**What MLS prints (read this session, printed pp. 196–198).** Let `f : Q → ℝᵖ` be "a smooth and
+**What MLS prints (printed pp. 196–198).** Let `f : Q → ℝᵖ` be "a smooth and
 invertible mapping" from joint variables `θ` to workspace variables `x`, with `n = p` (p. 196);
 `ẋ = J(θ) θ̇` with `J = ∂f/∂θ`, and "under the assumption that `f` is smooth and invertible"
 `θ̇ = J⁻¹ ẋ`, `θ̈ = J⁻¹ ẍ + (d/dt)(J⁻¹) ẋ`. Substituting into `M θ̈ + C θ̇ + N = τ` and
@@ -34,7 +34,7 @@ coordinates" (no formula).
   (`hasDerivAt_workspaceM_comp`), `workspaceMdot − 2 C̃` is skew-symmetric at every `(θ, θ̇)`
   (`skew_workspaceMdot_sub_two_workspaceC`), and so is `M̃˙ − 2 C̃` for every actual derivative
   `M̃˙` along a motion with `J(θ(t))` invertible (`skew_deriv_workspaceM_sub_two_workspaceC`); the
-  proof is by congruence from Lemma 4.2(2) (E013), through the identity
+  proof is by congruence from Lemma 4.2(2), through the identity
   `M̃˙ − 2C̃ = Xᵀ(Ṁ − 2C)X + X'ᵀMX − XᵀMX'`, `X = J⁻¹`, `X' = (d/dt) J⁻¹`
   (`workspaceMdot_sub_two_workspaceC_eq`);
 * the workspace computed torque law with the effective `C̃` and `Ñ` (`workspaceComputedTorque`),
@@ -45,7 +45,7 @@ coordinates" (no formula).
   (`workspaceComputedTorque_tracking`), for every closed-loop solution on which `J` stays
   invertible.
 
-**Differences from the page, recorded in E029.** (1) The hypothesis is `f` of class `C²` with
+**Differences from the page.** (1) The hypothesis is `f` of class `C²` with
 `J(θ)` invertible where it is used (along the motion), not "smooth and invertible": a smooth
 bijection can have a singular Jacobian (`θ ↦ θ³` at `0`), and MLS's proofs use only that `J` is
 invertible (p. 197); a global hypothesis `∀ θ, J(θ)` invertible would exclude the planar arm,
@@ -224,7 +224,7 @@ theorem hasDerivAt_workspaceM_comp (hf : ContDiff ℝ 2 f) {θ : ℝ → Fin n �
 `MapJacobian.hasDerivAt_jac_inv_comp`),
 `M̃˙ − 2C̃ = Xᵀ (Ṁ − 2C) X + X'ᵀ M X − Xᵀ M X'`, at every configuration and rate. MLS prints the
 right-hand side with `M̃˙ − 2C̃` and `M̃` in place of `Ṁ − 2C` and `M`, so the printed right-hand
-side contains its own left-hand side (E029 source observation). -/
+side contains its own left-hand side. -/
 theorem workspaceMdot_sub_two_workspaceC_eq (q v : Fin n → ℝ) :
     P.workspaceMdot f q v - (2 : ℝ) • P.workspaceC f q v =
       ((jac f q)⁻¹)ᵀ * (P.Mdot q v - (2 : ℝ) • P.C q v) * (jac f q)⁻¹ +
@@ -260,7 +260,7 @@ theorem skew_workspaceMdot_sub_two_workspaceC (h : ∀ k, (P.chain.linkInertia k
 a motion `θ` with velocity `θ'` at `t` and `J(θ(t))` invertible, every actual derivative `M̃˙` of
 `s ↦ M̃(θ(s))` at `t` (entry by entry) makes `M̃˙ − 2 C̃(θ(t), θ')` skew-symmetric. The proof is by
 congruence from MLS Lemma 4.2(2) for the joint-space `Ṁ − 2C`
-(`InertialChain.skew_deriv_sub_two_coriolisMatrix_massMatrixDeriv`, E013). -/
+(`InertialChain.skew_deriv_sub_two_coriolisMatrix_massMatrixDeriv`). -/
 theorem skew_deriv_workspaceM_sub_two_workspaceC (h : ∀ k, (P.chain.linkInertia k).IsSymm)
     (hf : ContDiff ℝ 2 f) {θ : ℝ → Fin n → ℝ} {θ' : Fin n → ℝ} {t : ℝ} (hθ : HasDerivAt θ θ' t)
     (hJ : IsUnit (jac f (θ t)).det) {Mtdot : Matrix (Fin n) (Fin n) ℝ}

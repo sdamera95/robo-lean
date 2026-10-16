@@ -29,9 +29,9 @@ to workspace variables and writes `ẋ = J(θ) θ̇` with `J(θ) = ∂f/∂θ`, 
   `ẍ = J̇ θ̇ + J θ̈` (`hasDerivAt_jac_mulVec_comp`);
 * the derivatives of matrix products, transposes and inverses along a curve are stated entry by
   entry (`Control.hasDerivAt_matrix_mul`, `Control.hasDerivAt_matrix_transpose`,
-  `Control.hasDerivAt_matrix_inv`), the library's convention since E013;
+  `Control.hasDerivAt_matrix_inv`), the library's convention;
   `Control.hasDerivAt_matrix_iff` is the bridge to Mathlib's `HasDerivAt` for matrix-valued curves
-  (product topology). These four live in `RoboLean.Control.MatrixAnalysis` since E030; the
+  (product topology). These four live in `RoboLean.Control.MatrixAnalysis`; the
   `MapJacobian.*` names are deprecated aliases;
 * `(d/dt)(J⁻¹) = −J⁻¹ J̇ J⁻¹` (`hasDerivAt_jac_inv_comp`) and the two formulas of p. 196
   (`velocity_eq_inv_mulVec`, `acceleration_eq_inv_mulVec`) hold where `J(θ(t))` is invertible;
