@@ -887,7 +887,7 @@ bound of initial errors), global for constant inertia.
 **Converse of Theorem 4.5 (p. 183).** For an autonomous system with a globally Lipschitz field on a
 Banach space, exponential stability is equivalent to a continuous time-invariant `V` with the
 first three bounds of the theorem on a ball (`exponentiallyStable_iff_exists_quadratic_lyapunov`);
-`V(x) = ∫₀^T ‖φ(τ, x)‖² dτ`. The fourth bound is not part of the formal statement.
+`V(x) = ∫₀^T ‖φ(τ, x)‖² dτ`. The fourth bound is not part of that statement; with all four bounds the converse holds for time-varying fields with a differentiable flow (paragraph "Differentiable flows" below).
 
 **Global notions and Theorem 4.4(4) (pp. 180, 183).** `GloballyAsymptoticallyStableAt f xe t₀`:
 stable at `t₀` and every solution from `t₀` converges to `xe`. `GloballyUniformlyAsymptoticallyStable`:
@@ -945,7 +945,7 @@ the inverse is `Matrix.inv`. The effective parameters are functions of `(θ, θ�
 torque law is `τ = Jᵀ(M̃(ẍ_d − K_vė − K_pe) + C̃ẋ + Ñ)` with `e = f(θ) − x_d`, `ė = Jθ̇ − ẋ_d`
 (MLS prints `Cẋ + N`, for which the error equation fails); exponential tracking is the bound on
 `‖(e, ė)‖` (sup norm) for every closed-loop solution on the joint state `(θ, θ̇)` along which `J`
-stays invertible. The workspace PD law is not formalized. In the planar example the workspace map is
+stays invertible. The workspace PD law is the set-point extension of Proposition 4.9 (paragraph "Workspace PD law" below). In the planar example the workspace map is
 the end-effector xy position in the frame of the dynamic arm `planarTwoLinkArm` (arm along `+x` at
 `θ = 0`, joint 2 at `(l₁, 0, 0)`, `l₂` the distance from joint 2 to the end effector); the kinematic
 arm `planarTwoLink` of Chapter 3 (along `+y`) is a different convention and is not used.
@@ -984,7 +984,49 @@ s)Φ(s, r) = Φ(t, r)` and `∂Φ(t, s)/∂t = A(t)Φ(t, s)` (derivative within 
 ∞)` and is unique; for constant `A ≡ L` it is `exp((t − s)L)`. The exponential bound is written
 `‖Φ(t, s)‖ ≤ C e^{−α(t − s)}` for `0 ≤ s ≤ t`. The Lyapunov function of the proof is the Gramian
 `V(t, x) = ∫_t^{t+T} ‖Φ(s, t)x‖₂² ds` in the Euclidean dot product with `T = 1 + log(2nC'² +
-1)/(2α)` (the horizon of the constant case, `C' = max(C, 0)`).
+1)/(2α)` (the horizon of the constant case, `C' = max(C, 0)`). For `A` with one-sided limits at every point (MLS's piecewise continuity) a state-transition matrix exists only if `A` is continuous on `[0, ∞)`, because `∂Φ(t, s)/∂t = A(t)Φ(t, s)` is asked at every time; Carathéodory solutions (derivatives off the jump times) are not adopted, so Theorem 4.6 for `A` with jumps is not formalized (commit `0867eac`).
+
+**Differentiable flows (Theorem 4.5, the fourth bound).** For a time-varying field `f(t, x)` (time
+first) a differentiable flow is `IsDifferentiableFlow f Df φ D`: `Df t y` is the Fréchet derivative of
+`f(t, ·)` at `y` for `t ≥ 0`; `φ t s x` is the state at time `t` of the solution starting from `x` at
+time `s` (MLS's `s(t, x, s)`), defined and used for `0 ≤ s ≤ t`; every solution from `s ≥ 0` is
+`t ↦ φ t s (x s)`; `(t, s, x) ↦ φ t s x` is continuous on `0 ≤ s ≤ t`; `D t s x` is the Fréchet
+derivative of `φ t s` at `x`, `D s s x = 1`, and `∂D/∂t = Df(t, φ t s x) D` within `[s, ∞)` (the
+variational equation). It is a hypothesis structure, like `HasFlow` and `IsStateTransition`:
+differentiable dependence on initial conditions is not in the pinned Mathlib. A state-transition
+matrix gives one with `φ t s x = Φ(t, s)x`, `D = Φ`. The converse function is
+`V(t, x) = ∫₀^T ‖φ(t + u, t, x)‖₂² du` with the Euclidean norm (so that `V` is differentiable), compared
+with the sup norm through `‖x‖² ≤ x ⬝ x ≤ n‖x‖²`; the four bounds are stated for `t ≥ 0` and
+`‖x‖ ≤ ε/2`, half the `ε` of Definition 4.3, so that `∂V/∂x` is taken inside the ball where the
+exponential estimate holds; `‖∂V/∂x‖` is the operator norm for the sup norm.
+
+**Robots under PD control (Proposition 4.9, p. 193, for every robot, p. 301).** For a robot
+`Control.RobotSystem p`, PD with compensation of `N` is `F = N(x, ẋ) − K_vẋ − K_p(x − x_d)` for a
+constant `x_d`; its closed loop is (4.52). A robot carries no regularity: `M` continuous and
+`Control.DifferentiableAlongMotions M` (the entries of `s ↦ M(x(s))` have derivatives along every
+motion) are hypotheses, with the skew property `HasSkewProperty`, `M(x)` positive definite, and for
+convergence `λ‖v‖² ≤ vᵀM(x)v` and a solution flow (`HasFlow`) of the closed loop. The energy identity
+`V̇ = −ẋᵀK_vẋ` is also stated along a motion for matrix curves `M(s)`, `C(s)` with `M(t)` symmetric and
+`Ṁ − 2C` skew at `t` (`Control.hasDerivAt_pdEnergy_along`), the form used when the matrices depend on
+coordinates that are not part of the state (MLS p. 301).
+
+**Workspace PD law (p. 198).** The law is `τ = JᵀF`, `F = Ñ(θ, θ̇) − K_vẋ − K_p(x − x_d)`, `x = f(θ)`,
+`ẋ = J(θ)θ̇`, a constant workspace set point `x_d` (`workspacePDTorque`); where `J` is invertible it is
+`τ = N − JᵀK_vJθ̇ − JᵀK_p(f(θ) − x_d)`. Its workspace energy `½ẋᵀM̃ẋ + ½(x − x_d)ᵀK_p(x − x_d)` has
+derivative `−ẋᵀK_vẋ` along every motion at every time where `J` is invertible. MLS's "smooth and
+invertible" (p. 196) is read, for the stability statements, as `f` of class `C²` with a
+differentiable two-sided inverse `g` (then `J` is invertible everywhere); the workspace system is then
+the robot `workspaceRobot f g` in `x`: `M(x) = M̃(g(x))`, `C(x, ẋ) = C̃(g(x), J⁻¹ẋ)`,
+`N(x, ẋ) = Ñ(g(x), J⁻¹ẋ)`, `J = J(g(x))`. Joint solutions under `τ = JᵀF` map to workspace solutions
+under `F` by `(θ, θ̇) ↦ (f(θ), Jθ̇)` and back by `(x, ẋ) ↦ (g(x), J⁻¹ẋ)`, so a flow of the joint closed
+loop gives one of the workspace closed loop; the stability statements take the joint flow as the
+hypothesis. The tracking version (Exercise 9, p. 209: the augmented PD law of Proposition 4.10 in
+workspace coordinates) is not formalized. The planar instance uses the absolute link angles
+`x = (θ₁, θ₁ + θ₂)`; the xy map of Example 4.8 has no global inverse.
+
+**Proposition 4.10's `ε` (p. 195).** The smallness of `ε` depends on the region of initial errors when
+`C ≠ 0`: for the planar two-link arm every `ε > 0` leaves a state where the corrected `V̇` is positive
+(an instance). The formal conclusion stays semiglobal, global for constant inertia.
 
 ## Grasp and contact conventions
 
