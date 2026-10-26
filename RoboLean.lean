@@ -171,3 +171,10 @@ import RoboLean.Examples.PlanarContact
 import RoboLean.Demo.Supervisor
 import RoboLean.Demo.PlanarArmFrames
 import RoboLean.Demo.SupervisorRefines
+import RoboLean.Dynamics.PoseChart
+import RoboLean.Examples.PoseChart
+import RoboLean.Control.RobotAugmentedPD
+import RoboLean.Examples.RobotAugmentedPD
+import RoboLean.Control.RobotControl
+import RoboLean.Control.RobotAttach
+import RoboLean.Examples.RobotAttach
