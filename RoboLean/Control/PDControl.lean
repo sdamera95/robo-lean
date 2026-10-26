@@ -1,5 +1,6 @@
 import RoboLean.Control.ManipulatorSystem
 import RoboLean.Control.QuadraticBounds
+import RoboLean.Control.RobotPDControl
 
 /-!
 # PD set-point control of a manipulator (MLS §5.3, Proposition 4.9, pp. 193–195)
@@ -29,7 +30,10 @@ for `θ̇_d ≡ 0` "the control law (4.53) simplifies to the original PD control
   With symmetric link inertias, `V = T(θ, θ̇) + ½ eᵀ K_p e` has `V̇ = −θ̇ᵀ K_v θ̇` along every
   motion (`hasDerivAt_pdEnergy`), `(θ_d, 0)` is an equilibrium
   (`isEquilibrium_pdCompensatedTorque`), and it is stable in the sense of Lyapunov
-  (`stableAt_pdCompensatedTorque`, Theorem 4.4(1)).
+  (`stableAt_pdCompensatedTorque`, Theorem 4.4(1)). The energy identity and the stability
+  theorem are those for every robot of `Control/RobotPDControl` applied to the manipulator as a
+  robot (`toRobotSystem`, with `toRobotSystem_hasSkewProperty` and
+  `toRobotSystem_differentiableAlongMotions`).
 
 **Asymptotic stability** (the printed conclusion) is proved in `PDAsymptotic` by Lasalle's
 principle (Theorem 4.7, p. 188), under a solution-flow hypothesis and a uniform bound on `M`.
@@ -112,29 +116,27 @@ theorem isEquilibrium_pdCompensatedTorque (Kp Kv : Matrix (Fin n) (Fin n) ℝ) {
 `V̇ = −θ̇ᵀ K_v θ̇`.** With symmetric link inertias and `K_p` symmetric, along a motion whose
 velocity `θ'` near `t` and acceleration `θ''` at `t` are actual derivatives and which satisfies
 the equations of motion (4.47) at `t` under `τ = N(θ, θ̇) − K_v θ̇ − K_p (θ − θ_d)`, the function
-`V = ½ θ̇ᵀ M(θ) θ̇ + ½ (θ − θ_d)ᵀ K_p (θ − θ_d)` has derivative `−θ̇ᵀ K_v θ̇` at `t`. The proof uses
-the power balance `Ṫ = θ̇ ⬝ (τ − N)`, which rests on the skew symmetry of `Ṁ − 2C`
-(MLS Lemma 4.2(2)). -/
+`V = ½ θ̇ᵀ M(θ) θ̇ + ½ (θ − θ_d)ᵀ K_p (θ − θ_d)` has derivative `−θ̇ᵀ K_v θ̇` at `t`. The proof is
+the energy identity for matrix curves (`Control.hasDerivAt_pdEnergy_along`) with the skew symmetry
+of `Ṁ − 2C` (MLS Lemma 4.2(2), `toRobotSystem_hasSkewProperty`). -/
 theorem hasDerivAt_pdEnergy (h : ∀ k, (P.chain.linkInertia k).IsSymm)
     {Kp Kv : Matrix (Fin n) (Fin n) ℝ} (hKp : Kp.IsSymm) (θd : Fin n → ℝ)
     {θ θ' : ℝ → Fin n → ℝ} {θ'' : Fin n → ℝ} {t : ℝ}
     (hθ : ∀ᶠ s in 𝓝 t, HasDerivAt θ (θ' s) s) (hθ' : HasDerivAt θ' θ'' t)
     (hE : P.EquationsOfMotionAt θ (P.pdCompensatedTorque Kp Kv θd t (θ t) (θ' t)) t) :
     HasDerivAt (fun s => P.pdEnergy Kp θd (θ s) (θ' s)) (-(θ' t ⬝ᵥ (Kv *ᵥ θ' t))) t := by
-  have hT := P.hasDerivAt_kineticEnergy h hθ hθ' hE
-  have he : HasDerivAt (fun s => θ s - θd) (θ' t) t := hθ.self_of_nhds.sub_const θd
-  have hq := Control.hasDerivAt_dotProduct he (Control.hasDerivAt_mulVec_const Kp he)
-  have := hT.add (hq.const_mul (1 / 2 : ℝ))
-  convert this using 1
-  · funext s
-    simp only [Pi.add_apply, pdEnergy]
-  have hsym := Control.dotProduct_mulVec_comm hKp (θ t - θd) (θ' t)
-  have hτ : P.pdCompensatedTorque Kp Kv θd t (θ t) (θ' t) - P.N (θ t) (θ' t) =
-      -(Kv *ᵥ θ' t) - Kp *ᵥ (θ t - θd) := by
-    simp only [pdCompensatedTorque]
-    abel
-  rw [hτ, hsym, dotProduct_sub, dotProduct_neg]
-  ring
+  have hx := hθ.self_of_nhds
+  have heq := (P.equationsOfMotionAt_iff h hθ hθ' _).mp hE
+  have hMd := Christoffel.hasDerivAt_comp (P.chain.hasFDerivAt_massMatrix (θ t))
+    (fun k => hasDerivAt_pi.mp hx k)
+  refine Control.hasDerivAt_pdEnergy_along (Mt := fun s => P.M (θ s))
+    (Ct := P.C (θ t) (θ' t)) hKp θd hx hθ' hMd
+    (P.chain.massMatrix_isSymm h (θ t)) (P.toRobotSystem_hasSkewProperty h hx hMd) ?_
+  calc _ = (P.M (θ t) *ᵥ θ'' + P.C (θ t) (θ' t) *ᵥ θ' t + P.N (θ t) (θ' t)) -
+        P.pdCompensatedTorque Kp Kv θd t (θ t) (θ' t) := by
+        simp only [pdCompensatedTorque]
+        abel
+    _ = 0 := by rw [heq, sub_self]
 
 /-- **MLS Proposition 4.9 (p. 193), stability part, for PD control with compensation of `N`.**
 With symmetric link inertias, `M(q)` positive definite for every `q`, `K_p` symmetric positive
@@ -142,63 +144,15 @@ definite and `K_v` positive semidefinite, the set point `(θ_d, 0)` of the close
 (the system (4.47) under `τ = N(θ, θ̇) − K_v θ̇ − K_p (θ − θ_d)`) is stable in the sense of
 Lyapunov (Definition 4.1) at every initial time `t₀ ≥ 0`. Proof: Theorem 4.4(1) with
 `V = ½ θ̇ᵀ M(θ) θ̇ + ½ eᵀ K_p e`, which is locally positive definite by compactness, and
-`V̇ = −θ̇ᵀ K_v θ̇ ≤ 0`. Asymptotic stability (the printed conclusion) is
-`asymptoticallyStableAt_pdCompensatedTorque` in `PDAsymptotic`. -/
+`V̇ = −θ̇ᵀ K_v θ̇ ≤ 0` (`Control.RobotSystem.stableAt_pdCompensatedTorque` for `toRobotSystem`).
+Asymptotic stability (the printed conclusion) is `asymptoticallyStableAt_pdCompensatedTorque` in
+`PDAsymptotic`. -/
 theorem stableAt_pdCompensatedTorque (h : ∀ k, (P.chain.linkInertia k).IsSymm)
     (hM : ∀ q, (P.M q).PosDef) {Kp Kv : Matrix (Fin n) (Fin n) ℝ} (hKp : Kp.PosDef)
     (hKv : Kv.PosSemidef) (θd : Fin n → ℝ) {t₀ : ℝ} (ht₀ : 0 ≤ t₀) :
-    Stability.StableAt (P.field (P.pdCompensatedTorque Kp Kv θd)) (θd, 0) t₀ := by
-  rw [← Stability.stableAt_shift_iff]
-  obtain ⟨aM, haM, hMb⟩ := QuadraticBounds.exists_pos_mul_sq_norm_le_dotProduct_mulVec
-    (isCompact_closedBall θd 1) P.continuous_M fun q _ => hM q
-  obtain ⟨ap, hap, hpb⟩ := QuadraticBounds.posDef_exists_pos_mul_sq_norm_le hKp
-  set a := min aM ap / 2 with ha
-  have ha0 : 0 < a := by positivity
-  refine Stability.stableAt_of_lyapunov (V := fun _ z => P.pdEnergy Kp θd (z.1 + θd) z.2)
-    (Vdot := fun _ z => -(z.2 ⬝ᵥ (Kv *ᵥ z.2))) (r := 1) ?_ one_pos ?_ ?_ ht₀
-  · refine ⟨?_, 1, one_pos, fun r => a * r ^ 2, Stability.isClassK_mul_sq ha0, fun t _ => ⟨?_, ?_⟩⟩
-    · refine Continuous.continuousOn ?_
-      have hq : Continuous fun p : ℝ × (Fin n → ℝ) × (Fin n → ℝ) => p.2.1 + θd :=
-        (continuous_fst.comp continuous_snd).add continuous_const
-      have hv : Continuous fun p : ℝ × (Fin n → ℝ) × (Fin n → ℝ) => p.2.2 :=
-        continuous_snd.comp continuous_snd
-      have he : Continuous fun p : ℝ × (Fin n → ℝ) × (Fin n → ℝ) => p.2.1 + θd - θd :=
-        hq.sub continuous_const
-      simp only [pdEnergy, InertialChain.kineticEnergy]
-      exact (continuous_const.mul (hv.dotProduct ((P.continuous_M.comp hq).matrix_mulVec hv))).add
-        (continuous_const.mul (he.dotProduct (continuous_const.matrix_mulVec he)))
-    · simp [pdEnergy, InertialChain.kineticEnergy]
-    · intro z hz
-      have h1 : ‖z.1‖ < 1 := (norm_fst_le z).trans_lt hz
-      have hmem : z.1 + θd ∈ Metric.closedBall θd 1 := by
-        rw [Metric.mem_closedBall, dist_eq_norm, add_sub_cancel_right]
-        exact h1.le
-      have hMz := hMb _ hmem z.2
-      have hpz := hpb z.1
-      have hsq := Control.sq_norm_prod_le z
-      have hmin1 : min aM ap ≤ aM := min_le_left _ _
-      have hmin2 : min aM ap ≤ ap := min_le_right _ _
-      simp only [pdEnergy, InertialChain.kineticEnergy, add_sub_cancel_right]
-      have hn1 := sq_nonneg ‖z.1‖
-      have hn2 := sq_nonneg ‖z.2‖
-      have hP : P.chain.massMatrix (z.1 + θd) = P.M (z.1 + θd) := rfl
-      rw [hP]
-      nlinarith [mul_le_mul_of_nonneg_right hmin1 hn2, mul_le_mul_of_nonneg_right hmin2 hn1]
-  · intro s₀ hs₀ z hz t ht _
-    have hx : Stability.IsSolution (P.field (P.pdCompensatedTorque Kp Kv θd)) s₀
-        (fun s => z s + (θd, 0)) :=
-      (Stability.isSolution_shift_iff (xe := (θd, 0))).mp (by simpa using hz)
-    have hE := P.equationsOfMotionAt_of_isSolution h hM hx ht
-    have key := P.hasDerivAt_pdEnergy h hKp.isHermitian.isSymm θd
-      (P.eventually_hasDerivAt_fst hx ht) (hx.2 t ht).snd hE
-    convert key using 1
-    · funext s
-      simp
-    · simp
-  · intro t _ y _
-    have := hKv.dotProduct_mulVec_nonneg y.2
-    simp only [star_trivial] at this
-    linarith
+    Stability.StableAt (P.field (P.pdCompensatedTorque Kp Kv θd)) (θd, 0) t₀ :=
+  P.toRobotSystem.stableAt_pdCompensatedTorque hM P.continuous_M
+    P.toRobotSystem_differentiableAlongMotions (P.toRobotSystem_hasSkewProperty h) hKp hKv θd ht₀
 
 end ManipulatorModel
 end RoboLean

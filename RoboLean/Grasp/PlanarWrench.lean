@@ -22,9 +22,9 @@ Conventions.
 * `planarWrench p F = (F_x, F_y, p ⊗ F)` is the planar wrench `(f_x, f_y, τ)` (p. 222) of a force
   `F` applied at the point `p`, both in object coordinates.
 
-The entries of a planar rotation and `R Rᵀ = Rᵀ R = 1` (`so2_entries`,
-`so2_mulVec_transpose_mulVec`, `so2_transpose_mulVec_mulVec`) are in `Geometry/RotationPlane`
-since 2026-10-14, under their names.
+The entries of a planar rotation and `R Rᵀ = Rᵀ R = 1` (`SO2.entries`,
+`SO2.mulVec_transpose_mulVec`, `SO2.transpose_mulVec_mulVec`) are in `Geometry/RotationPlane`
+(their earlier names `Grasp.so2_*` are deprecated aliases).
 
 The frame is data: nothing checks that `contactNormal R` is an inward normal of an object.
 -/
@@ -144,7 +144,7 @@ def contactNormal (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) : Fin 2 → �
 /-- The inward normal of a planar contact frame is a unit vector (MLS printed pp. 222, 232). -/
 theorem contactNormal_sq_add_sq (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
     contactNormal R 0 ^ 2 + contactNormal R 1 ^ 2 = 1 := by
-  obtain ⟨h1, h2, h3⟩ := so2_entries R
+  obtain ⟨h1, h2, h3⟩ := SO2.entries R
   simp only [contactNormal, h1, h2]
   linarith
 
@@ -153,14 +153,14 @@ convention of p. 222): the printed `n^⊥` of the inward normal `n = R e_y` is m
 `x`-axis `t = R e_x`. -/
 theorem perp2_contactNormal (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
     perp2 (contactNormal R) = -contactTangent R := by
-  obtain ⟨h1, h2, -⟩ := so2_entries R
+  obtain ⟨h1, h2, -⟩ := SO2.entries R
   funext i
   fin_cases i <;> simp [perp2, contactNormal, contactTangent, h1, h2]
 
 /-- `t ⊗ n = det R = 1` for a planar contact frame `R ∈ SO(2)` (MLS printed pp. 222, 232). -/
 theorem cross2_contactTangent_contactNormal (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
     cross2 (contactTangent R) (contactNormal R) = 1 := by
-  obtain ⟨h1, h2, h3⟩ := so2_entries R
+  obtain ⟨h1, h2, h3⟩ := SO2.entries R
   simp only [cross2, contactTangent, contactNormal, h1, h2]
   linarith
 

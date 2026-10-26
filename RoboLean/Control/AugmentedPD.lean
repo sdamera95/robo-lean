@@ -50,11 +50,14 @@ further condition. The terms `ε eᵀ(−K_v + Ṁ − C)ė` are bounded by `ε(
 grows with the joint velocity `θ̇ = θ̇_d + ė` (`C` is linear in `θ̇`), so "negative definite for
 `ε` small" holds on bounded tubes, with `ε` and the rate depending on the tube: the result proved
 is semiglobal (every bounded set of initial errors, with a rate depending on it), and global when
-`C = 0`. Whether a single `ε` works for all initial errors when `C ≠ 0` is not settled here
-(hypothesis, not checked). Hypotheses MLS does not state: the bounds on `M` and `C` (MLS's
-"`M(θ) > 0`" read as uniform, as on p. 191), a bound on `θ̇_d` (MLS: `θ_d` "at least twice
-differentiable", p. 190), symmetric link inertias (for the skew symmetry), and `M(q)` positive
-definite for every `q` (Lemma 4.2(1)). No bound on `θ̈_d` is needed: it cancels in (4.54).
+`C = 0`. When `C ≠ 0` a single `ε` need not serve all initial errors: for the planar two-link arm
+with `m₂ l₁ r₂ > 0`, `θ_d ≡ 0` and `K_p = K_v = I`, every `ε > 0` leaves a state where `V̇ > 0`
+(`Examples.planarTwoLinkModel_exists_augmentedEnergyRate_pos`, in `Examples/AugmentedPDEnergy`);
+whether the law gives global exponential tracking by another Lyapunov function is not decided.
+Hypotheses MLS does not state: the bounds on `M` and `C` (MLS's "`M(θ) > 0`" read as uniform, as
+on p. 191), a bound on `θ̇_d` (MLS: `θ_d` "at least twice differentiable", p. 190), symmetric link
+inertias (for the skew symmetry), and `M(q)` positive definite for every `q` (Lemma 4.2(1)). No
+bound on `θ̈_d` is needed: it cancels in (4.54).
 
 Conventions: the state is `(θ, θ̇)`; the tracking error is `(e, ė) = (θ − θ_d, θ̇ − θ̇_d)`, the
 state of the error system `Stability.errorSystem` relative to `(θ_d, θ̇_d)`; norms are Mathlib's
@@ -397,7 +400,8 @@ theorem hasDerivAlongSolutions_augmentedEnergy (h : ∀ k, (P.chain.linkInertia 
     simp [hxdef, add_comm]
   · simp [hxdef, add_comm]
 
-/-- The skewed energy along the desired trajectory is jointly continuous in `(t, (e, ė))`. -/
+/-- The skewed energy `V(e, ė, t)` of the proof of MLS Proposition 4.10 (p. 194), along the
+desired trajectory, is jointly continuous in `(t, (e, ė))`. -/
 theorem continuous_augmentedEnergy_comp (Kp : Matrix (Fin n) (Fin n) ℝ) (ε : ℝ)
     {θd : ℝ → Fin n → ℝ} (hθd : Continuous θd) :
     Continuous fun p : ℝ × (Fin n → ℝ) × (Fin n → ℝ) =>

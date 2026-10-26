@@ -22,9 +22,10 @@ The file also holds `perp`, the projection onto the plane perpendicular to an ax
 (MLS pp. 100 and 102), moved here from `RoboLean.Kinematics.PadenKahan` on 2026-10-11, and its
 four lemmas `inner_perp`, `norm_perp_sq`, `inner_perp_perp` and `cross_perp`, moved from there on
 2026-10-13 (the old `PadenKahan` names are deprecated aliases). The section "Planar rotations"
-holds three `SO(2)` lemmas of the planar grasp modules (`Grasp.so2_entries`,
-`Grasp.so2_mulVec_transpose_mulVec`, `Grasp.so2_transpose_mulVec_mulVec`), moved from
-`RoboLean.Grasp.PlanarWrench` on 2026-10-14.
+holds three `SO(2)` lemmas of the planar grasp modules (`SO2.entries`,
+`SO2.mulVec_transpose_mulVec`, `SO2.transpose_mulVec_mulVec`), moved from
+`RoboLean.Grasp.PlanarWrench` on 2026-10-14 and renamed from `Grasp.so2_*` on 2026-10-26 (the old
+names are deprecated aliases).
 -/
 
 noncomputable section
@@ -164,8 +165,8 @@ theorem inner_perp_perp {ω : Vec3} (hω : ‖ω‖ = 1) (u v : Vec3) :
     RCLike.conj_to_real]
   ring
 
-/-- Supporting lemma: the cross product with the axis does not see the axial component,
-`ω × u′ = ω × u`. -/
+/-- Supporting lemma for the projections of MLS p. 100 (Subproblem 1): the cross product with the
+axis does not see the axial component, `ω × u′ = ω × u`. -/
 theorem cross_perp (ω u : Vec3) : Vec3.cross ω (Vec3.perp ω u) = Vec3.cross ω u := by
   apply WithLp.ofLp_injective
   simp [Vec3.perp, cross_coordinates, map_sub, map_smul, cross_self]
@@ -175,15 +176,14 @@ end RoboLean.Vec3
 /-! ### Planar rotations
 
 Supporting lemmas on `SO(2)` (Mathlib's `specialOrthogonalGroup (Fin 2) ℝ`) for the planar
-contact frames of MLS printed pp. 222 and 232, moved from `RoboLean.Grasp.PlanarWrench` on
-2026-10-14 with their full names `RoboLean.Grasp.*` unchanged. -/
+contact frames of MLS printed pp. 222 and 232, in the namespace `RoboLean.SO2`. -/
 
-namespace RoboLean.Grasp
+namespace RoboLean.SO2
 
 /-- Entries of a planar rotation (supporting lemma for MLS printed pp. 222 and 232):
 `R = [[a, -c], [c, a]]` with `a² + c² = 1` (Mathlib
 `Matrix.mem_specialOrthogonalGroup_fin_two_iff`). -/
-theorem so2_entries (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
+theorem entries (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
     (R : Matrix (Fin 2) (Fin 2) ℝ) 1 1 = (R : Matrix (Fin 2) (Fin 2) ℝ) 0 0 ∧
       (R : Matrix (Fin 2) (Fin 2) ℝ) 0 1 = -(R : Matrix (Fin 2) (Fin 2) ℝ) 1 0 ∧
       (R : Matrix (Fin 2) (Fin 2) ℝ) 0 0 ^ 2 + (R : Matrix (Fin 2) (Fin 2) ℝ) 1 0 ^ 2 = 1 := by
@@ -193,7 +193,7 @@ theorem so2_entries (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
   linarith
 
 /-- `R Rᵀ d = d` for a planar rotation (supporting lemma for MLS printed pp. 222, 232). -/
-theorem so2_mulVec_transpose_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
+theorem mulVec_transpose_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
     (d : Fin 2 → ℝ) :
     (R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) = d := by
   have h := (Matrix.mem_orthogonalGroup_iff (Fin 2) ℝ).mp
@@ -201,11 +201,27 @@ theorem so2_mulVec_transpose_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) �
   rw [Matrix.mulVec_mulVec, h, Matrix.one_mulVec]
 
 /-- `Rᵀ R f = f` for a planar rotation (supporting lemma for MLS printed pp. 222, 232). -/
-theorem so2_transpose_mulVec_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
+theorem transpose_mulVec_mulVec (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ)
     (f : Fin 2 → ℝ) :
     (R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ ((R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ f) = f := by
   have h := (Matrix.mem_orthogonalGroup_iff' (Fin 2) ℝ).mp
     (Matrix.mem_specialOrthogonalGroup_iff.mp R.2).1
   rw [Matrix.mulVec_mulVec, h, Matrix.one_mulVec]
+
+end RoboLean.SO2
+
+/-! The three lemmas were named `RoboLean.Grasp.so2_*` until 2026-10-26; the old names remain as
+deprecated aliases. -/
+
+namespace RoboLean.Grasp
+
+@[deprecated SO2.entries (since := "2026-10-26")]
+alias so2_entries := SO2.entries
+
+@[deprecated SO2.mulVec_transpose_mulVec (since := "2026-10-26")]
+alias so2_mulVec_transpose_mulVec := SO2.mulVec_transpose_mulVec
+
+@[deprecated SO2.transpose_mulVec_mulVec (since := "2026-10-26")]
+alias so2_transpose_mulVec_mulVec := SO2.transpose_mulVec_mulVec
 
 end RoboLean.Grasp

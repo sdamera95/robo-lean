@@ -33,6 +33,10 @@ manipulator the library shows that the bare law (4.51) has `θ_d` as a rest poin
   uniform lower bound on `M`, convergence of every solution and global asymptotic stability
   (`RobotSystem.tendsto_pdCompensatedTorque`,
   `RobotSystem.globallyAsymptoticallyStableAt_pdCompensatedTorque`, Lasalle's principle).
+* the manipulator's inertia is differentiable along motions
+  (`ManipulatorModel.toRobotSystem_differentiableAlongMotions`); with
+  `ManipulatorModel.toRobotSystem_hasSkewProperty` this gives the manipulator's PD theorems of
+  `Control/PDControl` and `Control/PDAsymptotic` as these robot theorems.
 
 **Hypotheses.** `M(x)` positive definite for every `x` (Mathlib's `PosDef`, which includes
 symmetry); `M` continuous; `M` has an entrywise derivative along every motion
@@ -241,8 +245,10 @@ theorem stableAt_pdCompensatedTorque (hM : ∀ q, (R.M q).PosDef) (hMc : Continu
     simp only [star_trivial] at this
     linarith
 
-/-- The sublevel sets of `V` are bounded: `a ‖(x, ẋ) − (x_d, 0)‖² ≤ V(x, ẋ)` (MLS pp. 191, 193). -/
-private lemma exists_pos_mul_sq_norm_le_pdEnergy
+/-- **The sublevel sets of `V` are bounded (MLS pp. 191, 193), for a robot.** If `M` is uniformly
+positive definite (`λ‖v‖² ≤ vᵀ M(x) v`) and `K_p` is positive definite, then
+`a ‖(x, ẋ) − (x_d, 0)‖² ≤ V(x, ẋ)` for some `a > 0` (sup norm on the state). -/
+theorem exists_pos_mul_sq_norm_le_pdEnergy
     (hMu : ∃ lam > 0, ∀ q v : Fin p → ℝ, lam * ‖v‖ ^ 2 ≤ v ⬝ᵥ (R.M q *ᵥ v))
     {Kp : Matrix (Fin p) (Fin p) ℝ} (hKp : Kp.PosDef) (xd : Fin p → ℝ) :
     ∃ a > 0, ∀ z : (Fin p → ℝ) × (Fin p → ℝ), a * ‖z - (xd, 0)‖ ^ 2 ≤ R.pdEnergy Kp xd z.1 z.2 := by
@@ -391,4 +397,17 @@ theorem globallyAsymptoticallyStableAt_pdCompensatedTorque (hM : ∀ q, (R.M q).
 
 end RobotSystem
 end Control
+
+namespace ManipulatorModel
+
+/-- **The manipulator inertia matrix is differentiable along motions (MLS pp. 169–171, the `Ṁ` of
+Lemma 4.2(2)):** along every motion `θ` with velocity `θ'` at `t`, every entry of `s ↦ M(θ(s))`
+has a derivative at `t`, the rate `∑ₖ θ'ₖ ∂M/∂θₖ` built from the actual partial derivatives of `M`
+(the chain rule; `M` is differentiable, MLS Proposition 4.3, p. 176). -/
+theorem toRobotSystem_differentiableAlongMotions {n : ℕ} (P : ManipulatorModel n) :
+    Control.DifferentiableAlongMotions P.toRobotSystem.M := fun {x} {_} {t} hx =>
+  ⟨_, Christoffel.hasDerivAt_comp (P.chain.hasFDerivAt_massMatrix (x t))
+    (fun k => hasDerivAt_pi.mp hx k)⟩
+
+end ManipulatorModel
 end RoboLean

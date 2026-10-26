@@ -1,5 +1,4 @@
-import RoboLean.Control.ComputedTorque
-import RoboLean.Control.AugmentedPD
+import RoboLean.Control.ErrorDynamics
 
 /-!
 # The book's "robot" `(M, C, N)` and computed torque for it (MLS §6.5, Proposition 4.8)
@@ -28,11 +27,14 @@ The quantities `M`, `C`, and `N` completely parameterize the dynamics of the mec
   (`Control.computedTorque_tracking_along`): along any motion whose equations of motion
   `M(s) ẍ + C(s) ẋ + N(s) = F` hold with the computed-torque input and `M(s)` positive definite, the
   tracking error decays exponentially. Only positive definiteness is used; the skew property is not
-  needed by computed torque (it is needed by the PD-type laws, not formalized here).
+  needed by computed torque (it is needed by PD control with compensation of `N`,
+  `Control/RobotPDControl`).
 * `ManipulatorModel.toRobotSystem`: the open-chain manipulator model (4.47) is a robot; its field
-  and computed torque law are those of `ManipulatorModel` by definition (`toRobotSystem_field`,
-  `toRobotSystem_computedTorque`) and it has the skew property for symmetric link inertias
-  (`toRobotSystem_hasSkewProperty`, Lemma 4.2(2)).
+  is that of `ManipulatorModel` by definition (`toRobotSystem_field`; for the computed torque law,
+  `toRobotSystem_computedTorque` in `Control/ComputedTorque`) and it has the skew property for
+  symmetric link inertias (`toRobotSystem_hasSkewProperty`, Lemma 4.2(2)). The manipulator's
+  computed torque and PD theorems (`Control/ComputedTorque`, `Control/PDControl`,
+  `Control/PDAsymptotic`) are these robot theorems for `toRobotSystem`.
 
 The time-varying core covers the case MLS notes on p. 301, "in this controller `M(q)` depends on
 both `θ` and `x`": the matrices may depend on time through coordinates that are not part of the
@@ -244,30 +246,20 @@ theorem toRobotSystem_field (u : ℝ → (Fin n → ℝ) → (Fin n → ℝ) →
     P.toRobotSystem.field u = P.field u :=
   rfl
 
-/-- **The robot's computed torque law is the law of `ManipulatorModel`, MLS eq. (4.49), p. 191**, by
-definition. -/
-theorem toRobotSystem_computedTorque (Kp Kv : Matrix (Fin n) (Fin n) ℝ)
-    (θd θd' θd'' : ℝ → Fin n → ℝ) :
-    P.toRobotSystem.computedTorque Kp Kv θd θd' θd'' = P.computedTorque Kp Kv θd θd' θd'' :=
-  rfl
-
 /-- **The open-chain manipulator has the skew property (MLS Lemma 4.2(2), p. 171)** for symmetric
 link inertias: along every motion, every actual derivative of `s ↦ M(θ(s))` minus `2C` is
-skew-symmetric (`Ṁ = C + Cᵀ`, `Mdot_sub_C`). -/
+skew-symmetric (the derivative is the rate `∑ₖ θ̇ₖ ∂M/∂θₖ`, and `C` is the Christoffel matrix
+(4.23)). -/
 theorem toRobotSystem_hasSkewProperty (h : ∀ k, (P.chain.linkInertia k).IsSymm) :
     P.toRobotSystem.HasSkewProperty := by
   intro x x' t Md hx hMd
-  have hMd' : Md = P.Mdot (x t) x' := by
+  have hMd' : Md = Christoffel.rate (Christoffel.partials (P.chain.massMatrixDeriv (x t))) x' := by
     ext i j
-    exact (hMd i j).unique (P.hasDerivAt_M_comp hx i j)
-  have hs := P.Mdot_sub_C h (x t) x'
-  change (Md - (2 : ℝ) • P.C (x t) x')ᵀ = -(Md - (2 : ℝ) • P.C (x t) x')
-  have hMeq : Md = P.C (x t) x' + (P.C (x t) x')ᵀ := by
-    rw [hMd', ← hs]
-    abel
-  rw [hMeq, two_smul, Matrix.transpose_sub, Matrix.transpose_add, Matrix.transpose_add,
-    Matrix.transpose_transpose]
-  abel
+    exact (hMd i j).unique (Christoffel.hasDerivAt_comp (P.chain.hasFDerivAt_massMatrix (x t))
+      (fun k => hasDerivAt_pi.mp hx k) i j)
+  rw [hMd']
+  exact Christoffel.skew_rate_sub_two_coriolisMatrix (Christoffel.partials_isSymm
+    (P.chain.massMatrix_isSymm h) (P.chain.hasFDerivAt_massMatrix (x t))) x'
 
 end ManipulatorModel
 end RoboLean

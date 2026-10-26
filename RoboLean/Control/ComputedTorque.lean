@@ -1,4 +1,5 @@
 import RoboLean.Control.ErrorDynamics
+import RoboLean.Control.RobotSystem
 
 /-!
 # Computed torque control (MLS §5.2, eqs. (4.48)–(4.50), Proposition 4.8, pp. 190–192)
@@ -26,9 +27,12 @@ eigenvalues of `A = [[0, I], [−K_p, −K_v]]` have negative real part.
 
 The route differs from the printed proof: global exponential stability of the error system is
 proved with the skewed energy of Example 4.5 (p. 186) and Theorem 4.5 (`ErrorDynamics`), not from
-the eigenvalues. `M(q)` positive definite for every `q` is a hypothesis (MLS asserts it, Lemma
-4.2(1)). The tracking bound uses the sup norm on `ℝⁿ × ℝⁿ`. Exact cancellation of the model is
-assumed, as in MLS; nothing here concerns model error, actuator limits or sampling.
+the eigenvalues. The tracking theorem is Proposition 4.8 for every robot
+(`Control.RobotSystem.computedTorque_tracking`) applied to the manipulator as a robot
+(`toRobotSystem`, whose computed torque law is (4.49) by definition,
+`toRobotSystem_computedTorque`). `M(q)` positive definite for every `q` is a hypothesis (MLS
+asserts it, Lemma 4.2(1)). The tracking bound uses the sup norm on `ℝⁿ × ℝⁿ`. Exact cancellation
+of the model is assumed, as in MLS; nothing here concerns model error, actuator limits or sampling.
 -/
 
 noncomputable section
@@ -46,6 +50,13 @@ variable {n : ℕ} (P : ManipulatorModel n)
 def computedTorque (Kp Kv : Matrix (Fin n) (Fin n) ℝ) (θd θd' θd'' : ℝ → Fin n → ℝ) :
     ℝ → (Fin n → ℝ) → (Fin n → ℝ) → Fin n → ℝ :=
   fun t q v => P.M q *ᵥ (θd'' t - Kv *ᵥ (v - θd' t) - Kp *ᵥ (q - θd t)) + P.C q v *ᵥ v + P.N q v
+
+/-- **The robot's computed torque law is the law of `ManipulatorModel`, MLS eq. (4.49), p. 191**, by
+definition. -/
+theorem toRobotSystem_computedTorque (Kp Kv : Matrix (Fin n) (Fin n) ℝ)
+    (θd θd' θd'' : ℝ → Fin n → ℝ) :
+    P.toRobotSystem.computedTorque Kp Kv θd θd' θd'' = P.computedTorque Kp Kv θd θd' θd'' :=
+  rfl
 
 /-- **MLS eqs. (4.49)–(4.50), p. 191: the computed-torque error equation.** With symmetric link
 inertias and `M(θ(t))` positive definite, along a motion whose velocity `θ'` near `t` and
@@ -109,17 +120,16 @@ theorem isSolution_errorField (hM : ∀ q, (P.M q).PosDef) (Kp Kv : Matrix (Fin 
 trajectory with actual derivatives `θ_d' = θ̇_d`, `θ_d'' = θ̈_d` at every time, there are constants
 `m, α > 0`, depending only on `K_p` and `K_v`, such that every solution `x = (θ, θ̇)` from `t₀ ≥ 0`
 of (4.47) under (4.49) satisfies, for `t ≥ t₀`,
-`‖(θ(t) − θ_d(t), θ̇(t) − θ̇_d(t))‖ ≤ m e^{−α(t − t₀)} ‖(θ(t₀) − θ_d(t₀), θ̇(t₀) − θ̇_d(t₀))‖`. -/
+`‖(θ(t) − θ_d(t), θ̇(t) − θ̇_d(t))‖ ≤ m e^{−α(t − t₀)} ‖(θ(t₀) − θ_d(t₀), θ̇(t₀) − θ̇_d(t₀))‖`.
+Proof: `Control.RobotSystem.computedTorque_tracking` for `toRobotSystem`. -/
 theorem computedTorque_tracking (hM : ∀ q, (P.M q).PosDef) {Kp Kv : Matrix (Fin n) (Fin n) ℝ}
     (hKp : Kp.PosDef) (hKv : Kv.PosDef) :
     ∃ m > 0, ∃ α > 0, ∀ {θd θd' θd'' : ℝ → Fin n → ℝ}, (∀ t, HasDerivAt θd (θd' t) t) →
       (∀ t, HasDerivAt θd' (θd'' t) t) → ∀ t₀, 0 ≤ t₀ → ∀ x : ℝ → (Fin n → ℝ) × (Fin n → ℝ),
       Stability.IsSolution (P.field (P.computedTorque Kp Kv θd θd' θd'')) t₀ x →
       ∀ t, t₀ ≤ t → ‖((x t).1 - θd t, (x t).2 - θd' t)‖ ≤
-        m * Real.exp (-α * (t - t₀)) * ‖((x t₀).1 - θd t₀, (x t₀).2 - θd' t₀)‖ := by
-  obtain ⟨m, hm, α, hα, hexp⟩ := Control.globallyExponentiallyStable_errorField hKp hKv
-  refine ⟨m, hm, α, hα, fun hd hd' t₀ ht₀ x hx t ht => ?_⟩
-  simpa using hexp t₀ ht₀ _ (P.isSolution_errorField hM Kp Kv hd hd' hx) t ht
+        m * Real.exp (-α * (t - t₀)) * ‖((x t₀).1 - θd t₀, (x t₀).2 - θd' t₀)‖ :=
+  P.toRobotSystem.computedTorque_tracking hM hKp hKv
 
 /-- **MLS Proposition 4.8, p. 192, for motions satisfying Lagrange's equations.** With symmetric
 link inertias, `M(q)` positive definite for every `q` and `K_p`, `K_v` symmetric positive

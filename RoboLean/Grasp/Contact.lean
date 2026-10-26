@@ -12,9 +12,10 @@ Frames (p. 214–215). The object frame `O` is at the object's center of mass; t
 `Cᵢ` sits at the contact point with its `z`-axis along the *inward* surface normal (p. 214–215;
 in the planar Example 5.3 the `y`-axis is the inward normal, p. 222); `g_{ocᵢ} = (p_{ocᵢ}, R_{ocᵢ})`
 takes contact coordinates to object coordinates. The contact location is fixed on the object
-(p. 214). A contact applies a wrench `F_{cᵢ}` at the origin of `Cᵢ`, written in `Cᵢ`. MLS's
-section 6 (p. 246, footnote 2) uses the outward normal instead; that convention is not used
-here. The frame is data: no type enforces that the `z`-axis is the inward normal.
+(p. 214). A contact applies a wrench `F_{cᵢ}` at the origin of `Cᵢ`, written in `Cᵢ`. MLS §6
+(p. 246, footnote 2) puts the `z`-axis along the Gauss normal `c_u × c_v/‖c_u × c_v‖` of a chart;
+`Rolling.inwardContactFrame` turns that frame into the convention used here by the fixed rotation
+`diag(1, −1, −1)`. The frame is data: no type enforces that the `z`-axis is the inward normal.
 
 A contact model (p. 218) is a wrench basis `B_c ∈ ℝ^{p×m}` and a friction cone `FC_c ⊂ ℝ^m`;
 the contact wrench is `F_c = B_c f_c` with `f_c ∈ FC_c` (eq. (5.5)). `ContactModel W m` stores the

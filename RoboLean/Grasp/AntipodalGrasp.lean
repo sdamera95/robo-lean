@@ -68,7 +68,7 @@ theorem cross2_contactNormal_sub_eq (μ : ℝ) (R : Matrix.specialOrthogonalGrou
     (d : Fin 2 → ℝ) :
     cross2 (contactNormal R - μ • perp2 (contactNormal R)) d =
       μ * ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) 1 - ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) 0 := by
-  obtain ⟨h1, h2, -⟩ := so2_entries R
+  obtain ⟨h1, h2, -⟩ := SO2.entries R
   simp only [cross2, perp2, contactNormal, Pi.sub_apply, Pi.smul_apply, smul_eq_mul,
     Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, Matrix.mulVec,
     dotProduct, Fin.sum_univ_two, Matrix.transpose_apply, h1, h2]
@@ -81,7 +81,7 @@ theorem cross2_contactNormal_add_eq (μ : ℝ) (R : Matrix.specialOrthogonalGrou
     cross2 (contactNormal R + μ • perp2 (contactNormal R)) d =
       -(μ * ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) 1) -
         ((R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d) 0 := by
-  obtain ⟨h1, h2, -⟩ := so2_entries R
+  obtain ⟨h1, h2, -⟩ := SO2.entries R
   simp only [cross2, perp2, contactNormal, Pi.add_apply, Pi.smul_apply, smul_eq_mul,
     Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, Matrix.mulVec,
     dotProduct, Fin.sum_univ_two, Matrix.transpose_apply, h1, h2]
@@ -125,8 +125,8 @@ private def so2Homeomorph (R : Matrix.specialOrthogonalGroup (Fin 2) ℝ) :
     (Fin 2 → ℝ) ≃ₜ (Fin 2 → ℝ) where
   toFun f := (R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ f
   invFun f := (R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ f
-  left_inv f := so2_transpose_mulVec_mulVec R f
-  right_inv f := so2_mulVec_transpose_mulVec R f
+  left_inv f := SO2.transpose_mulVec_mulVec R f
+  right_inv f := SO2.mulVec_transpose_mulVec R f
   continuous_toFun := continuous_const.matrix_mulVec continuous_id
   continuous_invFun := continuous_const.matrix_mulVec continuous_id
 
@@ -143,10 +143,10 @@ theorem insideFrictionCone_iff_mem_interior_image {μ : ℝ} (hμ : 0 < μ)
   rw [← (so2Homeomorph R).image_interior]
   constructor
   · intro h
-    exact ⟨_, h, so2_mulVec_transpose_mulVec R d⟩
+    exact ⟨_, h, SO2.mulVec_transpose_mulVec R d⟩
   · rintro ⟨f, hf, rfl⟩
     change (R : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ ((R : Matrix (Fin 2) (Fin 2) ℝ) *ᵥ f) ∈ _
-    rwa [so2_transpose_mulVec_mulVec]
+    rwa [SO2.transpose_mulVec_mulVec]
 
 /-- Inside the cone (MLS printed p. 232) forces `n · d > 0`: the direction makes an acute angle
 with the inward normal. -/
@@ -254,7 +254,7 @@ theorem planar_planarPointContact_two_surjective_iff (μ : ℝ) (hμ : 0 < μ)
       (R 1 : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ (W - F)], ?_⟩
     rw [planar_planarPointContact_graspMap_two]
     simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
-    rw [so2_mulVec_transpose_mulVec, so2_mulVec_transpose_mulVec]
+    rw [SO2.mulVec_transpose_mulVec, SO2.mulVec_transpose_mulVec]
     have hτ : cross2 (p 0) F + cross2 (p 1) (W - F) = w 2 := by
       rw [cross2_sub_right]
       have : cross2 (p 0) F - cross2 (p 1) F = cross2 a F := by
@@ -284,7 +284,7 @@ theorem isStrictlyInternalForce_of_insideFrictionCone {μ : ℝ} (hμ : 0 < μ)
   refine ⟨?_, ?_⟩
   · rw [planar_planarPointContact_graspMap_two]
     simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
-    rw [so2_mulVec_transpose_mulVec, so2_mulVec_transpose_mulVec, planarWrench_neg,
+    rw [SO2.mulVec_transpose_mulVec, SO2.mulVec_transpose_mulVec, planarWrench_neg,
       ← sub_eq_add_neg]
     have hτ : cross2 (p 0) e - cross2 (p 1) e = 0 := by
       rw [← cross2_sub_left, ← neg_sub, cross2_neg_left, he, neg_zero]
@@ -414,7 +414,7 @@ theorem antipodalConditions_or_flipped_of_isForceClosure {μ : ℝ} (hμ : 0 < �
     intro h0
     have : fN 0 = 0 := by
       have h' : fN 0 = (R 0 : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ F0 := by
-        rw [hF0, so2_transpose_mulVec_mulVec]
+        rw [hF0, SO2.transpose_mulVec_mulVec]
       rw [h', h0, Matrix.mulVec_zero]
     rw [this] at hg0
     simp at hg0
@@ -426,10 +426,10 @@ theorem antipodalConditions_or_flipped_of_isForceClosure {μ : ℝ} (hμ : 0 < �
     exact hd0 hdκ
   -- contact coordinates of `± d`
   have hx0 : (R 0 : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ d = κ • fN 0 := by
-    rw [hdκ, Matrix.mulVec_smul, hF0, so2_transpose_mulVec_mulVec]
+    rw [hdκ, Matrix.mulVec_smul, hF0, SO2.transpose_mulVec_mulVec]
   have hx1 : (R 1 : Matrix (Fin 2) (Fin 2) ℝ)ᵀ *ᵥ (-d) = κ • fN 1 := by
     have : -d = κ • F1 := by rw [hF1eq, hdκ, smul_neg]
-    rw [this, Matrix.mulVec_smul, hF1, so2_transpose_mulVec_mulVec]
+    rw [this, Matrix.mulVec_smul, hF1, SO2.transpose_mulVec_mulVec]
   rcases lt_or_gt_of_ne hκne with hneg | hpos
   · right
     have hneg' : 0 < -κ := neg_pos.mpr hneg
