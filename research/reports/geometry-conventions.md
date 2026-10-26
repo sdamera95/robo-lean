@@ -1020,13 +1020,27 @@ the robot `workspaceRobot f g` in `x`: `M(x) = M̃(g(x))`, `C(x, ẋ) = C̃(g(x)
 `N(x, ẋ) = Ñ(g(x), J⁻¹ẋ)`, `J = J(g(x))`. Joint solutions under `τ = JᵀF` map to workspace solutions
 under `F` by `(θ, θ̇) ↦ (f(θ), Jθ̇)` and back by `(x, ẋ) ↦ (g(x), J⁻¹ẋ)`, so a flow of the joint closed
 loop gives one of the workspace closed loop; the stability statements take the joint flow as the
-hypothesis. The tracking version (Exercise 9, p. 209: the augmented PD law of Proposition 4.10 in
-workspace coordinates) is not formalized. The planar instance uses the absolute link angles
+hypothesis. The tracking version (Exercise 9, p. 209) is the paragraph "Workspace augmented PD" below. The planar instance uses the absolute link angles
 `x = (θ₁, θ₁ + θ₂)`; the xy map of Example 4.8 has no global inverse.
 
 **Proposition 4.10's `ε` (p. 195).** The smallness of `ε` depends on the region of initial errors when
 `C ≠ 0`: for the planar two-link arm every `ε > 0` leaves a state where the corrected `V̇` is positive
 (an instance). The formal conclusion stays semiglobal, global for constant inertia.
+
+**Robots under augmented PD (Proposition 4.10, pp. 194–195, for every robot, p. 301; commit
+`1b9a28e`).** The law (4.53) for a robot is `F = M(x)ẍ_d + C(x, ẋ)ẋ_d + N(x, ẋ) − K_vė − K_pe`; the
+skewed energy is MLS's `V`; along motions `Ṁ = C + Cᵀ` (from the skew property and the symmetry of
+`M`), so the rate is written without `Ṁ`: `V̇ = −ėᵀK_vė + εėᵀMė − εeᵀK_pe + ε(−eᵀK_vė + ėᵀC(x, ẋ)e)`.
+Hypotheses: those of Proposition 4.9 for robots (`M(x)` positive definite, continuous, differentiable
+along motions, the skew property), `M` uniformly positive definite and bounded,
+`|vᵀC(x, u)w| ≤ δ‖u‖‖v‖‖w‖`, `ẋ_d` bounded for `t ≥ 0`; the conclusion is semiglobal as for the
+manipulator, and global when `|vᵀC(x, u)w| ≤ c‖v‖‖w‖` uniformly.
+
+**Workspace augmented PD (Exercise 9, p. 209; commit `1b9a28e`).** `τ = JᵀF` with `F` the augmented PD
+law of the workspace robot `workspaceRobot f g` (desired workspace trajectory `x_d`); the tracking error
+is the workspace error `(f(θ) − x_d, Jθ̇ − ẋ_d)` of the joint solution; hypotheses: `f` of class `C²`
+with a differentiable inverse `g`, `M̃` uniformly positive definite and bounded, the workspace robot's
+`C̃(g(x), J⁻¹u)` bounded by `δ‖u‖`, `ẋ_d` bounded.
 
 ## Grasp and contact conventions
 
@@ -1313,7 +1327,7 @@ the pose curve `φ ∘ x` has a derivative and its body velocity `(φ⁻¹φ̇)^
 contact coefficients `Σ i, Fin (m i)` and joints `Σ i, Fin (n i)` are relabeled to `Fin k` by
 equivalences (`chartHandJacobian`, `chartGrasp`, `unstackJoints`); the hand's `J_h` is square when
 `Σ m i = Σ n i` (assumption 2 of p. 277). The library's chart instance is the translational chart
-`x ↦ (I, x)` with `Jφ = [[I], [0]]`; no chart of all of `SE(3)` is constructed.
+`x ↦ (I, x)` with `Jφ = [[I], [0]]`; a chart of `SE(3)` is the pose chart below.
 
 **Effective parameters (6.22).** `effectiveMass Mo Mf J G = M_o + G J⁻ᵀ M_f J⁻¹ Gᵀ` and
 `effectiveCoriolis Co Cf Mf J G Bd = C_o + G J⁻ᵀ (C_f J⁻¹ Gᵀ + M_f Bd)`, `J⁻ᵀ = (J⁻¹)ᵀ` with
@@ -1353,7 +1367,7 @@ any motion whose `M(s)` is positive definite, the matrices possibly depending on
 the robot's state (p. 301). `ManipulatorModel.toRobotSystem` is the manipulator model of eq. (4.47) as a robot (same
 `field` and computed torque, by definition). The hand–object system is a robot on the object
 coordinates when the finger fields are written in object coordinates (`handRobot`, the holonomic
-case of p. 301); inputs and outputs of robots and the operations `attach`, `control` are not modeled.
+case of p. 301); the operations `attach` and `control` are below; inputs and outputs of robots are not modeled as structures.
 
 **The torques (6.36).** `G⁺ = Gᵀ(GGᵀ)⁻¹` is `rightPinv G` (`Matrix.inv`; one definition for `J⁺`,
 `P⁺`, `G⁺`), used under `G` onto; `graspTorque J G F f_N = Jᵀ(G⁺F + f_N)`, with `f_N ∈ N(G)` where
@@ -1383,3 +1397,50 @@ finger's inertia depends on its own joints only.
 partial derivatives are read from its joint Fréchet derivative `DL` (`∂L/∂rᵢ = DL(eᵢ, 0, 0)`,
 `∂L/∂ṙᵢ = DL(0, eᵢ, 0)`, `∂L/∂ṡ = DL(0, 0, 1)`), and those of `a` from its Fréchet derivative `Da`
 (`∂aⱼ/∂rᵢ = (Da eᵢ)ⱼ`); the last sum of (6.15) is `Σⱼ (∂aⱼ/∂rᵢ) ṙⱼ`.
+
+Recorded 2026-10-26 with commit `1b9a28e`.
+Source: MLS printed pp. 31–32, 277–279, 300–310 and Exercise 4(b) (p. 314), read as renders and text
+extracts.
+
+**Pose chart of `SE(3)`.** The chart centered at a rotation `R₀` is
+`eulerChart R₀ ξ = (R₀ R_z(α) R_y(β) R_z(γ), p)` for `ξ = (p, α, β, γ) ∈ ℝ⁶`, position first
+(`Fin 3 ⊕ Fin 3 ≃ Fin 6`) and the ZYZ angles of (2.19) in their printed order; `R₀ = I` is the plain
+chart. Its body-velocity Jacobian (rows in twist order `(v, ω)`, columns the six coordinates) is
+`[[Rᵀ, 0], [0, E(β, γ)]]`, the columns of `E` being `(−sin β cos γ, sin β sin γ, cos β)`,
+`(sin γ, cos γ, 0)`, `(0, 0, 1)`; it satisfies `IsBodyJacobian` along every motion with no restriction,
+and its determinant (rows relabeled to `Fin 6`) is `−sin β`. The singular set is `sin β = 0` in
+coordinates and, in `SE(3)`, the poses with `zyzRadial(R₀⁻¹ R) = 0` (`R₀⁻¹ R` maps the `z`-axis to `±`
+itself); off it, (2.20) applied to `R₀⁻¹ R` is a right inverse with values in `0 < β < π`. The chart is a
+local parameterization in the book's sense (a map with invertible Jacobian off the singular set and an
+explicit local inverse), not a homeomorphism: it is `2π`-periodic in the angles and the `atan2` inverse
+has a branch cut. A pose `g` is reached at nonsingular coordinates by the chart centered at
+`R_g R_y(π/2)⁻¹`. Hypothesis wherever the Jacobian is inverted: `sin β ≠ 0`.
+
+**(6.23) and the chart.** The "global versions of the inertial parameters" (p. 279) are the parameters
+(6.22) with the object's body-coordinate data `M_g` (constant generalized inertia), `C_g` (the skew
+Coriolis matrix of Exercise 4(a)), `N_g` (body wrench coordinates) and the twist-level grasp map `G`. A
+chart with Jacobian `Jφ ∈ ℝ^{p×k}` and rate `J̇φ` has the local parameters `M_o = JφᵀM_gJφ`,
+`C_o = JφᵀC_gJφ + JφᵀM_gJ̇φ`, `N_o = JφᵀN_g`, `G(x) = JφᵀG`, and the rate `Bd Jφ + J⁻¹GᵀJ̇φ` of `J⁻¹(JφᵀG)ᵀ`;
+then the local (6.21) is `Jφᵀ` times the global equation at `V = Jφẋ`, `V̇ = Jφẍ + J̇φẋ`, and the two are
+equivalent where `Jφ` is onto.
+
+**The `control` operation.** A controller `RobotController R` of a robot `R` is a law
+`u(t, x, ẋ, ẍ, F_c)` (the force applied to `R`; `F_c` the force command of the level above; a desired
+trajectory is a parameter of the law) and the attributes `(M̃, C̃, Ñ)` of the controlled robot at each
+time, related by equal residual forces: `Mẍ + Cẋ + N − u = M̃ẍ + C̃ẋ + Ñ − F_c` for all arguments. The
+controlled robot `R.control K t` is the attributes at `t`; it has the configuration and state of `R`.
+The law determines `M̃` and `C̃ẋ + Ñ`, not their split; an acceleration-free law keeps `M̃ = M`. Feedback
+laws `u(t, x, ẋ) + F_c` are given the attributes `(M, C, N − u)`, which keep the skew property. The zero
+robot (`M = C = N = 0`) is the `Zero` instance of `RobotSystem p`.
+
+**The `attach` operation.** The constraint data `AttachConstraint n p` are the finger configuration
+`θ = σ(x)` on the constraint, `J(x) = ∂h/∂θ`, `G(x)` with `Gᵀ = −∂h/∂x` (at `(σ(x), x)`) and the rate
+`Bd(x, ẋ)` of `J⁻¹Gᵀ`; the finger velocity is `J⁻¹Gᵀẋ`, the acceleration `J⁻¹Gᵀẍ + Bdẋ`.
+`attach F P A` is the robot on the payload coordinates with `M̃ = M_p + GJ⁻ᵀM_fJ⁻¹Gᵀ`,
+`C̃ = C_p + GJ⁻ᵀ(C_fJ⁻¹Gᵀ + M_fBd)`, `Ñ = N_p + GJ⁻ᵀN_f` (p. 305 prints `J⁻¹G`; the dimensions and (6.22)
+require `J⁻¹Gᵀ`), the finger fields evaluated on the constraint. A list of fingers is one robot by
+`RobotSystem.stack` (block-diagonal parameters, relabeling `(Σ i, Fin (n i)) ≃ Fin N`, as (6.16)).
+Holonomic data (`IsHolonomic e h`): `h` on the composite configuration relabeled by
+`e : Fin p ⊕ Fin n ≃ Fin N`, payload first. The constraint force `λ` has the sign of p. 267
+(`J_hᵀλ = τ − (M_fθ̈ + C_fθ̇ + N_f)`, `Gλ = M_pẍ + C_pẋ + N_p`). Hypotheses where used: `J` invertible,
+`M_f` symmetric, differentiability along motions, the derivative of `σ` along motions and the rate `Bd`.
