@@ -12,6 +12,9 @@
 /.vscode/
 /analysis-scratch/
 
+# The demo's generated outputs (plots, run log)
+/demo/out/
+
 # Quarantined, retracted work: never staged
 garbage_*
 **/garbage_*/

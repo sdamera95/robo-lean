@@ -168,3 +168,6 @@ import RoboLean.Grasp.PlanarContactKinematics
 import RoboLean.Examples.SphereChart
 import RoboLean.Examples.RollingContact
 import RoboLean.Examples.PlanarContact
+import RoboLean.Demo.Supervisor
+import RoboLean.Demo.PlanarArmFrames
+import RoboLean.Demo.SupervisorRefines
