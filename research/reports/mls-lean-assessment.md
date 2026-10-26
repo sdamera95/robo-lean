@@ -1,7 +1,7 @@
 # MLS in Lean: source assessment and research opportunities
 
 **Baseline date:** 2026-10-08  
-**Primary source:** Murray, Li, and Sastry, *A Mathematical Introduction to Robotic Manipulation* (1994), [local PDF](../../references/MLS.pdf). Page references below use the book's printed numbering; the corresponding PDF page is approximately the printed page plus 18.
+**Primary source:** Murray, Li, and Sastry, *A Mathematical Introduction to Robotic Manipulation* (1994; the PDF is not part of this repository). Page references below use the book's printed numbering; the corresponding PDF page is approximately the printed page plus 18.
 
 ## Scope and evidential status
 

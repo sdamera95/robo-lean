@@ -5,7 +5,7 @@ twist, velocity, and wrench conventions and identifies the checked subset. Imple
 evidence belongs in the [coverage ledger](mls-coverage-ledger.md); this document
 alone does not certify a Lean implementation or a physical model.
 
-The source is Murray, Li, and Sastry, [MLS](../../references/MLS.pdf), Chapter 2.
+The source is Murray, Li, and Sastry, MLS, Chapter 2.
 References use printed pages; PDF page numbers are 18 larger. The cited formula
 pages were read as text and inspected as rendered images, as recorded below.
 
@@ -22,8 +22,8 @@ Coordinates are column vectors in a right-handed orthonormal basis, ordered
 MLS writes the mathematical pair as `g_AB = (p_AB, R_AB)`; the Lean structure
 uses named `rotation` and `translation` fields, so no positional pair order
 should be inferred from its field order. Sources:
-[pp.23-25](../../references/MLS.pdf#page=41) and
-[p.35, equations (2.21)-(2.22)](../../references/MLS.pdf#page=53).
+pp.23-25 and
+p.35, equations (2.21)-(2.22).
 
 Composition applies the right operand first:
 
@@ -42,8 +42,8 @@ p_{BA}=-R_{AB}^{\mathsf T}p_{AB}.
 \]
 
 Thus `(g * h).applyPoint q` means `g.applyPoint (h.applyPoint q)`.
-Sources: [rotation composition (2.3), p.25](../../references/MLS.pdf#page=43)
-and [rigid composition/inverse, p.37](../../references/MLS.pdf#page=55).
+Sources: rotation composition (2.3), p.25
+and rigid composition/inverse, p.37.
 
 A coordinate conversion describes the same physical point in two frames: this
 is the passive interpretation of `g_AB`. The same affine formula can also
@@ -51,7 +51,7 @@ describe an active displacement, with both the initial and final coordinates
 expressed in one fixed frame A. In that interpretation the point moves. Each
 theorem or example must state the intended meaning. MLS distinguishes these
 interpretations for the twist exponential on
-[p.42, equation (2.37)](../../references/MLS.pdf#page=60); that active
+p.42, equation (2.37); that active
 motion acts on an initial pose by left multiplication.
 
 ## Rotations, points, and displacement vectors
@@ -59,9 +59,9 @@ motion acts on an initial pose by left multiplication.
 A rotation satisfies `Rᵀ R = R Rᵀ = I` and `det R = 1`. The positive quarter
 turn about `+z` sends `e_x` to `e_y`, `e_y` to `-e_x`, and fixes `e_z`.
 This specifies the sign without a viewing-direction ambiguity; it matches
-MLS's [`R_z` matrix on p.31](../../references/MLS.pdf#page=49).
+MLS's `R_z` matrix on p.31.
 Orientation uses `e_x × e_y = e_z` and hat convention `hat(a) b = a × b`,
-as on [p.26, equations (2.4)-(2.7)](../../references/MLS.pdf#page=44).
+as on p.26, equations (2.4)-(2.7).
 
 Point action and displacement-vector action are distinct:
 
@@ -74,7 +74,7 @@ Translation affects points but cancels in differences. A point plus a
 displacement is a point; the difference of two points is a displacement.
 Adding two point-coordinate tuples is arithmetically possible in the initial
 representation but has no intrinsic affine meaning. Source:
-[MLS p.36](../../references/MLS.pdf#page=54).
+MLS p.36.
 
 The homogeneous representation is
 
@@ -87,7 +87,7 @@ H(g)=\begin{bmatrix}R&p\\0&1\end{bmatrix},\qquad
 The last coordinate distinguishes the actions. The block-matrix bridge
 uses index type `Fin 3 ⊕ Fin 1`; a displayed `4 × 4` matrix orders its
 coordinates as `x, y, z, homogeneous`. Source:
-[pp.36-37, equations (2.23)-(2.24)](../../references/MLS.pdf#page=54).
+pp.36-37, equations (2.23)-(2.24).
 
 ## First-slice representation and limits
 
@@ -113,8 +113,8 @@ Lengths mean `‖v‖₂ = sqrt(v_x² + v_y² + v_z²)`; distance means
 `dist(q,r) = ‖q-r‖₂`. An unadorned function type `Fin 3 → ℝ` must not
 silently supply the norm for a robotics distance theorem. MLS's Euclidean
 distance and cross-product preservation targets are Propositions 2.2 and 2.7
-on [p.26](../../references/MLS.pdf#page=44) and
-[p.38](../../references/MLS.pdf#page=56).
+on p.26 and
+p.38.
 
 Frame indexing was evaluated for this slice and deferred: the minimal core
 does not enforce A/B/C compatibility. A future frame-indexed wrapper remains
@@ -262,8 +262,8 @@ V^s=\operatorname{Ad}_g V^b,
 \begin{bmatrix}R&\widehat p R\\0&R\end{bmatrix}.
 \]
 
-Sources: [p.41, equations (2.30)-(2.31)](../../references/MLS.pdf#page=59),
-[pp.54-55, equations (2.53), (2.55), (2.57)-(2.58)](../../references/MLS.pdf#page=72).
+Sources: p.41, equations (2.30)-(2.31),
+pp.54-55, equations (2.53), (2.55), (2.57)-(2.58).
 In particular `vˢ = ṗ - ωˢ × p`; it is generally not the velocity `ṗ` of the
 body origin. Body linear velocity is `vᵇ = Rᵀ ṗ`.
 
@@ -278,7 +278,7 @@ f_A=R_{AB}f_B,\qquad
 
 This includes an origin shift, not merely rotation of components. Equivalently
 `Fᵇ = Ad_gᵀ Fˢ`. Source:
-[pp.61-63, equations (2.65)-(2.67)](../../references/MLS.pdf#page=79).
+pp.61-63, equations (2.65)-(2.67).
 The dual pairing is `f·v + τ·ω`; with velocity units it is instantaneous power,
 whose time integral is work. MLS denotes the pairing by `δW`; RoboLean's
 `Wrench.pair` states the instantaneous pairing. I4 proves preservation under
@@ -388,7 +388,7 @@ X60 as Unverified with partial evidence for the conditional formula.
 
 **Verified - source transcription only:** rendered inspection of printed
 pp.23, 25, 26, 31, 35-38, 41-42, 54-55, and 61-63 of
-[MLS.pdf](../../references/MLS.pdf) supports the displayed coordinate-direction,
+MLS.pdf supports the displayed coordinate-direction,
 sign, ordering, composition, inverse, homogeneous, adjoint, and wrench formulas.
 Printed p.24 and the surrounding pp.23-38 and 53-56 passages were also extracted
 as text. This is not a review of every argument in Chapter 2.
@@ -442,14 +442,14 @@ for pp. 87, 88 and 116–118, inspected as rendered images in this increment. Th
 are coordinate conventions of the Lean model; they do not certify a physical robot.
 
 **Joint and link numbering.** Joints are numbered from the base to the tip
-([p. 83](../../references/MLS.pdf#page=101)). Lean indexes joints by `i : Fin n`,
+(p. 83). Lean indexes joints by `i : Fin n`,
 so Lean joint `i` is the book's joint `i + 1`. Links are indexed by `Fin (n + 1)`;
 link 0 is the base, and Lean joint `i` connects link `i` (`Fin.castSucc i`) to
 link `i + 1` (`Fin.succ i`), as in "joint i connects links i − 1 and i".
 
 **Joint coordinates and admissible domain.** Joint coordinates are real numbers,
 `θ : Fin n → ℝ`. The book's revolute coordinate lives on `S¹`, with `2π`
-identified with `0` ([p. 84](../../references/MLS.pdf#page=102)); Lean keeps the
+identified with `0` (p. 84); Lean keeps the
 real lift and proves periodicity instead of forming a quotient
 (`SerialChain.fk_add_int_mul_two_pi`, for revolute joints with a unit axis). A
 real vector therefore names a configuration, but two vectors that differ by `2π`
@@ -461,7 +461,7 @@ it agrees with the positive quarter turn about `+z` above.
 
 **Reference configuration and twists.** The reference configuration is `θ = 0`,
 and `SerialChain.toolRef` is `g_st(0)`. Reference joint twists are base-frame
-twists at `θ = 0` ([p. 87](../../references/MLS.pdf#page=105)), in the order
+twists at `θ = 0` (p. 87), in the order
 `(v, ω)`: revolute `Twist.revolute ω q = (-ω × q, ω)` and prismatic
 `Twist.prismatic v = (v, 0)` (in Lean, `⟨-ω × q, ω⟩` and `⟨v, 0⟩`). The unit-axis or unit-direction premise is the
 predicate `Twist.IsRevoluteJoint` or `Twist.IsPrismaticJoint`, not a field of the
@@ -473,7 +473,7 @@ Any point of the axis line gives the same revolute twist
 (eq. (3.3)) is the ordered product `List.prod (List.ofFn …)`, base joint on the
 left. Since `g * h` applies `h` first, the tip joint's motion acts first on the
 reference tool pose, and the result acts on `g_st(0)` by left multiplication, as
-in `g_ab(θ) = exp(ξ̂θ) g_ab(0)` ([p. 85](../../references/MLS.pdf#page=103)).
+in `g_ab(θ) = exp(ξ̂θ) g_ab(0)` (p. 85).
 The adjacent-frame form (eq. (3.1)) is `LinkFrameChain`: the joint twist `ζᵢ` is
 written in the proximal link frame `Lᵢ` (`L₀ = S`), the relative transform is
 `g_{Lᵢ Lᵢ₊₁}(θᵢ) = exp(ζ̂ᵢθᵢ) g_{Lᵢ Lᵢ₊₁}(0)`, and the base-frame twist is
@@ -489,9 +489,9 @@ currently carried by its proximal link (pp. 86–87). The tool pose of a state i
 **Jacobians.** A Jacobian is the function `Fin n → Twist` of its columns, and
 joint rates act by `∑ i, θ̇ i • J i`. Lean column `i` is the book's column
 `i + 1`. Spatial column `i` is `Ad` of the product of the first `i` joint
-exponentials applied to `ξᵢ` (eq. (3.54), [p. 116](../../references/MLS.pdf#page=134));
+exponentials applied to `ξᵢ` (eq. (3.54), p. 116);
 body column `i` is `Ad` of the inverse of (joint exponentials `i..n−1`) `g_st(0)`
-applied to `ξᵢ` (eq. (3.55), [p. 117](../../references/MLS.pdf#page=135)).
+applied to `ξᵢ` (eq. (3.55), p. 117).
 The `6 × n` matrix view `SerialChain.spatialJacobianMatrix` has rows indexed by
 `Fin 3 ⊕ Fin 3` through `Twist.coordinates`: `Sum.inl` rows are `v_x, v_y, v_z`,
 `Sum.inr` rows are `ω_x, ω_y, ω_z`, the row order printed on p. 118. The spatial
@@ -502,18 +502,18 @@ tool-origin velocity is `ωˢ × p + vˢ`, not `vˢ` alone (p. 117).
 **Workspaces.** `completeWorkspace c Q` is the pose image `fk '' Q` (eq. (3.11)),
 `reachableWorkspace c Q` the position image (eq. (3.12)), and
 `dextrousWorkspace c Q` is `{p | ∀ R, ∃ θ ∈ Q, fk θ = ⟨R, p⟩}` with the printed
-quantifier order (eq. (3.13), [p. 95](../../references/MLS.pdf#page=113)), `R`
+quantifier order (eq. (3.13), p. 95), `R`
 ranging over all of `SO(3)`. These are pose-reachability sets; they say nothing
 about paths, continuity of an inverse, or dynamics.
 
 **Force pullback.** Joint torques equivalent to an end-effector wrench are the pairings
 `τᵢ = Wrench.pair F Jᵢ` of the wrench with the Jacobian columns, in matched frames: a
 spatial wrench (moment about the base origin, base coordinates) with the spatial Jacobian,
-`SerialChain.spatialWrenchTorques` (eq. (3.60), [p. 121](../../references/MLS.pdf#page=139)),
+`SerialChain.spatialWrenchTorques` (eq. (3.60), p. 121),
 and a body wrench (moment about the tool origin, tool coordinates) with the body Jacobian,
 `SerialChain.bodyWrenchTorques` (eq. (3.59)). The two correspond by
 `Fˢ = Wrench.transform (fk θ) Fᵇ`, the inverse of `Fᵇ = Ad_gᵀ Fˢ` (eq. (2.67),
-[p. 63](../../references/MLS.pdf#page=81)). The matrix forms use `spatialJacobianMatrix` and
+p. 63). The matrix forms use `spatialJacobianMatrix` and
 `bodyJacobianMatrix` with rows `Sum.inl` = `v`, `Sum.inr` = `ω`, against `Wrench.coordinates`
 with `Sum.inl` = `f`, `Sum.inr` = `τ`. The statements are the instantaneous algebraic
 identity; the book's frictionless work premise is not formalized
@@ -525,7 +525,7 @@ are the Euclidean norm of `Vec3`. "Unrestricted joints" is `Q = Set.univ`. The a
 certificate and radial-band statements are design statements from the assessment, not MLS
 results ([ledger C01–C07](mls-coverage-ledger.md#design-certificates-beyond-mls)).
 
-**Planar two-link inverse kinematics.** MLS [p. 98](../../references/MLS.pdf#page=116), eq. (3.16), is stated about the library arm
+**Planar two-link inverse kinematics.** MLS p. 98, eq. (3.16), is stated about the library arm
 `planarTwoLinkPosition a b`. The book's Fig. 3.7a puts the zero configuration along `+x`, the
 library's arm (Example 3.1 specialized) along `+y`; the book's point `(x, y)` is the library point
 `vec (−y) x 0`, a rotation by `Rz(π/2)` (`Examples.planarTwoLinkPosition_eq_vec_iff`), with
@@ -605,7 +605,7 @@ reports an `unsat` solver result as holding even when the proof was not rebuilt 
 kernel (commit `44a91b2`: silent over four actions, rejected by the kernel in the proof-term form).
 
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
-[p. 99](../../references/MLS.pdf#page=117)) is `Twist.revolute ω r` with the hypothesis
+p. 99) is `Twist.revolute ω r` with the hypothesis
 `‖ω‖ = 1`, where `r` is a point on the axis; `e^{ξ̂θ} p` is
 `(Twist.exp ξ θ).applyPoint p`. With `u = p − r` and `v = q − r`, `PadenKahan.perp ω u` is
 `u′ = u − ω ωᵀu` and `PadenKahan.planeAngle ω u v` is
@@ -616,10 +616,10 @@ solutions are stated modulo `2π`. Subproblem 2 models intersecting axes by one 
 solutions are counted as intermediate points `c = e^{ξ̂₂θ₂} p` (eq. (3.21)). Subproblem 3
 takes `δ ≥ 0` and the nondegeneracy `u′ ≠ 0`, `v′ ≠ 0`, which the book does not state
 (commit `fc99877`). MLS
-[p. 98](../../references/MLS.pdf#page=116), eq. (3.16), prints the closed-form planar two-link
+p. 98, eq. (3.16), prints the closed-form planar two-link
 inverse kinematics; the existence half of the workspace row C02 is its `π − α` branch. The polar-form lemmas of `Rotation.atan2` are `Rotation.sqrt_mul_cos_atan2` and `Rotation.sqrt_mul_sin_atan2` in `Geometry/EulerAngles.lean`; the axis-fixing fact of MLS p. 104 is `Twist.exp_revolute_applyPoint_of_mem_axisLine` (commit `c2a2604`).
 
-**Elbow manipulator.** MLS Example 3.2 ([pp. 89–91](../../references/MLS.pdf#page=107)) is `Examples.elbowManipulator l₀ l₁ l₂`, the base
+**Elbow manipulator.** MLS Example 3.2 (pp. 89–91) is `Examples.elbowManipulator l₀ l₁ l₂`, the base
 frame with the first axis along `+z` and the arm along `+y` at height `l₀`; the twists are built
 with `Twist.revolute` from the axes and points of Fig. 3.4 and agree with the six printed
 six-vectors; `g_st(0) = (I, (0, l₁ + l₂, l₀))`. Example 3.5's points are the wrist centre
@@ -629,7 +629,7 @@ stated in the form of the corresponding `PadenKahan` subproblem, so its solution
 directly. The necessary conditions hold for every point of the sixth axis (Step 3) and every point (Step 4); the converse uses a point `p ≠ p_w` of the sixth axis and a point `p′` off it, the points the book prescribes, and characterizes all solutions; the eight-solution count is not formalized.
 
 **Singular configurations.** `SerialChain.IsSingular c θ` means that the `6 × n` spatial
-Jacobian matrix has rank less than `min 6 n` ([p. 123](../../references/MLS.pdf#page=141)).
+Jacobian matrix has rank less than `min 6 n` (p. 123).
 For `n ≤ 6` this is linear dependence of the twist columns, equivalently of the body
 Jacobian's columns; for `n > 6` it is the library's extension. For the planar two-link
 arm, the p. 123 definition gives no singular configuration when the first link length is
@@ -637,7 +637,7 @@ nonzero; the folded configurations `sin θ₂ = 0` are singular for the `2 × 2`
 Jacobian `∂p/∂θ` (`Examples.planarTwoLinkPositionJacobian`, in the sense of eq. (3.64)),
 which is a different map. Example 3.12 (three parallel coplanar revolute axes) is `SerialChain.isSingular_of_three_parallel_coplanar_revolute`, for every `n ≤ 6`; the elbow manipulator's reference configuration is its printed instance (commit `c2a2604`).
 
-**Manipulability.** The Jacobian of MLS §4.4 ([pp. 127–129](../../references/MLS.pdf#page=145)) is the body Jacobian matrix
+**Manipulability.** The Jacobian of MLS §4.4 (pp. 127–129) is the body Jacobian matrix
 `SerialChain.bodyJacobianMatrix` (the book's preference, p. 128). Its singular values are Mathlib's
 `LinearMap.singularValues` of `Matrix.toEuclideanLin J`, which uses the standard inner products on
 joint rates and on the six coordinates `(v, ω)`: the square roots of the eigenvalues of `JᵀJ` in
@@ -652,7 +652,7 @@ and `Q` explicit; for `0 < n ≤ 6` (six joints for `μ₃`) all three measures 
 nonsingular configurations in `Q`.
 
 **Closed chains.** `ClosedChain n₁ n₂` holds two serial chains in one base and one tool
-frame ([p. 133](../../references/MLS.pdf#page=151)). Its joint space `Q′` is the set of
+frame (p. 133). Its joint space `Q′` is the set of
 pairs `(θ₁, θ₂)`, each admissible for its chain, with `g₁(θ₁) = g₂(θ₂)` (eq. (3.65)). The
 reference tool poses of the two chains are not required to agree; their agreement is
 exactly `(0, 0) ∈ Q′`. The differential constraint `J₁ˢθ̇₁ = J₂ˢθ̇₂` (eq. (3.67)) is stated
