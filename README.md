@@ -62,7 +62,7 @@ The five Design modules mirror, in Lean, target supervisors for the planar two-l
 
 ### Demo
 
-[Supervisor](RoboLean/Demo/Supervisor.lean) is an executable timeout supervisor for the planar two-link arm over rational targets, with core imports only and a line protocol in [Main](RoboLean/Demo/Main.lean); [SupervisorRefines](RoboLean/Demo/SupervisorRefines.lean) proves that its guard decides the workspace guard exactly and that every state it reaches is a reachable state of the design supervisor, so the design invariants and the reachability of commanded targets hold on it, and [PlanarArmFrames](RoboLean/Demo/PlanarArmFrames.lean) joins the kinematic and dynamic frames of the arm. A Python loop under [demo](demo) simulates the arm under PD control and asks the Lean executable for every supervisory decision: after `lake build`, run `uv run python planar_arm_demo.py` in `demo/`. The [demo report](research/reports/planar-arm-demo.md) states what is kernel-checked and what is not; the compiler, the protocol, the floating-point simulation and the harness are unverified.
+[Supervisor](RoboLean/Demo/Supervisor.lean) is an executable timeout supervisor for the planar two-link arm over rational targets, with core imports only and a line protocol in [Main](RoboLean/Demo/Main.lean); [SupervisorRefines](RoboLean/Demo/SupervisorRefines.lean) proves that its guard decides the workspace guard exactly and that every state it reaches is a reachable state of the design supervisor, so the design invariants and the reachability of commanded targets hold on it, and [PlanarArmFrames](RoboLean/Demo/PlanarArmFrames.lean) joins the kinematic and dynamic frames of the arm. A Python loop under [demo](demo) simulates the arm under PD control and asks the Lean executable for every supervisory decision: after `lake build`, which also compiles the supervisor to the native executable `planar-arm-supervisor` (run it with `lake exe planar-arm-supervisor`), run `uv run python planar_arm_demo.py` in `demo/`; the loop drives the interpreter command unless the environment variable `ROBO_LEAN_SUPERVISOR` names another, such as `lake exe planar-arm-supervisor`. The [demo report](research/reports/planar-arm-demo.md) states what is kernel-checked and what is not; the compiler, the protocol, the floating-point simulation and the harness are unverified.
 
 ## Verification status
 
@@ -81,7 +81,7 @@ lake exe cache get
 lake build
 ```
 
-Do not run `lake update`: the Mathlib revision is pinned in `lakefile.toml` and the resolved dependencies are checked in as `lake-manifest.json`. A pin change is a recorded decision, not a routine step.
+`lake build` builds the library and the demo's native executable `planar-arm-supervisor` under `.lake/build/bin/`. Do not run `lake update`: the Mathlib revision is pinned in `lakefile.toml` and the resolved dependencies are checked in as `lake-manifest.json`. A pin change is a recorded decision, not a routine step.
 
 ## Development
 
