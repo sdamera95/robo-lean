@@ -1,7 +1,9 @@
 # Planar two-link arm under PD control, with every request, admission, rejection, tick,
 # finish and timeout decided by the Lean executable supervisor (RoboLean/Demo/Main.lean)
-# running as a subprocess. The simulation is floating point and unverified; it illustrates
-# the loop, it is not evidence for any theorem.
+# running as a subprocess: by default the native executable that `lake build` compiles
+# (`lake exe planar-arm-supervisor`), or the command in ROBO_LEAN_SUPERVISOR, for example the
+# interpreter `lake env lean --run RoboLean/Demo/Main.lean`. The simulation is floating point
+# and unverified; it illustrates the loop, it is not evidence for any theorem.
 
 import json
 import os
@@ -102,7 +104,7 @@ def annulus(t):
 # ------------------------------------------------------------------
 # supervisor subprocess and protocol
 
-cmd = os.environ.get("ROBO_LEAN_SUPERVISOR", "lake env lean --run RoboLean/Demo/Main.lean")
+cmd = os.environ.get("ROBO_LEAN_SUPERVISOR", "lake exe planar-arm-supervisor")
 proc = subprocess.Popen(shlex.split(cmd), cwd=repo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
 lines = []
 now = 0.0
