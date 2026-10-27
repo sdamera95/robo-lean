@@ -184,3 +184,6 @@ import RoboLean.Grasp.PlanarRegularContact
 import RoboLean.Examples.SurfaceOfRevolution
 import RoboLean.Examples.PlanarEllipse
 import RoboLean.Examples.RollingHand
+import RoboLean.Geometry.ExpSmooth
+import RoboLean.Kinematics.SerialChainSmooth
+import RoboLean.Grasp.RollingHandSmooth
