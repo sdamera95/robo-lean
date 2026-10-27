@@ -178,3 +178,9 @@ import RoboLean.Examples.RobotAugmentedPD
 import RoboLean.Control.RobotControl
 import RoboLean.Control.RobotAttach
 import RoboLean.Examples.RobotAttach
+import RoboLean.Grasp.ContactBijection
+import RoboLean.Grasp.RollingHand
+import RoboLean.Grasp.PlanarRegularContact
+import RoboLean.Examples.SurfaceOfRevolution
+import RoboLean.Examples.PlanarEllipse
+import RoboLean.Examples.RollingHand
