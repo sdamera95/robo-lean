@@ -220,7 +220,17 @@ no global smooth or unique Euler chart is supplied.
 [ElementaryRotations](../../RoboLean/Geometry/ElementaryRotations.lean) separately
 identifies all three displayed axis-rotation families with actual exponentials.
 [UnitQuaternion](../../RoboLean/Geometry/UnitQuaternion.lean) covers the scalar-first
-product and norm-one group, not a quaternion-to-rotation or half-angle bridge.
+product and norm-one group, and [QuaternionRotation](../../RoboLean/Geometry/QuaternionRotation.lean)
+the rotation map. **Quaternion rotation map.** The rotation of a quaternion `q = (q₀, q⃗)` is
+`v ↦ q v q*` on pure quaternions `(0, v)`, with matrix `(q₀² - ‖q⃗‖²) I + 2 q⃗ q⃗ᵀ + 2 q₀ q̂⃗`
+(`QuaternionCoordinates.rotationMatrix`), defined for every quaternion and in `SO(3)` for unit ones;
+MLS p. 34 calls it "a detailed calculation". The axis-angle quaternion is
+`(cos(θ/2), ω sin(θ/2))`; for a unit axis its rotation is `exp(ω̂θ)`. The map from unit quaternions
+is a homomorphism onto `SO(3)` with kernel `{1, -1}`: a double cover, never a bijection, and
+`θ ↦ θ + 2π` negates the quaternion. The extracted angle is `θ = 2 cos⁻¹ q₀ ∈ [0, 2π]` with Mathlib's
+`Real.arccos`, so `sin(θ/2) = ‖q⃗‖`; the extracted axis is `q⃗ / sin(θ/2)`, zero at the endpoints
+`q = ±1` (`θ = 0`, `2π`) by Lean's division, where every unit axis represents `q`; the printed guard
+`θ ≠ 0` misses the endpoint `θ = 2π` (checked with commit `7117f86`).
 
 [TwistSurjectivity](../../RoboLean/Geometry/TwistSurjectivity.lean) proves that
 every proper rigid transform is an actual twist exponential, using pure
@@ -380,9 +390,17 @@ without an energy-balance, feasibility, calibration, or numerical-quadrature cla
 uses geometric finite/infinite screw cases with actual affine axes. Its
 angle/distance formula requires an explicit common-normal certificate, including
 positive separation, nonparallel unit directions, and signed sine/cosine equations.
-Common-normal existence, principal-angle identification, and the omitted
-parallel/intersecting/infinite-pitch cases remain separate. The ledger records
-X60 as Unverified with partial evidence for the conditional formula.
+[ScrewCommonNormal](../../RoboLean/Geometry/ScrewCommonNormal.lean) constructs the certificate's data.
+**Common normal and signed angle.** For nonparallel unit axes `l₁ = {q₁ + λω₁}`, `l₂ = {q₂ + λω₂}`
+with `m = (q₂ - q₁)·(ω₁ × ω₂)`, the distance is `d = |m| / ‖ω₁ × ω₂‖` (the least distance between
+the axes, attained by feet joined by `d n`), the normal is `n = ±(ω₁ × ω₂)/‖ω₁ × ω₂‖` with the sign
+of `m` (so that `q₂ - q₁` has component `d ≥ 0` along `n`, the book's `q₂ = q₁ + d n` at the feet),
+taken `+` when `m = 0`, and the angle is `α = atan2(n·(ω₁ × ω₂), ω₁·ω₂)` with the library's
+`atan2`, so `cos α = ω₁·ω₂` and `sin α = ±‖ω₁ × ω₂‖`. The reciprocal product (2.72) with these data
+equals the twist–wrench pairing for every pair of nonparallel finite screws, intersecting axes
+(`d = 0`) included, where the sign of `n` does not matter. Parallel axes use `α = atan2(0, ω₁·ω₂)`
+(`0` or `π`), for which the product does not depend on the distance. Infinite-pitch screws have no
+form of (2.72); their reciprocity is stated directly (checked with commit `7117f86`).
 
 ## Source inspection and evidence scope
 
@@ -626,7 +644,14 @@ six-vectors; `g_st(0) = (I, (0, l₁ + l₂, l₀))`. Example 3.5's points are t
 `p_w = (0, l₁ + l₂, l₀)` and the shoulder point `p_b = (0, 0, l₀)`; `g₁ = g_d g_st(0)⁻¹`
 (eq. (3.30), `SerialChain.fk_eq_iff_poe_eq`) and `e^{−ξ̂θ}` is `Twist.exp ξ (−θ)`. Each step is
 stated in the form of the corresponding `PadenKahan` subproblem, so its solution theorems apply
-directly. The necessary conditions hold for every point of the sixth axis (Step 3) and every point (Step 4); the converse uses a point `p ≠ p_w` of the sixth axis and a point `p′` off it, the points the book prescribes, and characterizes all solutions; the eight-solution count is not formalized.
+directly. The necessary conditions hold for every point of the sixth axis (Step 3) and every point (Step 4); the converse uses a point `p ≠ p_w` of the sixth axis and a point `p′` off it, the points the book prescribes, and characterizes all solutions. The eight-solution count reads the solutions modulo `2π` in `Fin 6 → Real.Angle`. The candidates
+are indexed by `(b₁, b₂, b₃) : Bool × Bool × Bool`: `θ₃ = θ₀ + cos⁻¹ κ` for `b₁` true and
+`θ₀ - cos⁻¹ κ` otherwise, the intermediate points of Steps 2 and 3 for `γ = √Γ` when `b₂`, `b₃` are
+true and `-√Γ` otherwise, the other angles by the `atan2` formula of Subproblem 1, Step 3 at the point
+`p_w + e_y` of the sixth axis and Step 4 at the point `p_w + e_x` off it. The count needs `l₁, l₂ ≠ 0`,
+shoulder regularity (the wrist-centre target off the first axis) and wrist regularity (for each arm
+branch, `g₂ (p_w + e_y)` off the fourth axis); exactly eight also needs `-1 < κ < 1` (checked with
+commit `7117f86`).
 
 **Singular configurations.** `SerialChain.IsSingular c θ` means that the `6 × n` spatial
 Jacobian matrix has rank less than `min 6 n` (p. 123).
@@ -668,6 +693,31 @@ contact section (`Rolling.contDiff_poseCoords_iff`). Matrix exponentials are sta
 maps into `ℝ^{m×m}`, so that no matrix norm enters a statement; the proofs use the `L^∞` operator
 norm with which the library builds its exponentials. The statements concern the coordinate maps,
 not `SE(3)` as a manifold (checked with commit `7363824`).
+
+**Parallel mechanisms.** `ParallelMechanism k n` holds `k` serial chains in one base and one tool
+frame, chain `i` with `n i` joints; a configuration is `(i : Fin k) → Fin (n i) → ℝ`, and `Q′`
+requires every chain admissible and all forward kinematics equal (eq. (3.65) for `k` chains). The
+stacked form (3.68) is the block-diagonal matrix of the spatial Jacobian matrices (rows `(v, ω)`)
+against `k` stacked identities. Admissible velocities are the intersection of the `k` Jacobian ranges
+and `ρ` its dimension (eqs. (3.69)–(3.70)). For `k = 2` the structure is bridged to `ClosedChain`,
+which is unchanged. A kinematic singularity ("the rank of the structure equations drops", p. 134) is a
+configuration every neighbourhood of which contains a configuration of `Q′` with a larger `ρ`. With a
+set of actuated joints per chain, chain `i` transmits the wrenches (base coordinates, moment about the
+base origin) whose pairing with every passive joint's current twist vanishes, passive joints carrying
+no torque at static equilibrium (eq. (3.60)); the mechanism is actuator singular when the sums of
+transmitted wrenches are not all wrenches (pp. 135, 141).
+
+**Gruebler's count.** Degrees of freedom are counted at the velocity level: `N` moving links (the
+ground excluded, as in the four-bar's `N = 3`, p. 136) with velocities in a space of dimension `d`
+(`6` spatial, `3` planar), and joint `j` lets the relative velocity of its two bodies range over a
+subspace of dimension `fⱼ`. The admissible velocities have dimension at least `dN - ∑ⱼ (d - fⱼ)`, and
+"the joints define independent constraints" (p. 133) is read as the constraint map being onto
+`∏ⱼ E ⧸ Sⱼ`, which is exactly when the dimension equals the count.
+
+**Self-motions.** The self-motion set of `g_d` is `{θ | g_st(θ) = g_d}` (eq. (3.62)) with no
+manifold structure; internal motions are joint trajectories that stay in it near the time
+considered, and their rates lie in the null space of the spatial Jacobian. Example 3.17's arm is the
+printed position map with angles from `+x`, not a `SerialChain` (checked with commit `7117f86`).
 
 **Evidence scope.** The declarations named here were elaborated and audited for axioms with
 commit `3e5bdd1`, and the `lake build` of `RoboLean.lean` was checked
