@@ -1266,6 +1266,50 @@ would need `B_c` rewritten, which it does not do.
 curvature `K` defined by `n' = K t` (the planar form of (5.23)). The curves are in contact when
 `c_o(s_o) = p + R c_f(s_f)` and `n_o = −R n_f`.
 
+**Contact kinematics `A(η)` (5.40).** The contact coordinates are `η = (α_f, α_o, ψ) ∈ ℝ² × ℝ² × ℝ`
+(`Rolling.ContactCoords`), stacked in `ℝ⁵` in the order `(u_f, v_f, u_o, v_o, ψ)` of (5.39). `A(η)`
+is the linear map from `V^b_of` to the rates given by the first three lines of (5.28) at `V_{l_o
+l_f} = Ad⁻¹_{g_{f c_f}(α_f)} V^b_of`; its matrix has the six twist coordinates `(v, ω)` as columns.
+(5.28) is `η̇ = A(η) V^b_of` together with `v_z = 0`.
+
+**Hands with rolling contacts.** A `RollingHand` holds, per contact, the contact model, the finger,
+the finger base, a chart of the fingertip surface in the fingertip frame (the tool frame of the
+finger chain) and a chart of the object surface in `O`; the contact coordinates are arguments. The
+contact frame of contact `i` at `ηᵢ` is the contact frame of §2 at the object's contact point,
+`inwardContactFrame c_{oᵢ} α_{oᵢ}` (`z` along `−n_{oᵢ}`), not the Gauss frame of (5.42): the two
+give the same velocity constraints for the models of Table 5.2, and the §2 frame keeps the normal
+force of the friction cones pointing into the object. At fixed `η` a rolling hand is the
+fixed-contact hand with frames `g_{ocᵢ}(ηᵢ)`; a fixed-contact hand is the rolling hand with the
+tangent planes of its contact frames as object charts (`c(α) = p + R(α₀, −α₁, 0)`) at `α_o = 0`.
+
+**The contact constraint for rolling contacts.** The first line of (5.40) is derived from (5.9) with
+the contact frame frozen at the contact coordinates of the instant, `g_{fᵢcᵢ}(s) = g_{pfᵢ}(s)⁻¹
+g_{po}(s) g_{ocᵢ}(ηᵢ(t))`. At a contact pose the frozen relative velocity is `−Ad_{(0, R_z(ψ))}
+V_{l_o l_f}`, so (5.9) is `v_z = 0` for a frictionless contact, no sliding for a point contact with
+friction and pure rolling for a soft finger. The literal reading of p. 254, a contact frame moving
+with the contact together with `B_{cᵢ}ᵀ V^b_{ocᵢ} = 0`, forces `α̇_o = 0` for point contacts with
+friction and soft fingers and is not used.
+
+**Contact set and Proposition 5.12.** For two chart patches, `W` is the set of relative poses that
+bring a point of the finger patch onto a point of the object patch with opposed Gauss normals; it is
+the image of `η ↦ g_of(η)`. A pose is read in `ℝ^{3×3} × ℝ³` (rotation matrix, translation;
+`Rolling.poseCoords`), and smoothness on `SE(3)` means smoothness of a map defined on a
+neighbourhood in that space. Smoothness classes are Mathlib's: charts of class `C^{n+1}` give a
+`C^n` inverse, `n = ∞` for smooth charts and `n = ω` for analytic ones.
+
+**Surfaces of revolution (Exercises 14–15).** The chart `(r(u) cos v, r(u) sin v, z(u))` has `n =
+(−z' cos v, −z' sin v, r')/√(r'² + z'²)`; the direction in which the profile is traversed sets the
+orientation, and every instance is traversed so that `n` is outward: the ellipsoid of revolution `(a
+cos u, −c sin u)`, the paraboloid `(u, −u²/(2a))` (the solid below `z = −(x² + y²)/(2a)`), the torus
+`(R + a cos u, −a sin u)`. Exercise 15 is formalized for an ellipsoid with two equal axes, with the
+contact point `(−a, 0, 0)` at `(u, v) = (0, π)` and the object charted as in Example 5.7.
+
+**Exercise 17 for regular charts.** A planar chart of speed `σ` has `c' = σ t`, `n = J t` and
+curvature `K` with respect to arc length, `n' = σ K t`; with `σ ≡ 1` this is Exercise 17(a). The
+elliptical finger of 17(b) is `(−a sin φ, −b cos φ)`, traversed clockwise from its lowest point so
+that `n` is outward; it turns by `R(θ) = [[cos θ, −sin θ], [sin θ, cos θ]]`, and it rolls when its
+material point at the contact has zero velocity, `Ṙ c_f + ṗ = 0`.
+
 ## Constrained dynamics conventions
 
 Recorded 2026-10-13 with commit `d9b95e6`.
