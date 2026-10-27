@@ -659,6 +659,16 @@ exactly `(0, 0) ∈ Q′`. The differential constraint `J₁ˢθ̇₁ = J₂ˢθ
 along trajectories that keep the loop closed near the time considered, and `ρ` (eq. (3.70))
 is the dimension of the intersection of the two Jacobian ranges.
 
+**Smoothness of forward kinematics.** Smoothness classes are Mathlib's `ContDiff ℝ k` for every
+order `k : WithTop ℕ∞`: `k = ∞` is the book's "smooth" and `k = ω` is analytic, and the theorems
+hold for every `k`. A family of rigid motions `x ↦ g(x)` is smooth when every entry of its
+homogeneous matrix `[R p; 0 1]` is, which holds exactly when its rotation entries and its translation
+are, and exactly when it is smooth in the pose coordinates `(R, p) ∈ ℝ^{3×3} × ℝ³` of the rolling
+contact section (`Rolling.contDiff_poseCoords_iff`). Matrix exponentials are stated entry by entry, as
+maps into `ℝ^{m×m}`, so that no matrix norm enters a statement; the proofs use the `L^∞` operator
+norm with which the library builds its exponentials. The statements concern the coordinate maps,
+not `SE(3)` as a manifold (checked with commit `7363824`).
+
 **Evidence scope.** The declarations named here were elaborated and audited for axioms with
 commit `3e5bdd1`, and the `lake build` of `RoboLean.lean` was checked
 separately. K13 and the planar workspace rows were checked with commit `f237457`, built against
@@ -1309,6 +1319,13 @@ curvature `K` with respect to arc length, `n' = σ K t`; with `σ ≡ 1` this is
 elliptical finger of 17(b) is `(−a sin φ, −b cos φ)`, traversed clockwise from its lowest point so
 that `n` is outward; it turns by `R(θ) = [[cos θ, −sin θ], [sin θ, cos θ]]`, and it rolls when its
 material point at the contact has zero velocity, `Ṙ c_f + ṗ = 0`.
+
+**Smooth contact coordinates in (5.41).** The contact coordinates of finger `i` are read from its
+relative pose `g_{ofᵢ} = x_o⁻¹ g_{psᵢ} g_{sᵢfᵢ}(θᵢ)` by the readout `Ψᵢ` of Proposition 5.12. The book's
+"smooth" is read as `C¹` for the readouts and for `θ ↦ η(θ, x_o)`, the order that the `C²` charts of
+`IsOrthogonalChartOn` give, and only at joint vectors that put the fingers at contact poses of the
+chosen `η₀`. Smoothness in the object pose `x_o ∈ SE(3)` is smoothness along every smooth family of
+object poses, read in pose coordinates.
 
 ## Constrained dynamics conventions
 
