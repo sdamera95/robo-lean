@@ -45,12 +45,13 @@ Contents:
   configuration, because axes 2, 3 and 5 are parallel and coplanar
   (`elbowManipulator_isSingular_zero`).
 
-What is not proved: the count "a maximum of eight possible solutions" (p. 106), and the
-conditions under which each subproblem has finitely many solutions (the book chooses `p` on the
-sixth axis "but not on the `ξ₄`, `ξ₅` axes" and, in Step 4, "not on the axis of `ξ₆`"; the
-necessary conditions hold for every point, and the converse needs only `p ≠ p_w` on the sixth
-axis and `p′` off it). These are statements about the coordinate model, not about a physical arm
-or a numerical solver.
+The count "a maximum of eight possible solutions" (p. 106) is proved, under regularity
+hypotheses the book does not state, in `Examples.ElbowManipulatorSolutions`. What is not proved
+here: the conditions under which each subproblem has finitely many solutions (the book chooses
+`p` on the sixth axis "but not on the `ξ₄`, `ξ₅` axes" and, in Step 4, "not on the axis of
+`ξ₆`"; the necessary conditions hold for every point, and the converse needs only `p ≠ p_w` on
+the sixth axis and `p′` off it). These are statements about the coordinate model, not about a
+physical arm or a numerical solver.
 -/
 
 noncomputable section
@@ -590,7 +591,7 @@ theorem elbowManipulator_fk_eq_of_subproblems {l₀ l₁ l₂ : ℝ} {θ : Fin 6
 exactly when it satisfies the Subproblem 2 equation (3.34) (Step 2), the Subproblem 2 equation
 (3.36) at `p` (Step 3) and the Subproblem 1 equation (3.37) at `p′` (Step 4). Step 1, eq. (3.33),
 is a consequence (`elbowManipulator_subproblemThree`). The count "a maximum of eight possible
-solutions" (p. 106) is not formalized. -/
+solutions" (p. 106) is proved in `Examples.ElbowManipulatorSolutions`. -/
 theorem elbowManipulator_fk_eq_iff {l₀ l₁ l₂ : ℝ} {p p' : Vec3}
     (hp : p ∈ axisLine (elbowWrist l₀ l₁ l₂) yAxis) (hpw : p ≠ elbowWrist l₀ l₁ l₂)
     (hp' : p' ∉ axisLine (elbowWrist l₀ l₁ l₂) yAxis) (θ : Fin 6 → ℝ) (g : RigidTransform) :

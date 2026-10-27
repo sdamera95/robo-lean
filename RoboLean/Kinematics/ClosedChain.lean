@@ -19,10 +19,9 @@ base and tool frame").
   `ClosedChain.structureRank` is its dimension, the rank `ρ` of the structure equations,
   eq. (3.70).
 
-Not formalized: Gruebler's formula (3.66), the stacked form (3.68), the meaning of "the rank
-drops" in the book's definition of a kinematic singularity of a parallel mechanism (p. 134; it
-compares `ρ` with its value at nearby configurations), actuator singularities, and any
-statement that `Q′` is a manifold of a given dimension, which would need an implicit-function
+Gruebler's formula (3.66) is in `Kinematics.Gruebler`; the stacked form (3.68), `k` chains and
+the kinematic and actuator singularities are in `Kinematics.ParallelMechanism`. Not formalized:
+any statement that `Q′` is a manifold of a given dimension, which would need an implicit-function
 argument and a rank hypothesis. The two chains may have different reference tool poses; the
 book writes one `g_st(0)` for both, which here is the condition that the reference
 configuration lies in `Q′` (`zero_mem_admissible_iff`). Joint coordinates are the real lift of

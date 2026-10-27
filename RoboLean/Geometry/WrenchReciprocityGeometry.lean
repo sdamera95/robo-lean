@@ -13,9 +13,9 @@ has its own constructor; the finite common-normal formula does not cover it.
 The common-normal certificate requires distinct nonparallel axes, a positive
 separation, a unit normal perpendicular to both directions, and explicit signed
 sine/cosine relations. Its separation is proved to be attained and minimal.
-No existence theorem for such certificates, `atan2` identification, or principal
-angle branch is claimed. Parallel/intersecting axes still satisfy the coordinate
-pairing formula, but are excluded from the common-normal angle theorem.
+`Geometry.ScrewCommonNormal` constructs the certificate for skew axes and proves the
+common-normal formula for every pair of nonparallel finite screws, with parallel and
+infinite-pitch cases stated apart; here the common normal is a supplied certificate.
 These are geometric/algebraic identities, not contact-feasibility statements.
 -/
 

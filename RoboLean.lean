@@ -187,3 +187,11 @@ import RoboLean.Examples.RollingHand
 import RoboLean.Geometry.ExpSmooth
 import RoboLean.Kinematics.SerialChainSmooth
 import RoboLean.Grasp.RollingHandSmooth
+import RoboLean.Geometry.QuaternionRotation
+import RoboLean.Geometry.ScrewCommonNormal
+import RoboLean.Kinematics.Gruebler
+import RoboLean.Kinematics.SelfMotion
+import RoboLean.Kinematics.ParallelMechanism
+import RoboLean.Examples.ElbowManipulatorSolutions
+import RoboLean.Examples.PlanarThreeLinkSelfMotion
+import RoboLean.Examples.FourBarUncertainty
