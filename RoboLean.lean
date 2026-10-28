@@ -195,3 +195,9 @@ import RoboLean.Kinematics.ParallelMechanism
 import RoboLean.Examples.ElbowManipulatorSolutions
 import RoboLean.Examples.PlanarThreeLinkSelfMotion
 import RoboLean.Examples.FourBarUncertainty
+import RoboLean.Control.ExponentialArrival
+import RoboLean.Examples.PlanarTwoLinkRegulation
+import RoboLean.Demo.ArrivalTime
+import RoboLean.Demo.ArrivalConstants
+import RoboLean.Kinematics.JacobianDerivative
+import RoboLean.Examples.PlanarTwoLinkJacobianDerivative
