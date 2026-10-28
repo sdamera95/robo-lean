@@ -28,9 +28,13 @@ namespace Grasp
 /-- **A regular planar chart with its speed, unit tangent and curvature (MLS Exercise 17, printed
 p. 262, without the arc-length assumption):** `c` has the derivative `σ(s) t(s)` at every `s`, the
 tangent `t` is a unit vector, and the normal `n = J t` has the derivative `σ(s) K(s) t(s)`, which
-defines the curvature `K` with respect to arc length (the planar form of MLS eq. (5.23), p. 245). -/
+defines the curvature `K` with respect to arc length (the planar form of MLS eq. (5.23), p. 245).
+Regularity is not required by the structure: `σ` is a signed speed (`|σ(s)| = ‖c'(s)‖`), which may
+vanish, and `K(s)` is the curvature only where `σ(s) ≠ 0`; where `σ(s) = 0` every value of `K(s)`
+satisfies the last condition. -/
 structure IsRegularCurve (c t : ℝ → Fin 2 → ℝ) (σ K : ℝ → ℝ) : Prop where
-  /-- The derivative `c' = σ t` (MLS Exercise 17, p. 262; `σ` is the speed `‖∂c/∂s‖`). -/
+  /-- The derivative `c' = σ t` (MLS Exercise 17, p. 262; `σ` is a signed speed,
+  `|σ| = ‖∂c/∂s‖`). -/
   hasDerivAt : ∀ s, HasDerivAt c (σ s • t s) s
   /-- The tangent `t` is a unit vector (MLS Exercise 17, p. 262). -/
   unit : ∀ s, t s ⬝ᵥ t s = 1

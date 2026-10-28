@@ -498,7 +498,9 @@ end Rolling
 chain from its base frame `Sᵢ` to the fingertip frame `Fᵢ` (MLS Chapter 3), the finger base pose
 `g_{psᵢ}` in the palm, a chart `c_{fᵢ}` of the fingertip surface in `Fᵢ` and a chart `c_{oᵢ}` of the
 object surface in `O` (MLS p. 248). The contact frames are not data: they depend on the contact
-coordinates (`contactFrame`). -/
+coordinates (`contactFrame`). The structure imposes no orientation on the charts: contact from
+outside is meant when both chart normals are outward (`Surface.IsOutwardNormal`), and only then
+does the `z`-axis `−n_{oᵢ}` of the contact frame point into the object. -/
 structure RollingHand (ι : Type*) [Fintype ι] (m n : ι → ℕ) where
   /-- The contact model `(B_{cᵢ}, FC_{cᵢ})` of contact `i`, MLS printed p. 218. -/
   model : (i : ι) → ContactModel Wrench (m i)

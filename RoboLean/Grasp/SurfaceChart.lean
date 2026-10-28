@@ -473,7 +473,9 @@ theorem gaussFrame_inv_act (h : IsOrthogonalAt c α) (hu : partialU c α ≠ 0)
 
 /-- **The contact frame at a surface point (MLS p. 246 and the proof of Lemma 5.10, p. 247):**
 `g_oc = (p_oc, R_oc)` with position `p_oc = c(α)` and orientation the normalized Gauss frame
-`R_oc = [x y z]`; the same frame is MLS eq. (5.42), p. 255, with `∂c/∂α M⁻¹ = [x y]`. -/
+`R_oc = [x y z]`. For a chart whose Gauss normal is outward, the same frame is MLS eq. (5.42),
+p. 255, with `∂c/∂α M⁻¹ = [x y]` (the third column of (5.42) is the outward normal); for a chart
+with an inward Gauss normal it is not. -/
 def contactFrame (c : (Fin 2 → ℝ) → Vec3) (α : Fin 2 → ℝ) : RigidTransform :=
   ⟨gaussFrame c α, c α⟩
 
@@ -490,7 +492,10 @@ def contactFrame (c : (Fin 2 → ℝ) → Vec3) (α : Fin 2 → ℝ) : RigidTran
 "`n_{oᵢ}` is the outward pointing surface normal"):** for a body described as `{x | h x ≤ 0}` with
 `h` differentiable and the surface point `c(α)` on its boundary, the normal `n` is outward when the
 directional derivative of `h` along `n` is positive, so that moving from `c(α)` along `n` leaves the
-body to first order. This is a hypothesis on a chart, not a consequence of eq. (5.19). -/
+body to first order. This is a hypothesis on a chart, not a consequence of eq. (5.19). The boundary
+condition `h (c α) = 0` is not part of the predicate, which also holds at points off the body; a
+statement that reads `n` as the outward normal at a boundary point must assume `h (c α) = 0`
+separately. -/
 def IsOutwardNormal (h : Vec3 → ℝ) (c : (Fin 2 → ℝ) → Vec3) (α : Fin 2 → ℝ) : Prop :=
   0 < fderiv ℝ h (c α) (gaussNormal c α)
 

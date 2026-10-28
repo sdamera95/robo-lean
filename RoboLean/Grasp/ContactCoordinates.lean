@@ -346,7 +346,10 @@ theorem inwardContactFrame_axisX {c : (Fin 2 → ℝ) → Vec3} {α : Fin 2 → 
 
 /-- **With an outward Gauss normal, the `z`-axis of `inwardContactFrame` points into the body (MLS
 p. 214):** for a body `{x | h x ≤ 0}` whose Gauss normal at `c(α)` is outward (`IsOutwardNormal`),
-the directional derivative of `h` along that `z`-axis is negative. -/
+the directional derivative of `h` along that `z`-axis is negative. The boundary condition
+`h (c α) = 0` is not part of `IsOutwardNormal` and is not assumed: the conclusion is the sign of a
+directional derivative, and reading it as "into the body at a boundary point" needs `h (c α) = 0`
+supplied separately. -/
 theorem fderiv_inwardContactFrame_axisZ_neg {h : Vec3 → ℝ} {c : (Fin 2 → ℝ) → Vec3}
     {α : Fin 2 → ℝ} (hc : IsOrthogonalAt c α) (hu : partialU c α ≠ 0) (hv : partialV c α ≠ 0)
     (hout : IsOutwardNormal h c α) :

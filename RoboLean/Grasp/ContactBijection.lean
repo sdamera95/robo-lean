@@ -30,8 +30,12 @@ For orthogonal charts of class `C^{n+1}` (`n ≥ 1`) and a contact `η₀` in th
   (`injective_fderiv_relativePoseMap_iff`; "full rank" for a `2 × 2` matrix);
 * **Proposition 5.12:** if `K_f + R_ψ K_o R_ψᵀ` is invertible at `η₀`, there are a neighbourhood
   `N` of `η₀` and a map `Ψ`, `C^n` at `g_of(η₀)`, such that `η ↦ g_of(η)` maps `N` injectively into
-  the contact set and `Ψ(g_of(η)) = η` on `N` (`exists_local_inverse_relativePoseMap`): `η` depends
-  smoothly on `g_of` over the contact configurations `g_of(N)`.
+  the contact set and `Ψ(g_of(η)) = η` on `N` (`exists_local_inverse_relativePoseMap`): on the
+  contact configurations `g_of(N)`, `η` is read off `g_of` by `Ψ`, which is `C^n` at `g_of(η₀)`;
+* for a finite order `n` or `n = ω` (`n ≠ ∞`), `N` and `Ψ` can be chosen with `Ψ` `C^n` at every
+  contact configuration `g_of(η)`, `η ∈ N`
+  (`exists_local_inverse_relativePoseMap_forall_contDiffAt`). For `n = ∞` this is not stated:
+  `C^∞` at one point gives each finite order on a neighbourhood that may shrink as the order grows.
 
 The proof applies the inverse function theorem (Mathlib's `ContDiffAt.localInverse`) to
 `(η, w) ↦ g_of(η) + w` on `ℝ⁵ × C`, with `C` a complement of the range of the derivative; the
@@ -82,7 +86,10 @@ theorem poseCoords_injective : Function.Injective poseCoords := by
 /-- **The contact set of two chart patches (MLS p. 249: "the set of all relative positions and
 orientations for which the two objects are in contact"; p. 254):** the relative poses `g` that take
 a point `c_f(α_f)` of the finger patch to a point `c_o(α_o)` of the object patch and the finger's
-Gauss normal there to the opposite of the object's (the surfaces touch with opposed normals). -/
+Gauss normal there to the opposite of the object's (the surfaces touch with opposed normals). The
+set imposes no orientation: it describes the two bodies touching from outside when both chart
+normals are outward (`Surface.IsOutwardNormal`); with an inward chart normal a pose in it can put
+one body inside the other. -/
 def contactSet (cf co : (Fin 2 → ℝ) → Vec3) (Uf Uo : Set (Fin 2 → ℝ)) : Set RigidTransform :=
   {g | ∃ αf ∈ Uf, ∃ αo ∈ Uo,
     g.applyPoint (cf αf) = co αo ∧ g.applyVector (gaussNormal cf αf) = -gaussNormal co αo}
@@ -540,6 +547,34 @@ theorem exists_local_inverse_relativePoseMap {n : WithTop ℕ∞} (hn : 1 ≤ n)
     rw [← hx.1, ← hy.1, hxy]
   · intro η hη
     exact hη.1
+
+open scoped ContDiff in
+/-- **MLS Proposition 5.12, printed p. 254, with the inverse `C^n` at every nearby contact
+configuration.** Under the hypotheses of `exists_local_inverse_relativePoseMap` and for a finite
+order `n` or `n = ω` (`n ≠ ∞`), the neighbourhood `N` of `η₀` and the map `Ψ` on pose coordinates
+can be chosen so that `Ψ` is `C^n` at the pose coordinates of `g_of(η)` for every `η ∈ N`, not only
+at `g_of(η₀)`; as there, `η ↦ g_of(η)` maps `N` into the contact set, is injective on `N`, and
+`Ψ(g_of(η)) = η` for every `η ∈ N`. Each smoothness statement is at one pose, in the coordinates
+`(R, p) ∈ ℝ^{3×3} × ℝ³` of `poseCoords`. The case `n = ∞` is excluded: `C^∞` at `g_of(η₀)` gives
+each finite order on a neighbourhood that may shrink as the order grows. -/
+theorem exists_local_inverse_relativePoseMap_forall_contDiffAt {n : WithTop ℕ∞} (hn : 1 ≤ n)
+    (hn' : n ≠ ∞) (hf : IsOrthogonalChartOn cf Uf) (ho : IsOrthogonalChartOn co Uo)
+    (hfn : ContDiffOn ℝ (n + 1) cf Uf) (hon : ContDiffOn ℝ (n + 1) co Uo) {η₀ : ContactCoords}
+    (hηf : η₀.1 ∈ Uf) (hηo : η₀.2.1 ∈ Uo)
+    (hX : IsUnit (relativeCurvature (curvatureTensor cf η₀.1) (curvatureTensor co η₀.2.1)
+      η₀.2.2).det) :
+    ∃ N ∈ 𝓝 η₀, ∃ Ψ : PoseCoords → ContactCoords,
+      (∀ η ∈ N, ContDiffAt ℝ n Ψ (poseCoords (relativePoseMap cf co η))) ∧
+      Set.MapsTo (relativePoseMap cf co) N (contactSet cf co Uf Uo) ∧
+      Set.InjOn (relativePoseMap cf co) N ∧
+      ∀ η ∈ N, Ψ (poseCoords (relativePoseMap cf co η)) = η := by
+  obtain ⟨N, hN, Ψ, hΨ, hmaps, hinj, hinv⟩ :=
+    exists_local_inverse_relativePoseMap hn hf ho hfn hon hηf hηo hX
+  have hc := (contDiffAt_relativePoseMap hf ho hfn hon hηf hηo).continuousAt
+  refine ⟨N ∩ {η | ContDiffAt ℝ n Ψ (poseCoords (relativePoseMap cf co η))},
+    Filter.inter_mem hN (hc.eventually (hΨ.eventually hn')), Ψ, fun η hη => hη.2,
+    hmaps.mono_left Set.inter_subset_left, hinj.mono Set.inter_subset_left,
+    fun η hη => hinv η hη.1⟩
 
 /-- **MLS Proposition 5.12, p. 254, for charts of class `C²`:** the conclusion of
 `exists_local_inverse_relativePoseMap` with a `C¹` inverse, under the hypotheses of an orthogonal

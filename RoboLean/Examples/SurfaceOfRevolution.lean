@@ -851,9 +851,11 @@ theorem exercise15b {a c : ℝ} (ha : 0 < a) (hc : 0 < c) {αf αo : ℝ → Fin
 
 /-- **MLS Exercise 15(c), p. 262, for `a = b`: the rolling velocity that produces `α̇_o = (0, v)`.**
 Under the hypotheses of `exercise15b`, the object contact velocity is `α̇_o = (0, v)` exactly when
-the rolling velocities are `ω_x = −(c/(a s)) cos ψ v` and `ω_y = (a c/s³) sin ψ v`; the relative
-velocity `V^b_{l_o l_f}` is then `(0, 0, 0, ω_x, ω_y, 0)` (pure rolling), with
-`s = √(a² sin² u_f + c² cos² u_f)`. -/
+the rolling velocities are `ω_x = −(c/(a s)) cos ψ v` and `ω_y = (a c/s³) sin ψ v`, with
+`s = √(a² sin² u_f + c² cos² u_f)`. The conclusion concerns `ω_x` and `ω_y` only. The other
+components of the relative velocity `V^b_{l_o l_f}` are not part of it: `v_x = v_y = ω_z = 0` is
+the pure-rolling hypothesis (p. 249), and `v_z = 0` holds along such a motion by Theorem 5.11
+(p. 250) without being restated here. -/
 theorem exercise15c {a c : ℝ} (ha : 0 < a) (hc : 0 < c) {αf αo : ℝ → Fin 2 → ℝ} {ψ : ℝ → ℝ}
     {αf' αo' : Fin 2 → ℝ} {ψ' t : ℝ} (hαf : HasDerivAt αf αf' t) (hαo : HasDerivAt αo αo' t)
     (hψ : HasDerivAt ψ ψ' t) (hft : 0 < cos (αf t 0)) {g : ℝ → RigidTransform}
