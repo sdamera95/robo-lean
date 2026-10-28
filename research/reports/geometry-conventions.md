@@ -1083,9 +1083,12 @@ loop gives one of the workspace closed loop; the stability statements take the j
 hypothesis. The tracking version (Exercise 9, p. 209) is the paragraph "Workspace augmented PD" below. The planar instance uses the absolute link angles
 `x = (θ₁, θ₁ + θ₂)`; the xy map of Example 4.8 has no global inverse.
 
-**Proposition 4.10's `ε` (p. 195).** The smallness of `ε` depends on the region of initial errors when
-`C ≠ 0`: for the planar two-link arm every `ε > 0` leaves a state where the corrected `V̇` is positive
-(an instance). The formal conclusion stays semiglobal, global for constant inertia.
+**Proposition 4.10's `ε` (p. 195).** For the planar two-link arm no single `ε > 0` makes the corrected
+`V̇` negative definite on the whole state space: every `ε` leaves a state, of size of order `1/ε`, where
+it is positive (an instance). On a bounded set of initial errors one `ε` suffices, which is the local
+reading of MLS's argument through Theorem 4.5 (p. 183), so the smallness of `ε` depends on the region
+of initial errors; for a constant inertia with a bounded skew `C` one `ε` serves every initial error.
+The formal conclusion stays semiglobal, global for constant inertia with a bounded skew `C`.
 
 **Robots under augmented PD (Proposition 4.10, pp. 194–195, for every robot, p. 301; commit
 `1b9a28e`).** The law (4.53) for a robot is `F = M(x)ẍ_d + C(x, ẋ)ẋ_d + N(x, ẋ) − K_vė − K_pe`; the
