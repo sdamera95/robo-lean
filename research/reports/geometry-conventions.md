@@ -1094,7 +1094,7 @@ skewed energy is MLS's `V`; along motions `Ṁ = C + Cᵀ` (from the skew proper
 Hypotheses: those of Proposition 4.9 for robots (`M(x)` positive definite, continuous, differentiable
 along motions, the skew property), `M` uniformly positive definite and bounded,
 `|vᵀC(x, u)w| ≤ δ‖u‖‖v‖‖w‖`, `ẋ_d` bounded for `t ≥ 0`; the conclusion is semiglobal as for the
-manipulator, and global when `|vᵀC(x, u)w| ≤ c‖v‖‖w‖` uniformly.
+manipulator, and global when `|vᵀC(x, u)w| ≤ c‖v‖‖w‖` uniformly, a hypothesis which, with the skew property and `Ṁ = C + Cᵀ`, forces `M` constant and `C` skew-symmetric, so the global case is exactly constant inertia with a bounded skew `C`.
 
 **Workspace augmented PD (Exercise 9, p. 209; commit `1b9a28e`).** `τ = JᵀF` with `F` the augmented PD
 law of the workspace robot `workspaceRobot f g` (desired workspace trajectory `x_d`); the tracking error
@@ -1280,8 +1280,7 @@ equal to `∂c_v/∂u` for a twice continuously differentiable chart.
 
 **Normal and orientation (Q5).** The Gauss map is exactly the book's `n = c_u × c_v/‖c_u × c_v‖`
 (5.19), with no sign added. Whether `n` points out of a body depends on the chart: for a body
-`{x : h x ≤ 0}`, `IsOutwardNormal h c α` says that the directional derivative of `h` at `c(α)` along `n`
-is positive. The chart of Example 5.6 has an inward normal (its curvature tensor is `−(1/ρ) I`, against
+`{x : h x ≤ 0}`, `IsOutwardNormal h c α` says that the directional derivative of `h` at `c(α)` along `n` is positive. The boundary condition `h (c α) = 0` is not part of the predicate, which also holds at points off the body; a statement that places `c(α)` on the boundary must assume it separately. The chart of Example 5.6 has an inward normal (its curvature tensor is `−(1/ρ) I`, against
 the printed `(1/ρ) I`), the finger chart of Example 5.7 (the mirror image in `y`) an outward one with
 `K_f = (1/ρ) I`. With an outward normal a convex surface has positive curvature. The kinematic theorems
 (Lemma 5.10, Theorem 5.11) need no orientation hypothesis; the physical reading of two bodies touching
@@ -1294,8 +1293,7 @@ is flat, then `T_p = 0`" holds for affine charts; a polar chart of a plane has `
 
 **Frames.** The normalized Gauss frame `[x y n]` is a rotation for an orthogonal chart with nonzero
 partials; `Surface.gaussFrame c α` is that rotation there and the identity elsewhere, so that a frame
-curve is defined along every coordinate curve. The contact frame is `g_oc(α) = (c(α), [x y n])`, the
-frame of the proof of Lemma 5.10 and of (5.42).
+curve is defined along every coordinate curve. The contact frame is `g_oc(α) = (c(α), [x y n])`, the frame of the proof of Lemma 5.10, and the frame of (5.42) for a chart whose Gauss normal is outward; for an inward one, (5.42)'s matrix with the outward normal is `[x y −n]`, of determinant `−1`.
 
 **Contact coordinates and `ψ`.** `η = (α_f, α_o, ψ)`. `R_ψ = [[cos ψ, −sin ψ], [−sin ψ, −cos ψ]]` as
 printed on p. 250 (a reflection: `R_ψᵀ = R_ψ`, `R_ψ² = I`, `det R_ψ = −1`); `K̃_o = R_ψ K_o R_ψ`. The
@@ -1304,7 +1302,7 @@ determinant `−1`; with `−1` the normals are opposed and (5.34)'s `ω_{c_o c_
 relative pose (not printed) is `g_of(η) = g_{oc_o}(α_o) · (0, diag(R_ψ, −1)) · g_{fc_f}(α_f)⁻¹`. Then
 `x_f ↦ cos ψ x_o − sin ψ y_o`: `ψ` is the right-handed angle from `x_o` to `x_f` about the finger's
 outward normal `−n_o`. The prose of p. 248 ("a rotation ... around the outward normal of `S_o`"),
-read with the right-hand rule about `n_o`, gives the opposite sense; the library follows the matrix.
+read with the right-hand rule about `n_o`, gives the opposite sense; the library follows the matrix. A reading of Figure 5.21 (p. 249), Plausible and not formalized (the arc carries no sign): with the drawn triad of `O` right-handed, `n_o` to the right, `∂c_o/∂u_o` toward the reader and `∂c_f/∂u_f` down, the arc from `∂c_o/∂u_o` to `∂c_f/∂u_f` is a right-handed rotation by `+90°` about `n_o`, which is `ψ = −90°` in the library's sense; on this reading the figure also shows the prose sense.
 
 **Montana's equations.** Theorem 5.11 is stated as the library states (5.8)–(5.13): along a pose curve
 `g` that agrees near `t` with `g_of(η(s))`, `η` with actual derivatives at `t`, for every derivative of
@@ -1354,8 +1352,7 @@ friction and soft fingers and is not used.
 bring a point of the finger patch onto a point of the object patch with opposed Gauss normals; it is
 the image of `η ↦ g_of(η)`. A pose is read in `ℝ^{3×3} × ℝ³` (rotation matrix, translation;
 `Rolling.poseCoords`), and smoothness on `SE(3)` means smoothness of a map defined on a
-neighbourhood in that space. Smoothness classes are Mathlib's: charts of class `C^{n+1}` give a
-`C^n` inverse, `n = ∞` for smooth charts and `n = ω` for analytic ones.
+neighbourhood in that space. Smoothness classes are Mathlib's, `n = ∞` for smooth charts and `n = ω` for analytic ones: charts of class `C^{n+1}` give an inverse `Ψ` that is `C^n` at the contact pose `g_of(η₀)` and, for `n ≠ ∞`, at every contact pose `g_of(η)` with `η` near `η₀` (commit `c8e2ef7`). For `n = ∞` only the statement at `g_of(η₀)` is made: `C^∞` at one point gives each finite order on a neighbourhood that may shrink as the order grows.
 
 **Surfaces of revolution (Exercises 14–15).** The chart `(r(u) cos v, r(u) sin v, z(u))` has `n =
 (−z' cos v, −z' sin v, r')/√(r'² + z'²)`; the direction in which the profile is traversed sets the
