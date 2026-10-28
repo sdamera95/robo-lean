@@ -201,3 +201,15 @@ import RoboLean.Demo.ArrivalTime
 import RoboLean.Demo.ArrivalConstants
 import RoboLean.Kinematics.JacobianDerivative
 import RoboLean.Examples.PlanarTwoLinkJacobianDerivative
+import RoboLean.Nonholonomic.VectorField
+import RoboLean.Nonholonomic.Distribution
+import RoboLean.Nonholonomic.Filtration
+import RoboLean.Nonholonomic.FiltrationBrackets
+import RoboLean.Nonholonomic.TwoInputs
+import RoboLean.Nonholonomic.Integrability
+import RoboLean.Nonholonomic.Controllability
+import RoboLean.Examples.NonholonomicDisk
+import RoboLean.Examples.NonholonomicCar
+import RoboLean.Examples.NonholonomicFinger
+import RoboLean.Examples.NonholonomicHopper
+import RoboLean.Examples.NonholonomicGrowth
