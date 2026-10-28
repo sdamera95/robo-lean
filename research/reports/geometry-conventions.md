@@ -622,6 +622,21 @@ is the preferred form; the fallback chain of commit `aa74623` remains the route 
 reports an `unsat` solver result as holding even when the proof was not rebuilt or would fail the
 kernel (commit `44a91b2`: silent over four actions, rejected by the kernel in the proof-term form).
 
+**Arrival times of the planar arm demo.** The arrival statements concern the ideal continuous
+model: from the time `t₀ ≥ 0` at which a target `(x, y)` is commanded the arm is held at the fixed
+set point `θ_d = elbowDown a b x y` (`Demo.setPoint`), the closed loop is any field with an
+exponential bound `ExponentialBoundOn f (θ_d, 0) C α ρ` (a hypothesis structure, discharged for the
+demo's PD loop), and the initial state error `‖(θ(t₀) − θ_d, θ̇(t₀))‖ < ρ` is a hypothesis. The
+position error is the Euclidean distance of the plane (`Examples.planarDist`, the demo's `hypot`)
+between `planarArmXY a b θ(t)` in the book's frame and the target, bounded through the Lipschitz
+constant `a + 2b` of `planarArmXY` from the sup norm, so a tolerance `ε` on the position is the
+tolerance `ε/(a + 2b)` on the state. Samples are the times `t₀ + kh`; the design statement uses the
+sample `t₀ + bound · h`, at which the demo loop's tick brings the age to the bound and after which
+the loop would time the command out at the next sample; that timing is the loop's policy, not a
+theorem. The demo arm's explicit constants (`C = 34`, `α(ρ) = 1/(24(256 + (2 + 34ρ)²))`) use the
+moments `1/12` and `1/48` about the joint axes and leave the other principal moments free (checked
+with commit `5a650af`).
+
 **Inverse kinematics subproblems.** A zero-pitch unit twist (MLS
 p. 99) is `Twist.revolute ω r` with the hypothesis
 `‖ω‖ = 1`, where `r` is a point on the axis; `e^{ξ̂θ} p` is
@@ -693,6 +708,18 @@ contact section (`Rolling.contDiff_poseCoords_iff`). Matrix exponentials are sta
 maps into `ℝ^{m×m}`, so that no matrix norm enters a statement; the proofs use the `L^∞` operator
 norm with which the library builds its exponentials. The statements concern the coordinate maps,
 not `SE(3)` as a manifold (checked with commit `7363824`).
+
+**Jacobians as derivatives.** The partial derivative `∂g_st/∂θᵢ` of MLS eqs. (3.51)–(3.53)
+(p. 115) is `SerialChain.fkPartial c θ i`, the `4 × 4` matrix of the derivatives of the entries of
+the homogeneous matrix of `g_st` at `θ` in the coordinate direction `i` (`Pi.single i 1`); the
+Fréchet derivative is taken entry by entry, with Mathlib's sup norm on `Fin n → ℝ`, so that no
+matrix norm enters those statements. The spatial column `ξᵢ'` is `(∂g_st/∂θᵢ g_st⁻¹)^∨` and the
+body column `ξᵢ†` is `(g_st⁻¹ ∂g_st/∂θᵢ)^∨`, with the library's `Twist.vee`; the derivative in a
+direction `v` is the entry of `(Jˢ(θ)v)^ g_st(θ) = g_st(θ)(Jᵇ(θ)v)^`. Lean index `i` is the
+book's `i + 1`. The Fréchet derivative is identified through the trajectory derivative along the
+straight joint paths `s ↦ θ + s v`; the matrix-valued trajectory statements keep the `L^∞`
+operator norm of the Jacobian module, whose topology is the product topology (checked with commit
+`5a650af`).
 
 **Parallel mechanisms.** `ParallelMechanism k n` holds `k` serial chains in one base and one tool
 frame, chain `i` with `n i` joints; a configuration is `(i : Fin k) → Fin (n i) → ℝ`, and `Q′`
@@ -943,6 +970,17 @@ term. Bounds are stated with the sup norm, on the tube `‖(e, ė)‖ ≤ R` aro
 smallness of `ε` is the pair of explicit inequalities `2εμ ≤ min(λ, k_p)` and
 `ε(2k_pμ + (κ_v + c)²) ≤ k_p k_v`. The formal conclusion is semiglobal (rate depending on the
 bound of initial errors), global for constant inertia.
+
+**Named exponential constants and arrival times (Definition 4.3, p. 180; p. 195).**
+`Stability.ExponentialBoundOn f x* C α ρ` is the bound (4.34) with its constants named: `C, α > 0`,
+and every solution from a time `t₀ ≥ 0` with `‖x(t₀) − x*‖ < ρ` (strict) satisfies
+`‖x(t) − x*‖ ≤ C e^{−α(t − t₀)} ‖x(t₀) − x*‖` for `t ≥ t₀`. `ExponentiallyStable` is its existence
+for some `ρ > 0`, and `GloballyExponentiallyStable` gives it for every `ρ`. The arrival time for a
+tolerance `ε` is `arrivalTime C α ρ ε = max(0, log(Cρ/ε)/α)` with the natural logarithm. A
+constant set point is the trajectory `θ_d(t) ≡ θ_d` with `θ̇_d ≡ θ̈_d ≡ 0`, under which (4.53) is the
+PD law with compensation of `N` (`pdCompensatedTorque`); the remark of p. 195 calls it (4.51),
+without `N`. The set-point result is semiglobal and uniform in the set point (checked with commit
+`5a650af`).
 
 **Converse of Theorem 4.5 (p. 183).** For an autonomous system with a globally Lipschitz field on a
 Banach space, exponential stability is equivalent to a continuous time-invariant `V` with the
