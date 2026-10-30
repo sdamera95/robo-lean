@@ -1593,3 +1593,79 @@ Holonomic data (`IsHolonomic e h`): `h` on the composite configuration relabeled
 `e : Fin p ⊕ Fin n ≃ Fin N`, payload first. The constraint force `λ` has the sign of p. 267
 (`J_hᵀλ = τ − (M_fθ̈ + C_fθ̇ + N_f)`, `Gλ = M_pẍ + C_pẋ + N_p`). Hypotheses where used: `J` invertible,
 `M_f` symmetric, differentiability along motions, the derivative of `σ` along motions and the rate `Bd`.
+
+## Nonholonomic conventions
+
+Recorded with commit `6342e10`. Source: MLS printed pp. 317–353, read as text; pp. 325, 336, 340,
+341 and 343 rendered.
+
+**Carrier and bracket (pp. 321–325).** A vector field is a function `f : E → E` on a real normed
+space `E` (MLS: `ℝⁿ`, p. 321); the examples use `Fin n → ℝ` with Mathlib's sup norm. The Lie
+derivative is `L_f α = Dα(q) f(q)` for `α : E → F`. The bracket is Mathlib's
+`VectorField.lieBracket ℝ f g`, `[f, g](q) = Dg(q) f(q) − Df(q) g(q)`, which is the book's
+`(∂g/∂q) f − (∂f/∂q) g` (p. 324). For linear fields `q ↦ Aq`, `q ↦ Bq` it is `q ↦ (BA − AB)q`,
+the negative of the ring commutator `⁅A, B⁆ = AB − BA` used by Mathlib and by the library's twist
+bracket: on hat matrices, `[x ↦ ξ̂x, x ↦ η̂x] = −(Twist.bracket ξ η)^` and
+`[g ↦ ξ̂g, g ↦ η̂g] = −(Twist.bracket ξ η)^ g`, while the left-invariant fields `g ↦ gξ̂` have
+`[g ↦ gξ̂, g ↦ gη̂] = g (Twist.bracket ξ η)^`. The curve `t ↦ exp(ξ̂t) g₀` of `TwistTrajectory` is the
+integral curve of `g ↦ ξ̂g` through `g₀`. Matrix-valued fields use the entrywise norm (any norm
+gives the same derivative) and the matrix flow the operator norm, as `TwistTrajectory` does. The
+order of formal exponentials in (8.22)–(8.28) is not fixed here.
+
+**Smoothness.** MLS asks everything to be smooth. Each statement names what it uses: the Jacobi
+identity and `L_[f,g] = L_f L_g − L_g L_f` need class `C²` at the point; the product rule, the
+bracket of combinations and the integrability argument need differentiability at the point (and a
+`C²` map `h`); the filtration exercises and the named statements of Frobenius and Chow take `C^∞`
+generators. Mathlib's derivative is zero where a function is not differentiable, so a field with
+`tan` or a division (the car, the finger) is used only on the open set where it is smooth.
+
+**Distributions (pp. 325–328).** A distribution is a pointwise subspace `D : E → Submodule ℝ E`;
+the distribution spanned by a set `S` of fields is `spanAt S q = span{f(q) : f ∈ S}`. MLS's span
+over smooth functions has the same values at each point. Regular means the dimension is constant on
+a set. Involutive (`IsInvolutiveOn D U`) means: for fields `f, g` differentiable on `U` with values
+in `D` on `U`, `[f, g](q) ∈ D q` on `U`. The generator criterion (`GeneratorsInvolutiveOn S U`)
+asks the brackets of the generators to lie in `Δ_q`; it follows from involutivity, and it gives the
+bracket of any two combinations of the generators with coefficients differentiable at the point.
+The converse for every section of a regular distribution needs local frames and is not formalized.
+Where MLS's module structure matters (Exercises 10–11), `InSmoothSpan S` is the span over smooth
+functions: finite sums `Σ cₖ wₖ`, `wₖ ∈ S`, `cₖ` smooth. Pfaffian constraints are the library's rows
+`A(q)`, with annihilating distribution `Δ_q = ker A(q)`.
+
+**Integrability (pp. 326, 328).** (7.9) is local: `D` is integrable near `q₀` when on an open
+neighborhood a smooth `h : E → ℝᵖ` has onto derivative (independent rows `∂hᵢ/∂q`) and
+`D q = ker Dh(q)`. For Pfaffian constraints, integrability on a set is the library's kernel
+equality (`Constrained.IsIntegrableOn`) with a witness of class `C²` (`IsC2IntegrableOn`). Theorem
+7.2's necessity and Proposition 7.4's "only if" are proved; their converses are not.
+
+**Filtration and Lie algebra (pp. 326, 340–341).** `Δᵢ` is spanned by the generators and the
+left-normed brackets `[gⱼ, w]` of a generator with a field spanning `Δᵢ₋₁`; `Δ₀ = 0`, so
+`r₀ = 0`. Ranks are dimensions of values at a point; the degree of nonholonomy is the least
+`κ ≥ 1` with `rank Δ_κ(q) = rank Δ_{κ+1}(q)`, and regularity is the separate condition
+`rank Δᵢ(q) = rank Δᵢ(q₀)` for all `i` and all `q` in a set. `L(g₁, …, g_m)` is the smallest set of
+fields containing the generators and closed under sums, real multiples and brackets; its rank at
+`q` is the dimension of its values at `q`. Every `Δᵢ(q)` lies in it; the reverse inclusion is not
+formalized. Exercise 11 is proved under the module form of `Δᵢ₊₁ = Δᵢ` (every field spanning
+`Δᵢ₊₁` a smooth combination of those spanning `Δᵢ`), which implies the book's rank equality; the
+passage from equal ranks of a regular filtration to it is not formalized.
+
+**Controls and reachable sets (pp. 329–331, 349).** Inputs are piecewise constant: values in `U` on
+`[0, T]` and locally constant off finitely many switching times (MLS names no class; the proof of
+Proposition 7.7 uses piecewise constant inputs). A trajectory is continuous on `[0, T]` and has
+derivative `Σⱼ uⱼ(t) gⱼ(x(t))` off finitely many times. `R^V(q₀, T)` collects the endpoints `x(T)` of
+trajectories from `q₀` staying in `V` on `[0, T]`, `R^V(q₀, ≤ T)` the union over `0 < τ ≤ T`, and
+local controllability asks `R^V(q₀, ≤ T)` to be a neighborhood of `q₀` for every neighborhood `V`
+and every `T > 0`. Reversal needs `U = −U` and rescaling `TU ⊆ U`; MLS states neither.
+
+**Flows as hypotheses.** No flow of a vector field is constructed: Mathlib has local flows that are
+Lipschitz, not differentiable, in the initial state. The "if" half of Theorem 7.2
+(`FrobeniusSufficiency E`) and Theorem 7.5 (`ChowStatement E`, smooth generators, `U = ℝᵐ`) are
+named propositions, used only as hypotheses of conditional results.
+
+**Printed errors and domains.** Example 7.4 (p. 336): the text names `θ̇ = u₁` and `φ̇ = u₂`, the
+columns of (7.13) give `φ̇ = u₁`, `θ̇ = u₂`; the columns are used. Example 7.7 (p. 341): `g₁`'s
+denominator is `I + m(l + d)²` (p. 334), not `I + (l + d)²`, and the printed rank claim near `l = 0`
+needs `d ≠ 0`. Example 7.10 (p. 343): `g₄ = (−sin θ/(l cos²φ), cos θ/(l cos²φ), 0, 0)`, and the
+fields are independent where `cos φ ≠ 0`, not "when `φ ≠ ±π`". Exercise 4(a) (p. 349): the
+unit-time input along `t ↦ q(Tt)` is `T u(Tt)`, not `u(t/T)`. Domains: all `q` for the disk
+(`ρ ≠ 0`), `cos φ ≠ 0` for the car (`l ≠ 0`), `cos q₁ ≠ 0` for the finger, `l + d ≠ 0` for the
+hopper (`I, m > 0`).
