@@ -275,6 +275,15 @@ import RoboLean.Nonholonomic.SphereRollingRegion
 import RoboLean.Nonholonomic.SphereGeometry
 import RoboLean.Nonholonomic.ChainedConversion
 import RoboLean.Nonholonomic.SecondOrderGeneral
+import RoboLean.Nonholonomic.LocalFrames
+import RoboLean.Nonholonomic.FlowBox
+import RoboLean.Nonholonomic.Integrability2
+import RoboLean.Nonholonomic.Frobenius
+import RoboLean.Nonholonomic.FrobeniusLocal
+import RoboLean.Nonholonomic.FrobeniusFrame
+import RoboLean.Nonholonomic.Proposition73
+import RoboLean.Nonholonomic.PhilipHall
+import RoboLean.Nonholonomic.LocalFramesFiltration
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained

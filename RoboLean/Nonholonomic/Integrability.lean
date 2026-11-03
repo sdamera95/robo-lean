@@ -20,9 +20,11 @@ nor Proposition 7.4. The nonholonomy of the examples of §3 is "deferred to Sect
   hence an integrable distribution is involutive (`isInvolutiveOn_of_isIntegrableAt`), and a
   Pfaffian constraint `A(q) q̇ = 0` integrable with a `C²` map has an involutive annihilating
   distribution (`IsC2IntegrableOn.isInvolutiveOn`, Proposition 7.4, "only if").
-* The sufficiency half of Theorem 7.2 is the named proposition `FrobeniusSufficiency E`, not
+* The sufficiency half of Theorem 7.2 is the named proposition `FrobeniusSufficiency E` for
+  finite-dimensional `E` (it is false for every infinite-dimensional `E`), not
   proved: MLS states it without proof, and the classical proof uses flows that depend
-  differentiably on their initial state, which the pinned Mathlib does not provide. `frobenius` is
+  differentiably on their initial state, which `Control/FlowDifferentiable` now supplies; the sufficiency half with a `C¹` defining map
+  is proved in `FrobeniusFrame`, and the `C^∞` form named here stays open. `frobenius` is
   the equivalence of Theorem 7.2 under that proposition.
 * The contrapositive used for the examples (`not_isC2IntegrableOn_of_lieBracket`): if two
   differentiable fields annihilated by `A` on an open set have a bracket not annihilated at a point
@@ -91,18 +93,21 @@ theorem isInvolutiveOn_of_isIntegrableAt {D : E → Submodule ℝ E} {U : Set E}
   rw [(hker q hqV).2]
   exact fderiv_lieBracket_eq_zero h2 (hf q hq) (hg q hq) (hsec f hfD) (hsec g hgD)
 
-/-- **MLS Theorem 7.2 (Frobenius), p. 326, "if", as a named statement (not proved):** every
-regular involutive distribution spanned by finitely many smooth fields is integrable near every
-point. -/
-def FrobeniusSufficiency (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] : Prop :=
+/-- **MLS Theorem 7.2 (Frobenius), p. 326, "if", as a named statement (not proved):** on a
+finite-dimensional space (MLS: `ℝⁿ`), every regular involutive distribution spanned by finitely
+many smooth fields is integrable near every point. The finite dimension is necessary: with no
+generators the distribution is `0` everywhere, regular and involutive, and integrability at a point
+gives a linear bijection from `E` onto some `ℝ^p`. -/
+def FrobeniusSufficiency (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [FiniteDimensional ℝ E] : Prop :=
   ∀ (m : ℕ) (g : Fin m → E → E), (∀ j, ContDiff ℝ ∞ (g j)) →
     IsRegularOn (spanAt (Set.range g)) Set.univ → IsInvolutiveOn (spanAt (Set.range g)) Set.univ →
       ∀ q, IsIntegrableAt (spanAt (Set.range g)) q
 
 /-- **MLS Theorem 7.2 (Frobenius), p. 326: "A regular distribution is integrable if and only if it
 is involutive",** for distributions spanned by finitely many smooth fields, the "if" direction taken
-from the named statement `FrobeniusSufficiency E`. -/
-theorem frobenius (hF : FrobeniusSufficiency E) {m : ℕ} {g : Fin m → E → E}
+from the named statement `FrobeniusSufficiency E` on a finite-dimensional space (MLS: `ℝⁿ`). -/
+theorem frobenius [FiniteDimensional ℝ E] (hF : FrobeniusSufficiency E) {m : ℕ} {g : Fin m → E → E}
     (hg : ∀ j, ContDiff ℝ ∞ (g j)) (hreg : IsRegularOn (spanAt (Set.range g)) Set.univ) :
     (∀ q, IsIntegrableAt (spanAt (Set.range g)) q) ↔
       IsInvolutiveOn (spanAt (Set.range g)) Set.univ := by
