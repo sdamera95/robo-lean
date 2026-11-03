@@ -21,7 +21,7 @@ containing the generators and closed under real linear combinations and brackets
 (`InLieAlgebra`), "obtained by taking all linear combinations of elements of `g₁, …, g_m`, taking
 Lie brackets of these, taking all linear combinations of these, and so on" (p. 326); its rank at
 `q` is the dimension of `lieAlgebraAt g q`. Every `Δᵢ(q)` lies in it; the reverse inclusion (Jacobi
-reduction to left-normed brackets) is not formalized here.
+reduction to left-normed brackets) is `Nonholonomic/ChowJacobi`.
 -/
 
 noncomputable section

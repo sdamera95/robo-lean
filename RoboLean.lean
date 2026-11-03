@@ -303,6 +303,12 @@ import RoboLean.Nonholonomic.OptimalInputsMore
 import RoboLean.Nonholonomic.ExercisesSeven
 import RoboLean.Nonholonomic.ExercisesSevenDrift
 import RoboLean.Nonholonomic.ExercisesSevenGrowth
+import RoboLean.Nonholonomic.Concatenation
+import RoboLean.Nonholonomic.ChowJacobi
+import RoboLean.Nonholonomic.RankMaximality
+import RoboLean.Nonholonomic.Chow
+import RoboLean.Nonholonomic.ChowGlobal
+import RoboLean.Nonholonomic.ChainedConversionProof
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
@@ -346,6 +352,8 @@ import RoboLean.Examples.NonholonomicExerciseJacobian
 import RoboLean.Examples.NonholonomicExerciseEulerLagrange
 import RoboLean.Examples.ScaraFingertip
 import RoboLean.Examples.GraspEdgeTrapezoid
+import RoboLean.Examples.ChowExamples
+import RoboLean.Examples.ChainedConversionCounterexample
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms

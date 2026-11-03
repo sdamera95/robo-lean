@@ -236,9 +236,12 @@ theorem ChainedConversionConditions.lieDerivative_g₂ {g₁ g₂ : E → E} {n 
   simpa [adIter] using h
 
 /-- **MLS p. 370, "the existence of independent `h₁` and `h₂` … is guaranteed by Frobenius'
-theorem", as a named statement (not proved):** for smooth `g₁, g₂` and `h₁` satisfying the printed
+theorem", as a named statement:** for smooth `g₁, g₂` and `h₁` satisfying the printed
 conditions on an open set `U`, near every point of `U` there is a smooth `h₂` with `dh₂ · Δ₂ = 0`
-whose differential is independent of `dh₁`. -/
+whose differential is independent of `dh₁`. As stated here, with `n` unrelated to the dimension of
+`E`, this is false (`Examples/ChainedConversionCounterexample`, `n = 4` on `ℝ³`); MLS's `n` is the
+dimension of the state space, and with `dim E = n` the existence holds with a `C¹` function `h₂`
+(`Nonholonomic/ChainedConversionProof`), the smooth form resting on the smooth Frobenius theorem. -/
 def ChainedConversionStatement (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] : Prop :=
   ∀ (g₁ g₂ : E → E) (n : ℕ) (h₁ : E → ℝ) (U : Set E), ContDiff ℝ ∞ g₁ → ContDiff ℝ ∞ g₂ →
     ContDiff ℝ ∞ h₁ → IsOpen U → ChainedConversionConditions g₁ g₂ n h₁ U → ∀ q₀ ∈ U,

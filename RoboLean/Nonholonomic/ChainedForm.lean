@@ -216,7 +216,8 @@ theorem chain_lieAlgebraAt_eq_top (n : ℕ) (q : Fin n → ℝ) :
   · exact lieAlgebraAt_eq_top_of_filtrationAt (chainFields n) (chain_filtrationAt_eq_top hn q)
 
 /-- **MLS Proposition 8.2, p. 365, "controllable", from Chow's theorem taken as the named
-statement `ChowStatement` (MLS Theorem 7.5, p. 329, not proved):** if Chow's theorem holds on
+statement `ChowStatement` (MLS Theorem 7.5, p. 329, proved for finite-dimensional `E` in
+`Nonholonomic/Chow`, so this hypothesis is discharged on `ℝⁿ`):** if Chow's theorem holds on
 `ℝⁿ`, the one-chain system with unconstrained inputs is locally controllable at every point. -/
 theorem chain_isLocallyControllableAt {n : ℕ} (hC : ChowStatement (Fin n → ℝ)) (q : Fin n → ℝ) :
     IsLocallyControllableAt (chainFields n) Set.univ q := by

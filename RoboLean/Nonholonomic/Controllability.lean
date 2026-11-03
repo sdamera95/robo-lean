@@ -25,9 +25,10 @@ time along `t ↦ q(T t)` is `ũ(t) = T u(T t)`, used here. The reversal `ū(t) 
 does not state.
 
 **Chow's theorem** is recorded as the named proposition `ChowStatement E` (smooth generators, the
-controllability rank condition at `q`, unconstrained controls `U = ℝ^m`), not proved: MLS sketches a
-proof (Propositions 7.6–7.7) that flows along brackets, which needs differentiable dependence of
-flows on initial states, not available in Mathlib.
+controllability rank condition at `q`, unconstrained controls `U = ℝ^m`) and proved for
+finite-dimensional `E` in `Nonholonomic/Chow` (`chowStatement`) by the maximal-rank argument on
+composed flows of the generators; MLS sketches a proof (Propositions 7.6–7.7) that flows along
+brackets.
 -/
 
 noncomputable section
@@ -77,7 +78,8 @@ def IsLocallyControllableAt (g : Fin m → E → E) (U : Set (Fin m → ℝ)) (q
 def IsControllable (g : Fin m → E → E) (U : Set (Fin m → ℝ)) : Prop :=
   ∀ q₀ qf : E, ∃ T : ℝ, 0 < T ∧ qf ∈ reachableSet g U Set.univ q₀ T
 
-/-- **MLS Theorem 7.5 (Chow), p. 329, as a named statement (not proved):** for smooth generators,
+/-- **MLS Theorem 7.5 (Chow), p. 329, as a named statement, proved for finite-dimensional `E` in
+`Nonholonomic/Chow` (`chowStatement`):** for smooth generators,
 if the controllability Lie algebra `L(g₁, …, g_m)` has full rank at `q`, the system (7.10) with
 unconstrained inputs is locally controllable at `q`. -/
 def ChowStatement (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] : Prop :=
