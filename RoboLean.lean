@@ -204,6 +204,11 @@ import RoboLean.Examples.PlanarThreeLinkSelfMotion
 import RoboLean.Examples.FourBarUncertainty
 import RoboLean.Control.ExponentialArrival
 import RoboLean.Control.ConstrainedManipulator
+import RoboLean.Control.GlobalFlowTimeVarying
+import RoboLean.Control.FlowDifferentiable
+import RoboLean.Control.FlowDifferentiableC1
+import RoboLean.Control.FlowJointC1
+import RoboLean.Control.ConverseLyapunovC1
 import RoboLean.Examples.PlanarTwoLinkRegulation
 import RoboLean.Demo.ArrivalTime
 import RoboLean.Demo.ArrivalConstants
@@ -238,6 +243,10 @@ import RoboLean.Nonholonomic.SteeringSecondOrder
 import RoboLean.Nonholonomic.OptimalInputs
 import RoboLean.Nonholonomic.SphereRolling
 import RoboLean.Nonholonomic.SphereRollingHand
+import RoboLean.Nonholonomic.FlowsReverse
+import RoboLean.Nonholonomic.CommutingFlows
+import RoboLean.Nonholonomic.FlowsGroup
+import RoboLean.Nonholonomic.FlowsTwoSided
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
@@ -250,6 +259,11 @@ import RoboLean.Examples.StanfordArm
 import RoboLean.Examples.PlanarKinematicsIsotropic
 import RoboLean.Examples.ParallelGruebler
 import RoboLean.Examples.PlanarKinematicsWorkspace
+import RoboLean.Examples.FlowDifferentiablePendulum
+import RoboLean.Examples.ConverseLyapunovC1Instance
+import RoboLean.Examples.CommutingFlowsSine
+import RoboLean.Examples.FlowsGroupSine
+import RoboLean.Examples.FlowsTwoSidedSine
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
