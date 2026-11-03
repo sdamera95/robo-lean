@@ -258,6 +258,7 @@ import RoboLean.Kinematics.SphericalWristAngles
 import RoboLean.Kinematics.SphericalWrist
 import RoboLean.Kinematics.ElbowExercisesSpheres
 import RoboLean.Kinematics.ParallelExercisesUJoint
+import RoboLean.Kinematics.ChapterThreeExercises
 import RoboLean.Examples.PlanarTwoLinkJacobianDerivative
 import RoboLean.Nonholonomic.VectorField
 import RoboLean.Nonholonomic.Distribution
@@ -364,6 +365,16 @@ import RoboLean.Examples.ChainedConversionCounterexample
 import RoboLean.Examples.SevenRemainder
 import RoboLean.Examples.SevenRemainderSpaceRobot
 import RoboLean.Examples.HallBasis
+import RoboLean.Examples.InverseElbow
+import RoboLean.Examples.Rhino
+import RoboLean.Examples.OffsetElbow
+import RoboLean.Examples.FigureManipulatorInclinedInverse
+import RoboLean.Examples.TrussSingular
+import RoboLean.Examples.ExerciseThreeScara
+import RoboLean.Examples.ExerciseThreeStanford
+import RoboLean.Examples.ExerciseThreeElbow
+import RoboLean.Examples.RhinoSingular
+import RoboLean.Examples.InverseElbowSingular
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
