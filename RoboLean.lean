@@ -199,6 +199,8 @@ import RoboLean.Examples.RollingHand
 import RoboLean.Geometry.ExpSmooth
 import RoboLean.Kinematics.SerialChainSmooth
 import RoboLean.Grasp.RollingHandSmooth
+import RoboLean.Grasp.SoftFingerAntipodal
+import RoboLean.Grasp.DistributedContact
 import RoboLean.Geometry.QuaternionRotation
 import RoboLean.Geometry.ScrewCommonNormal
 import RoboLean.Geometry.IsometryRigidBody
@@ -208,6 +210,12 @@ import RoboLean.Geometry.PlanarRigidVelocity
 import RoboLean.Geometry.CayleyParameters
 import RoboLean.Geometry.HybridVelocity
 import RoboLean.Geometry.HybridVelocityWrench
+import RoboLean.Geometry.RotationProjection
+import RoboLean.Geometry.RotationEigenvalues
+import RoboLean.Geometry.RotationCharpoly
+import RoboLean.Geometry.QuaternionRate
+import RoboLean.Geometry.RigidBodyDegrees
+import RoboLean.Geometry.RotationNoGlobalChart
 import RoboLean.Kinematics.Gruebler
 import RoboLean.Kinematics.SelfMotion
 import RoboLean.Kinematics.ParallelMechanism
@@ -290,6 +298,14 @@ import RoboLean.Examples.SlotConstraintJoint
 import RoboLean.Examples.SlotConstraintJointDynamics
 import RoboLean.Examples.WallConstraintPointMass
 import RoboLean.Examples.BrockettGeneral
+import RoboLean.Examples.GraspExercises
+import RoboLean.Examples.GraspSoftFingerTorsion
+import RoboLean.Examples.GraspRectangle
+import RoboLean.Examples.GraspTriangleThree
+import RoboLean.Examples.RotationAboutLine
+import RoboLean.Examples.ZYXSingularity
+import RoboLean.Examples.TwistTwoDofManipulator
+import RoboLean.Examples.TwistTwoDofVelocity
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
