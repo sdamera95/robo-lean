@@ -207,6 +207,9 @@ import RoboLean.Kinematics.SerialChainSmooth
 import RoboLean.Grasp.RollingHandSmooth
 import RoboLean.Grasp.SoftFingerAntipodal
 import RoboLean.Grasp.DistributedContact
+import RoboLean.Surfaces.LevelSet
+import RoboLean.Surfaces.LinesOfCurvature
+import RoboLean.Surfaces.ContactSet
 import RoboLean.Geometry.QuaternionRotation
 import RoboLean.Geometry.ScrewCommonNormal
 import RoboLean.Geometry.IsometryRigidBody
@@ -321,6 +324,7 @@ import RoboLean.Examples.RotationAboutLine
 import RoboLean.Examples.ZYXSingularity
 import RoboLean.Examples.TwistTwoDofManipulator
 import RoboLean.Examples.TwistTwoDofVelocity
+import RoboLean.Examples.EllipsoidConfocal
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
