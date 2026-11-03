@@ -25,7 +25,9 @@ length 3 printed next to it, `[g₁, [g₁, g₃]]`, `[g₂, [g₁, g₃]]`, `[g
 The two differ by a sign, so either spans the same line of the Lie algebra; the Hall element is
 `[g₁, g₃]`.
 
-**Not formalized.** The basis property (cited by MLS, not proved there).
+**The basis property** (cited by MLS, not proved there) is in `HallBasis` (spanning by every product
+of length at most three, the named statement for every length) and `HallBasisFree` (the independence
+of the fourteen products of Example 7.12 in the free Lie algebra on three generators).
 -/
 
 namespace RoboLean

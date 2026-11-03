@@ -309,6 +309,13 @@ import RoboLean.Nonholonomic.RankMaximality
 import RoboLean.Nonholonomic.Chow
 import RoboLean.Nonholonomic.ChowGlobal
 import RoboLean.Nonholonomic.ChainedConversionProof
+import RoboLean.Nonholonomic.SevenRemainderFields
+import RoboLean.Nonholonomic.SevenRemainder
+import RoboLean.Nonholonomic.Proposition73Global
+import RoboLean.Nonholonomic.HallBasis
+import RoboLean.Nonholonomic.HallBasisFree
+import RoboLean.Nonholonomic.EightRemainder
+import RoboLean.Nonholonomic.EightRemainderAlgorithm1
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
@@ -354,6 +361,9 @@ import RoboLean.Examples.ScaraFingertip
 import RoboLean.Examples.GraspEdgeTrapezoid
 import RoboLean.Examples.ChowExamples
 import RoboLean.Examples.ChainedConversionCounterexample
+import RoboLean.Examples.SevenRemainder
+import RoboLean.Examples.SevenRemainderSpaceRobot
+import RoboLean.Examples.HallBasis
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
