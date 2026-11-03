@@ -262,6 +262,11 @@ import RoboLean.Nonholonomic.FlowsReverse
 import RoboLean.Nonholonomic.CommutingFlows
 import RoboLean.Nonholonomic.FlowsGroup
 import RoboLean.Nonholonomic.FlowsTwoSided
+import RoboLean.Nonholonomic.SkewInputs
+import RoboLean.Nonholonomic.SphereRollingRegion
+import RoboLean.Nonholonomic.SphereGeometry
+import RoboLean.Nonholonomic.ChainedConversion
+import RoboLean.Nonholonomic.SecondOrderGeneral
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
@@ -284,6 +289,7 @@ import RoboLean.Examples.ElbowExerciseIsotropy
 import RoboLean.Examples.SlotConstraintJoint
 import RoboLean.Examples.SlotConstraintJointDynamics
 import RoboLean.Examples.WallConstraintPointMass
+import RoboLean.Examples.BrockettGeneral
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
