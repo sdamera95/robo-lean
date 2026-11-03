@@ -323,6 +323,12 @@ import RoboLean.Nonholonomic.EightRemainderAlgorithm1
 import RoboLean.Nonholonomic.FlowBoxSmooth
 import RoboLean.Nonholonomic.FrobeniusSmooth
 import RoboLean.Nonholonomic.FrobeniusSmoothChained
+import RoboLean.Nonholonomic.ExercisesEightMore
+import RoboLean.Nonholonomic.ExercisesEightMoreInputs
+import RoboLean.Nonholonomic.ChainedInvariance
+import RoboLean.Nonholonomic.ExercisesSevenMore
+import RoboLean.Nonholonomic.ExercisesSevenMoreRank
+import RoboLean.Nonholonomic.AngularMomentum
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
@@ -382,6 +388,10 @@ import RoboLean.Examples.ExerciseThreeElbow
 import RoboLean.Examples.RhinoSingular
 import RoboLean.Examples.InverseElbowSingular
 import RoboLean.Examples.OrthogonalChartExample
+import RoboLean.Examples.ExerciseEightMore
+import RoboLean.Examples.ExerciseEightMoreEngel
+import RoboLean.Examples.ExerciseSevenModel
+import RoboLean.Examples.NonholonomicExerciseMore
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
