@@ -254,6 +254,7 @@ import RoboLean.Kinematics.StewartPlatform
 import RoboLean.Kinematics.SphericalWristAngles
 import RoboLean.Kinematics.SphericalWrist
 import RoboLean.Kinematics.ElbowExercisesSpheres
+import RoboLean.Kinematics.ParallelExercisesUJoint
 import RoboLean.Examples.PlanarTwoLinkJacobianDerivative
 import RoboLean.Nonholonomic.VectorField
 import RoboLean.Nonholonomic.Distribution
@@ -325,6 +326,10 @@ import RoboLean.Examples.ZYXSingularity
 import RoboLean.Examples.TwistTwoDofManipulator
 import RoboLean.Examples.TwistTwoDofVelocity
 import RoboLean.Examples.EllipsoidConfocal
+import RoboLean.Examples.ParallelExerciseSliderCrank
+import RoboLean.Examples.ParallelExerciseTruss
+import RoboLean.Examples.FigureManipulatorThreeDof
+import RoboLean.Examples.FigureManipulatorInclined
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
