@@ -208,6 +208,15 @@ import RoboLean.Examples.PlanarTwoLinkRegulation
 import RoboLean.Demo.ArrivalTime
 import RoboLean.Demo.ArrivalConstants
 import RoboLean.Kinematics.JacobianDerivative
+import RoboLean.Kinematics.DenavitHartenberg
+import RoboLean.Kinematics.ReferenceConfiguration
+import RoboLean.Kinematics.SingularityConditions
+import RoboLean.Kinematics.ManipulabilityFrames
+import RoboLean.Kinematics.PadenKahanVariants
+import RoboLean.Kinematics.RedundantManipulator
+import RoboLean.Kinematics.ResolvedRate
+import RoboLean.Kinematics.EulerSingularity
+import RoboLean.Kinematics.StewartPlatform
 import RoboLean.Examples.PlanarTwoLinkJacobianDerivative
 import RoboLean.Nonholonomic.VectorField
 import RoboLean.Nonholonomic.Distribution
@@ -236,6 +245,11 @@ import RoboLean.Examples.IsometryConverse
 import RoboLean.Examples.SlotConstraint
 import RoboLean.Examples.SlotConstraintWorkspace
 import RoboLean.Examples.WallConstraint
+import RoboLean.Examples.ScaraKinematics
+import RoboLean.Examples.StanfordArm
+import RoboLean.Examples.PlanarKinematicsIsotropic
+import RoboLean.Examples.ParallelGruebler
+import RoboLean.Examples.PlanarKinematicsWorkspace
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
