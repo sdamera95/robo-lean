@@ -215,8 +215,12 @@ The Euler convention is `Rz(α) Ry(β) Rz(γ)`, with the right factor acting fir
 on column coordinates. [EulerAngles](../../RoboLean/Geometry/EulerAngles.lean)
 uses `atan2(y,x)=arg(x+i y)` and proves its inverse for
 `r=sqrt(R₂₀²+R₂₁²)>0`, giving the middle angle `0<β<π`.
-The singular middle-angle endpoints `β=0,π` are outside that inverse theorem;
-no global smooth or unique Euler chart is supplied.
+At the singular middle-angle endpoints `β=0,π` (`r=0`) the angles `α=0`,
+`γ=atan2(R₁₀, R₁₁)` with `β` the same `atan2` value reconstruct `R`
+([SphericalWristAngles](../../RoboLean/Kinematics/SphericalWristAngles.lean)); this
+is one member of the family of solutions there, and with the inverse for `r>0` it
+makes the ZYZ map onto `SO(3)` with `0≤β≤π`. No global smooth or unique Euler chart
+is supplied.
 [ElementaryRotations](../../RoboLean/Geometry/ElementaryRotations.lean) separately
 identifies all three displayed axis-rotation families with actual exponentials.
 [UnitQuaternion](../../RoboLean/Geometry/UnitQuaternion.lean) covers the scalar-first
@@ -267,6 +271,33 @@ derivative of the homogeneous matrix entry by entry; `ġg⁻¹` and `g⁻¹ġ` u
 Mathlib's matrix inverse; `det(I − â) = 1 + ‖a‖²`, so the inverse always exists. The recovery
 `â = (R − I)(R + I)⁻¹` needs `R + I` invertible, a hypothesis the exercise does not print: every
 `R_a + I` is invertible, so the rotations by `π` have no Cayley parameters.
+
+**Eigenvalues and projections (Exercises 3 and 9, pp. 73, 75).** Characteristic polynomials are
+Mathlib's `Matrix.charpoly`, `det(XI − A)`, over `ℝ`; the complex roots are given by the
+factorizations `(z − i)(z + i) = z² + 1` and `(z − e^{iθ})(z − e^{−iθ}) = z² − 2 cos θ z + 1` over
+`ℂ`, and the complex eigenvectors of `ω̂` in their real form (the quarter turn `u ↦ ω × u` on
+`ω^⊥`). `N_ω` is the set of multiples of `ω` and `N_ω^⊥` the vectors with `⟨ω, u⟩ = 0`, in `Vec3`; a
+projection map onto `V` is a linear map with image `V` fixing `V`, as printed.
+
+**The remarks of p. 33.** Euler angles are singular as in Exercise 3.14 (p. 150): as the three-joint
+chain of their axes, with a singular Jacobian; ZYX angles are singular exactly at `cos θ = 0`, both
+`θ = ±π/2` (the printed `−π/2` names one). "Singularities can never be eliminated in any
+3-dimensional representation of `SO(3)`" is read as the nonexistence of a global chart, a
+homeomorphism from `SO(3)` (subspace topology of `3 × 3` matrices) onto an open subset of `ℝ³`;
+the smooth-map form is not formalized.
+
+**Quaternion rates and degrees of freedom (Exercises 6(e) and 7, p. 74).** The body rotating at unit
+velocity about a unit `ω` from the identity is represented by `Q(t) = (cos(t/2), ω sin(t/2))`, the
+derivative taken in Mathlib's `Quaternion ℝ`. The degrees of freedom of a rigid body in `ℝⁿ` are read
+as the dimension of the rigid velocities `ℝⁿ × so(n)`, `so(n)` the skew-symmetric matrices
+(Mathlib's `LieAlgebra.Orthogonal.so`).
+
+**Example 2.1 and Figure 2.17.** Example 2.1's `g_ab(θ) = (R_z(θ), (0, l₁, 0))` takes `B`- to
+`A`-coordinates. Figure 2.17 is read with both joints about vertical axes, `C₁` at height `l₀` on
+the first axis, `C₂` at `l₁` along `x` with no vertical offset (none is dimensioned) and `C₃` at
+`l₂` along `x`, all frames aligned in the reference configuration; its velocities are the library's
+spatial and body velocities of the pose curve along differentiable joint trajectories, from the
+product of exponentials `e^{ξ̂₁θ₁}e^{ξ̂₂θ₂}g(0)`.
 
 ## Twist, adjoint, and wrench conventions
 
@@ -837,6 +868,21 @@ the links and joints from the printed figures: the slider–crank's bar `l₃` i
 a pin joining three links counts as two joints, and each Stewart leg is two bodies joined by the
 prismatic joint.
 
+**Spherical wrists.** A chain of `n + 3` joints has a spherical wrist (`SerialChain.HasSphericalWrist`)
+when its last three joints (Lean indices `n + i`) are revolute with unit axes `ω₀, ω₁, ω₂` through the
+reference tool position `p_st(0)`, with `ω₀ ⊥ ω₁` and `ω₁ ⊥ ω₂`. This is MLS p. 96's "three orthogonal
+revolute axes which intersect at a point" with "the end-effector frame … placed at the origin of the
+wrist axes"; the third orthogonality is not needed. The workspace statements `W_D = W_R` and
+`W = W_R × SO(3)` are for the unrestricted joint space. The three-axis angles onto `SO(3)` need only
+the two consecutive orthogonalities, so ZYZ and mutually orthogonal wrists are covered alike.
+
+**Chapter 3 exercises, continued.** Subproblem 4's hint (Exercise 6) is counted for non-collinear
+centres, "at most two points" stated as: among any three common points two are equal. Exercise 13(b)
+reads "elbow manipulator without a wrist" as the first three joints of Example 3.2 and the Jacobian
+as the `3 × 3` Jacobian of the wrist-centre position `p(θ)` (the derivative of the printed position),
+with condition number `1` as `JᵀJ = σ²I`, `σ ≠ 0`; Exercise 13(c) is recorded through the statics
+`τ = Jᵀf`: at an isotropic configuration `‖Jᵀf‖ = |σ| ‖f‖` for every `f`.
+
 **Evidence scope.** The declarations named here were elaborated and audited for axioms with
 commit `3e5bdd1`, and the `lake build` of `RoboLean.lean` was checked
 separately. K13 and the planar workspace rows were checked with commit `f237457`, built against
@@ -949,6 +995,8 @@ In this convention `gyroscopic = −coadjoint V (𝓜V)`, so (4.16) reads
 \(\mathcal M\dot V - \operatorname{ad}_V^{\mathsf T}(\mathcal M V) = F\). The gyroscopic term pairs
 to zero with `V`, which gives the power balance
 \(\tfrac{d}{dt}\tfrac12 V^{\mathsf T}\mathcal M V = F\cdot V\) for symmetric `𝓘`.
+
+**Euler's equation in spatial coordinates and the derivation of (4.14)–(4.16) (pp. 166–167, Exercise 4).** The rotation curve `R(t)` has actual derivative data, `ωˢ` is the library's spatial angular velocity (2.48) at `t` and `ωᵇ = Rᵀωˢ` the body one; `I′ = R𝓘Rᵀ` acts on vectors as `R(𝓘(Rᵀ·))`. Newton's law (4.12) is `f = d/dt(mṗ)` and Euler's law is `τ = d/dt(I′ωˢ)`, with `f`, `τ` applied at the mass center in inertial coordinates; their expansions are `mv̇ᵇ + ωᵇ × mvᵇ = Rᵀf` for `vᵇ = Rᵀṗ` and (4.13) `I′ω̇ˢ + ωˢ × I′ωˢ = τ`, and `ω̇ᵇ = Rᵀω̇ˢ`. For a pose curve the body velocity `Vᵇ` is `RigidTransform.bodyVelocity`, and (4.16) (`NewtonEulerEquation`, still the library's definition) holds with the body acceleration `(v̇ᵇ, Rᵀω̇ˢ)` and `Fᵇ = (Rᵀf, Rᵀτ)` exactly when the inertial-frame laws do. `𝓘` needs no symmetry. Exercise 3's frame change `Ad_{g_bc}ᵀ𝓜Ad_{g_bc}` uses the twist order `(v, ω)` as printed. Viscous friction (p. 170) is `N = ∂V/∂θ + βθ̇` with one `β`, and an end-effector force `F` enters as `−JᵀF` in `N`, so that the right side reads `τ + JᵀF`. Exercise 5 is read as the balance of the spatial momentum `(mṗ, I′ωˢ + p × mṗ)` (linear momentum and angular momentum about the origin of the inertial frame) with the wrench moved to the origin, `(f, τ + p × f)`. Exercise 1's figures are read with `θ` from the downward vertical, a massless pivot on the wire (`q = (x, θ)`, the wire as the `x`-axis, `y` up), and for the double pendulum `θ₁` from the downward vertical and `θ₂` relative to the first link, point masses at the link ends.
 
 **Derivatives of the inertia matrix (Prop. 4.3, pp. 175-177).** `massMatrixDeriv θ i j` is the
 Fréchet derivative at `θ` of `q ↦ M(q)ᵢⱼ`. It exists for every chain, and
@@ -1409,10 +1457,32 @@ grasp of contacts on a surface is the matrix of its columns (Example 5.4's form)
 **Theorem 5.7.** "The line lies inside the friction cone" at a soft-finger contact means the
 direction to the other contact, in that contact's frame (`contactDirection`), satisfies the open
 Coulomb inequality `√(x₁² + x₂²) < μ x₃`; the torsional part of the cone (5.4) plays no role in the
-hypothesis. Only the "if" direction holds in the library's model.
+hypothesis. The "if" direction holds in the library's model; the printed "only if" fails there at
+every `γ > 0` (for `μ = 1`, `Examples.softAntipodal_onlyIf_fails`). What holds: a force-closure
+grasp carries opposite forces strictly inside both Coulomb cones whose moment about the line is
+balanced by the torsions, `(p₁ − p₀) × F = t₀n₀ + t₁n₁` with `|tᵢ| < γ fᵢ₃` (the torsional form,
+no added hypothesis); and when the inward normals `nᵢ = Rᵢe_z` and the line `p₁ − p₀` are
+coplanar (some `m ≠ 0` is orthogonal to all three) and the first normal does not point away from
+the second contact (`n₀ · (p₁ − p₀) ≥ 0`), force-closure is equivalent to the line lying inside
+both open cones, for every `γ > 0`. Both hypotheses are added to the printed statement.
 
 **Figure 5.13.** The book defines no axes; the library uses the triangle `(0, 0)`, `(1, 0)`,
 `(1/2, √3/2)`, contacts `(s, 0)` and `(t/2, t√3/2)` measured from the shared vertex.
+
+**Contacts of several point contacts (Exercise 4, pp. 259–260).** A line or plane contact is read
+as Coulomb point contacts with friction (eq. (5.3), one `μ > 0`) at finitely many points `qᵢ` of the
+contact frame: the endpoints `(∓l, 0, 0)` of a segment along the contact `x`-axis, the corners
+`(±a, ±b, 0)` of a rectangle. Coefficient `(i, j)` (index `finProdFinEquiv (i, j)`) is the `j`-th
+contact-frame component of the force at `qᵢ`; the friction cone is the product of the Coulomb cones;
+wrenches are at the contact origin in the contact frame (p. 218). A Coulomb force applied anywhere
+in the segment or rectangle is a sum of corner forces; pressure distributions are not modeled.
+
+**Exercise figures (pp. 259–261).** The figures fix no axes. Exercise 2(a): the triangle of
+Figure 5.13 with contacts at the edge midpoints; Exercise 2(b): the midpoints `s = t = 1/2` of the
+Figure 5.13 parametrization; Exercise 3(b): contacts at `(0, 0, ∓r)` with the identity and the
+rotation by `π` about `x`; Exercise 8(c): the rectangle `[0, 2] × [0, 1]`; Exercise 9: a circle of
+radius `r` about the origin, the contact at angle `α` with tangent `(−sin α, cos α)` and inward
+normal `(−cos α, −sin α)`. Planar frames follow p. 222 (`y`-axis the inward normal, `t ⊗ n = 1`).
 
 ### Rolling contact (§6)
 
@@ -1720,6 +1790,26 @@ coordinates (Exercise 12), where the parameterization is affine; in joint torque
 joint-space parameterization `f` of the slot defined near a slot position (`p ∘ f` the workspace path
 on a neighborhood): the arm's reach is bounded, so no such `f` covers the whole line.
 
+The printed elbow-down parameterization of the slot (p. 204) is
+`θ₁(s) = tan⁻¹(s sin α/(l + s cos α)) + cos⁻¹((R + l₁² − l₂²)/(2l₁√R))`,
+`θ₂(s) = π + cos⁻¹((l₁² + l₂² − R)/(2l₁l₂))`, `R = s² + 2ls cos α + l²`, with the principal
+`tan⁻¹` and `cos⁻¹`; it solves the inverse kinematics where `l + s cos α > 0` and
+`(l₁ − l₂)² ≤ R ≤ (l₁ + l₂)²` (hypotheses not printed), and its printed Jacobian is its derivative
+under the strict bounds; `R^{3/2}` is written `(√R)³`. Its `θ₂ ∈ [π, 2π]`, the forearm turning
+clockwise from the first link. Exercise 12(c) uses the workspace system (4.55) as a robot in `w`
+through a map `g` inverse to the arm's position map where used
+(`ManipulatorModel.workspaceRobot`), with `K = (cos α, sin α)` and `K̇ = 0`. Exercise 7(b) of
+Chapter 6 models the point masses as the arm of Figure 4.4 with `r₁ = l₁/2`, `r₂ = l₂/2` and zero
+rotational inertia, the constraint force `∇h(θ)ᵀλ` entering with the sign of (6.4); the exercise
+names no gravity, and both the horizontal arm and gravity `g` along `−y` in the plane of the arm
+(potential `g(m₁(l₁/2) sin θ₁ + m₂(l₁ sin θ₁ + (l₂/2) sin(θ₁ + θ₂)))`) are stated.
+
+**Nonmanipulable grasps, (6.32)–(6.33) (pp. 290–291).** The hand Jacobian `J_h ∈ ℝ^{m×n}` is injective (the book's "full column rank", p. 290) and the constraint is the library's rectangular `graspPfaffian` `[J_h −Gᵀ]`. The allowable velocities `W(θ, x)` are the preimage under `Gᵀ` of the range of `J_h`; `H ∈ ℝ^{p×l}` is data whose columns span `W` (`SpansAllowable`), and `Ḡ = HᵀG`, so `Ḡᵀ = GᵀH`. The left pseudo-inverse is `J_h⁺ = (J_hᵀJ_h)⁻¹J_hᵀ` with Mathlib's inverse. (6.33) is derived, not defined: the virtual displacements are `δx = Hδw`, `δθ = J_h⁺Ḡᵀδw`, and the parameters are `M̃ = HᵀM_oH + ḠJ_h⁺ᵀM_fJ_h⁺Ḡᵀ`, `C̃ = Hᵀ(C_oH + M_oḢ) + ḠJ_h⁺ᵀ(C_fJ_h⁺Ḡᵀ + M_f(d/dt)(J_h⁺Ḡᵀ))`, `Ñ = HᵀN_o + ḠJ_h⁺ᵀN_f`, `F = ḠJ_h⁺ᵀτ`, with `Ḣ` and `(d/dt)(J_h⁺Ḡᵀ)` actual derivatives along the motion. Corrected printing: p. 291 prints `M_o`, `C_o`, `N_o` and `F = GJ̄_h⁺ᵀτ`; these are exact only for `H = I`.
+
+**The `attach` refinements (p. 305).** The finger configuration on `h(θ, x) = 0` is Mathlib's implicit function of `h(x, θ)` (payload first) at a point where `h` is strictly differentiable and `J = ∂h/∂θ` is invertible (`AttachRegularAt`); it is local and its derivative is the continuous linear map `J⁻¹Gᵀ` with `Gᵀ = −∂h/∂x`. Redundant fingers enter `attach` through internal-motion variables: payload coordinates `w = (x, y)`, `J = J̄_h = [J_h; K_h]` and `G = Ḡ` with `Ḡᵀ = [[Gᵀ, 0], [0, I]]`, so the finger velocity is `J_h⁺Gᵀẋ + K_hᵀẏ` for `K_h` with orthonormal rows perpendicular to those of `J_h`. The net force on the payload is the computed `Gλ + F_e`, `λ = J⁻ᵀ(τ − M_fθ̈ − C_fθ̇ − N_f)` with the sign of p. 267 and `F_e` an external force added to the payload equation; along the attached robot's motion it equals `M_pẍ + C_pẋ + N_p`. Corrected printing: the last factor of p. 305's `M̃ = M_p + GJ⁻ᵀM_fJ⁻¹G` is `Gᵀ` (read so by `attach` already).
+
+**Exercises 1 and 3 (p. 314).** The rolling penny's multipliers are those of (6.4) with the library's sign `d/dt ∂L/∂q̇ − ∂L/∂q = Υ − Aᵀλ`; with that sign `λ = (−mẍ, −mÿ)` on the constraint. The spherical pendulum of Exercise 1 is a point mass at `q ∈ ℝ³` (indices `0, 1, 2` for `x, y, z`, `z` up) on `|q|² = l²`, written as the Pfaffian constraint `A(q) = qᵀ`, and is compared with Example 4.1 (the printed reference to Example 6.1 is read as Example 4.1) through `q = l(sin θ cos φ, sin θ sin φ, −cos θ)`; the comparison is an equivalence off the poles `sin θ = 0`, where the coordinates are singular.
+
 ## Nonholonomic conventions
 
 Recorded with commit `6342e10`. Source: MLS printed pp. 317–353, read as text; pp. 325, 336, 340,
@@ -1761,7 +1851,13 @@ functions: finite sums `Σ cₖ wₖ`, `wₖ ∈ S`, `cₖ` smooth. Pfaffian con
 neighborhood a smooth `h : E → ℝᵖ` has onto derivative (independent rows `∂hᵢ/∂q`) and
 `D q = ker Dh(q)`. For Pfaffian constraints, integrability on a set is the library's kernel
 equality (`Constrained.IsIntegrableOn`) with a witness of class `C²` (`IsC2IntegrableOn`). Theorem
-7.2's necessity and Proposition 7.4's "only if" are proved; their converses are not.
+7.2's necessity and Proposition 7.4's "only if" are proved. `IsIntegrableAtOfClass n D q₀` is
+(7.9) with `h` of class `C^n`; `n = ∞` is `IsIntegrableAt`. Theorem 7.2's "if" is proved with
+`C¹` defining maps on finite-dimensional spaces, for distributions regular and involutive on an
+open set and spanned near the point by `C¹` fields; Proposition 7.4's "if" near each point with
+a `C¹` defining map, for constraints with `C¹` entries and independent rows. The named
+`FrobeniusSufficiency E` (`C^∞` generators and defining maps) carries
+`[FiniteDimensional ℝ E]`: without it the proposition forces `E` to be finite-dimensional.
 
 **Filtration and Lie algebra (pp. 326, 340–341).** `Δᵢ` is spanned by the generators and the
 left-normed brackets `[gⱼ, w]` of a generator with a field spanning `Δᵢ₋₁`; `Δ₀ = 0`, so
@@ -1772,7 +1868,9 @@ fields containing the generators and closed under sums, real multiples and brack
 `q` is the dimension of its values at `q`. Every `Δᵢ(q)` lies in it; the reverse inclusion is not
 formalized. Exercise 11 is proved under the module form of `Δᵢ₊₁ = Δᵢ` (every field spanning
 `Δᵢ₊₁` a smooth combination of those spanning `Δᵢ`), which implies the book's rank equality; the
-passage from equal ranks of a regular filtration to it is not formalized.
+passage from equal ranks of a regular filtration is proved on an open set where the filtration
+is regular (`IsRegularFiltrationOn`), for smooth generators on a finite-dimensional space:
+`Δᵢ₊ⱼ = Δᵢ` there and `Δᵢ` is involutive there.
 
 **Controls and reachable sets (pp. 329–331, 349).** Inputs are piecewise constant: values in `U` on
 `[0, T]` and locally constant off finitely many switching times (MLS names no class; the proof of
@@ -1794,17 +1892,35 @@ space (MLS: smooth complete fields on `ℝⁿ`). "`φ^f_t` is a local diffeomorp
 read as: `φ^X_t` is a bijection differentiable at every point with the differentiable inverse
 `φ^{−X}_t`; for a continuous bounded derivative of the field the derivative of `φ^X_t` is
 continuous, so `φ^X_t` is strictly differentiable. Commuting flows for `[X, Y] = 0` (p. 324) use Mathlib's bracket and a bound
-`‖DX‖ ≤ K`. The "if" half of Theorem 7.2 (`FrobeniusSufficiency E`) and Theorem 7.5
+`‖DX‖ ≤ K`. For a field with a continuous bounded derivative the two-sided flow is of class `C¹` in
+`(t, x)`, and so are the composed flows `Φ₁(t₁, ⋯ Φ_k(t_k, x))` (`Φ_k` first); the flow box at
+`q` uses a complement `C` of `span{Xᵢ(q)}` and the inverse function theorem. Flows commute where
+the bracket vanishes along the trajectories involved, and a field bounded by `M` moves points by
+at most `M|t|`. The sufficiency proofs use flows of fields cut off by a smooth bump to compact
+support. The `C^∞` "if" half of Theorem 7.2 (`FrobeniusSufficiency E`) and Theorem 7.5
 (`ChowStatement E`, smooth generators, `U = ℝᵐ`) remain named propositions, used only as
-hypotheses of conditional results: (7.9) asks a `C^∞` map, and the flows here have first
-derivatives only.
+hypotheses of conditional results: (7.9) with a `C^∞` map needs flows of class `C^∞` in the
+initial state, and Theorem 7.5 the concatenation of trajectories and a rank-maximality or
+open-mapping step that are not formalized.
+
+**Local frames, annihilating fields and the Philip Hall basis (pp. 325–328, 344–345).** A local
+frame of a regular distribution spanned by `g₁, …, g_m` is `k = dim Δ_q` of the generators,
+independent and spanning `Δ` near `q`. Proposition 7.3 is stated near a point for
+`A : E → (E →L F)` with `A(q)` onto (the one-forms independent at `q`): the fields
+`(I − S (A(y) S)⁻¹ A(y)) bⱼ`, with `S` a right inverse of `A(q)` and `bⱼ` a basis of `ker A(q)`,
+cut off away from `q`. Lie products are formal brackets of the generators; the Philip Hall
+order is by length, then generators by index and brackets of equal length lexicographically
+(MLS fixes only condition 2), and condition 3 is read recursively. The basis property is not
+formalized.
 
 **Printed errors and domains.** Example 7.4 (p. 336): the text names `θ̇ = u₁` and `φ̇ = u₂`, the
 columns of (7.13) give `φ̇ = u₁`, `θ̇ = u₂`; the columns are used. Example 7.7 (p. 341): `g₁`'s
 denominator is `I + m(l + d)²` (p. 334), not `I + (l + d)²`, and the printed rank claim near `l = 0`
 needs `d ≠ 0`. Example 7.10 (p. 343): `g₄ = (−sin θ/(l cos²φ), cos θ/(l cos²φ), 0, 0)`, and the
 fields are independent where `cos φ ≠ 0`, not "when `φ ≠ ±π`". Exercise 4(a) (p. 349): the
-unit-time input along `t ↦ q(Tt)` is `T u(Tt)`, not `u(t/T)`. Domains: all `q` for the disk
+unit-time input along `t ↦ q(Tt)` is `T u(Tt)`, not `u(t/T)`. Example 7.12 (p. 345): the
+bracket `[g₃, g₁]` is not a Hall product when `g₁ < g₃`; the Hall element is `[g₁, g₃]`, the one
+the printed products of length 3 use. Domains: all `q` for the disk
 (`ρ ≠ 0`), `cos φ ≠ 0` for the car (`l ≠ 0`), `cos q₁ ≠ 0` for the finger, `l + d ≠ 0` for the
 hopper (`I, m > 0`).
 
@@ -1855,6 +1971,27 @@ and for any right inverse). `R_ψ` is the library's `angleMatrix ψ` (p. 250), w
 rectangle traversed counterclockwise as four unit-time coordinate segments, with the area
 `∫∫ cos u du dv` of the book's area form; Proposition 8.7 is stated for `0 ≤ l < π/2`.
 
+**Follow-ups (commit `acffbdf`, pp. 361–363, 370, 373, 385–387, 392–393; Figures 8.4 and 8.5
+rendered).** Exercise 6's `U(t)` is the matrix (Mathlib's `LinearMap.toMatrix'`) of the library's
+state-transition map `Φ(t, 0)` of `u̇ = Ω(t)u`, with `Ω` continuous on `[0, T]` and extended by
+`Ω(T)` after `T`; `SO(m)` is `Matrix.specialOrthogonalGroup`. Theorem 8.6 holds exactly for
+regions `{v₀ ≤ v ≤ v₁, φ₁(v) ≤ u ≤ φ₂(v)}` of the chart, their boundary traversed counterclockwise
+in the chart plane (`u_f` horizontal, `v_f` vertical) as four unit-time pieces, the area being the
+integral of the book's `cos u du dv` over the region in `ℝ × ℝ` with Lebesgue measure; the cap of
+Figure 8.4 contains the pole, and rolling once along its latitude `u₀` with `v_f` decreasing gives
+`2π sin u₀ = 2π − Area`, so (8.37) holds for it modulo `2π` (corrected statement). Proposition 8.7
+uses the unit sphere resting on the plane `z = 0`; rolling along a straight segment of direction
+`d = (cos β, sin β, 0)` is the orientation `R(t) = exp(t â)R₀`, `a = e₃ × d` (spatial angular
+velocity `a`, zero contact velocity, zero spin, MLS p. 249), the contact point in body coordinates
+is `Rᵀ(−e₃)`, the spherical distance of unit vectors is `arccos⟨p, q⟩`, and Figure 8.5 is placed
+with `B` at the origin and `A = (x, 0)`, traversed A → B → C → D → A as drawn, with the right angle
+at `B` the figure shows. (8.6) for `m` inputs keeps all index pairs and triples, `q̇ = u`,
+`Q̇ₖₗ = qₖuₗ`, `Ẇₖₗₙ = Qₖₗuₙ`, the book's coordinates being the entries with first indices `i < j`;
+its "mod Jacobi identity" relation is a first integral. In §3.2, `L_fh` is the library's
+`lieDerivative`, fields and functions are `C^∞`, `z_k = L^{n−k}_{g₁}h₂` is entry `k − 1` of the
+coordinates, and `Δ₀`'s last generator is `ad^{n−2}_{g₁}g₂` (printed `ad^{n−2}_{g₁}g₁`, which is
+zero).
+
 ## Appendix A conventions
 
 Recorded with commit `c2bad4e`. Source: MLS printed pp. 403–434 and Exercise 17 of Chapter 2
@@ -1892,11 +2029,56 @@ spaces, the push-forward being `(F_*X)_q = DF(F⁻¹q) X(F⁻¹q)`.
 are Mathlib's singular values of index 5 and 0 of its Euclidean linear map, as in the
 manipulability measures of Chapter 3.
 
+**Volume forms.** A volume form at the identity is an alternating `6`-linear map `Ω` on twists
+(`Twist [⋀^Fin 6]→ₗ[ℝ] ℝ`), and its left translate is `Ω_g(X₁, …, X₆) = Ω((g⁻¹X₁)^∨, …, (g⁻¹X₆)^∨)`
+for tangent vectors `Xᵢ` at `g` (`Twist.leftTranslatedVolume`), as for the quadratic forms above.
+Theorem A.8 is stated for these left translates: right invariance `Ω_{gh}(X₁h, …) = Ω_g(X₁, …)` and
+conjugation invariance follow from `det Ad_h = 1` with (A.16) at one tangent space,
+`Ω(fξ₁, …, fξ₆) = det f · Ω(ξ)`. Nonvanishing is shown for the determinant form in the twist basis.
+Integration of volume forms and the volume of `SO(3)` are not stated.
+
+**Log functions.** Example A.15's log function is the twist `(A⁻¹p, ω)` for a chosen `ω` with
+`e^{ω̂} = R`; it inverts `exp` (as `Twist.exp ξ 1`) under `sin‖ω‖ ≠ 0`. The single-valued choice
+`Twist.seLog` takes `ω = θ ω₀` with the principal angle `θ ∈ [0, π]` of (2.17) and the axis
+`ω₀ = (R − Rᵀ)^∨/(2 sin θ)` of (2.18), and inverts `exp` where `sin θ ≠ 0`. Example A.13's series is
+not shown to invert the matrix exponential.
+
+**Matrix Lie groups.** The book's Lie groups are sets of real square matrices, subgroups of
+`GL(n, ℝ)`: `SO(n)` as Mathlib's `specialOrthogonalGroup`, `SE(3)` as the homogeneous matrices
+`[R p; 0 1]` of rigid transforms. The Lie algebra of such a set `G` is the set of matrices `A` with
+`exp(tA) ∈ G` for all real `t` (`LieGroup.matrixLieAlgebra`), and the dimension of the group is the
+dimension of that Lie algebra. `GL(n, ℝ)` as a Lie group in Mathlib's sense is the unit group of the
+continuous endomorphisms of `ℝⁿ` (Euclidean norm, operator norm), isomorphic to the invertible
+matrices through `Matrix.toEuclideanCLM`; the pinned Mathlib does not give the structure on the units
+of the matrix algebra itself. Its Lie algebra carries Mathlib's bracket of left invariant fields
+(`mlieBracket` at the identity, the sign of p. 407), which is the commutator `AB − BA`. Left translation is `L_g(h) = gh` and right translation `R_g(h) = hg`;
+a field on a matrix group is a map from the group to matrices, left invariant when `X(gh) = gX(h)`.
+
+**Exponential and logarithm.** The exponential of a matrix Lie group is the matrix exponential; a
+one-parameter subgroup is a map `φ` with `φ(0) = I` and `φ(s + t) = φ(s)φ(t)`, and the book's
+"connected" one-parameter subgroups are read as those differentiable at `0`. The logarithm of
+`SO(3)` near the identity is the principal angle in `[0, π]` times the axis of Example A.14; it
+inverts `ω ↦ exp(ω̂)` on the open ball `‖ω‖ < π`.
+
+**One-forms.** As vector fields, one-forms live on real normed spaces `E`: a one-form is a map
+`E → (E →L[ℝ] ℝ)`, and the pull back by any map `F` is `(F*β)_p = β_{F(p)} ∘ DF(p)`.
+
+**Volume of `SO(3)`.** The triple-product volume form of p. 431 is pulled back to exponential
+coordinates with the density `det A(ω) = 2(1 − cos‖ω‖)/‖ω‖²`, `A(ω)` the matrix of Example A.12,
+and integrated over the open ball `‖ω‖ < π` with Lebesgue measure.
+
+**Constraints on `SE(3)`.** A constraint is a function `f : SE(3) → ℝ`; its differential pulled
+back to the identity is `ξ ↦ d/dt f(g exp(tξ̂))` at `t = 0`, and left invariance is the printed
+equality `L_g^*df(g) = df(e)` for every `g` (p. 429).
+
 **Corrected printings and added hypotheses.** Proposition A.1 is printed for a smooth map but needs a
-diffeomorphism for `F_*X` (p. 407); Example A.15's `A⁻¹` needs `sin‖ω‖ ≠ 0`, not only `ω ≠ 0`
+diffeomorphism for `F_*X` (p. 407); Example A.15's `A⁻¹` and log function need `sin‖ω‖ ≠ 0`, not only `ω ≠ 0`
 (p. 414); Example A.23's magnitude is `M_ξ = √(−¼⟨ξ, ξ⟩_K)`, the printed display giving `M_ξ²`
-(p. 428); the volume of `SO(3)` for the triple-product form is `8π²`, not `8π³ rad³` (p. 431, not
-stated in Lean); the orbit printed `Rⁿ/{0}` is `ℝⁿ \ {0}` (p. 415). Lemma A.2 is applied in the proof
+(p. 428); the volume of `SO(3)` for the triple-product form is `8π²`, not `8π³ rad³` (p. 431; the integral
+in exponential coordinates is exact, the
+identification of its density is checked numerically); `R_g ∘ R_h = R_{hg}`, printed `R_{gh}`
+(p. 409); Proposition A.7 fails as printed, in both directions, with the printed definition of a
+left invariant constraint (p. 429); the orbit printed `Rⁿ/{0}` is `ℝⁿ \ {0}` (p. 415). Lemma A.2 is applied in the proof
 of Proposition A.5 to the block `B`, which need not be symmetric; the library proves the
 nonsymmetric form for `n ≥ 3`. Example A.13's norm, which the book does not name, is the operator
 norm.
