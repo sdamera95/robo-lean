@@ -883,6 +883,34 @@ as the `3 × 3` Jacobian of the wrist-centre position `p(θ)` (the derivative of
 with condition number `1` as `JᵀJ = σ²I`, `σ ≠ 0`; Exercise 13(c) is recorded through the statics
 `τ = Jᵀf`: at an isotropic configuration `‖Jᵀf‖ = |σ| ‖f‖` for every `f`.
 
+**Parallel exercises.** The slider–crank of Exercise 20 is two chains in one base frame at the crank
+pivot and one tool frame on the slider block: the linkage, with revolute joints about `+z` through
+`(0, 0, 0)`, `(l₁, 0, 0)`, `(l₁ + l₂, 0, 0)` and `g_st(0) = (I, (l₁ + l₂ + l₃, 0, 0))` (stretched
+along the slide line, angles counterclockwise, so the figure's clockwise `θ₂` is negative), and the
+slide, prismatic along `+x` with `g_st(0) = I`, whose coordinate is the printed distance `d`.
+Actuation is a set of joints per chain, read by `ParallelMechanism.transmissibleWrenches`; with the
+slide actuated nothing is actuator singular, so the dead centres appear as kinematic singularities.
+The variable geometry truss of Exercise 21 has base pivots `(0, ±h/2)` and platform pivots at the same
+spacing; leg `i` has coordinates `(α, d, β)`: the leg direction from `+x`, the signed leg length (no
+actuator limits) and the platform angle relative to the leg; its zero configuration is every leg of
+length `0` along `+x`, which lies in `Q′` only for `h = 0`. Planar twists are the twists
+`(v_x, v_y, 0, 0, 0, ω)`. The Stewart platform with U-joints of Exercise 22(c)–(d) has legs of five
+joints (two revolute joints through each pivot, the prismatic joint between); "singular" in
+Exercise 22(d) is read as a configuration where some tool twist is not admissible (p. 134), which
+holds everywhere since `ρ ≤ 5`.
+
+**The manipulators of Figure 3.23.** The figure carries no dimensions and is an oblique projection
+(`x` right, `z` up, depth `y` at `45°`). Base frame at the marked point where the axes of `θ₁` and
+`θ₂` meet, `z` along `θ₁`, `y` along the drawn axis of `θ₂`, `x` along the arm in the drawn
+configuration, which is `θ = 0`; tool frames parallel to the base frame; positive rotations by the
+right-hand rule about the drawn axis directions. (i): axes `z`, `y`, `x` through the origin, tool at
+`(l₁, 0, 0)`; (iii): axes `z`, `y` through the origin and `y` through the elbow `(l₁, 0, 0)`, tool at
+`(l₁ + l₂, 0, 0)`; (iv): axes `z`, `y` and a prismatic joint along `x`, tool at `(l₁, 0, 0)` for
+`θ₃ = 0`; (ii): axes `z`, `y` and a third axis `(cos γ, 0, sin γ)` through `(a, 0, 0)` in the vertical
+plane of the arm, read from the elliptical caps of its cylinder (cylinders along the depth axis are
+drawn with circular caps) and from the second marked point on the axis of `θ₁`, which the third
+axis meets at `(0, 0, −a tan γ)`; the figure draws `γ = 45°`; tool at `(l, 0, 0)`.
+
 **Evidence scope.** The declarations named here were elaborated and audited for axioms with
 commit `3e5bdd1`, and the `lake build` of `RoboLean.lean` was checked
 separately. K13 and the planar workspace rows were checked with commit `f237457`, built against
@@ -1022,6 +1050,8 @@ distributions the hypotheses that the generalized inertia places on `𝓘` mean:
 semidefinite always; positive definite exactly when `μ` is not concentrated on a line through
 the body-frame origin (`inertiaTensor_posDef_iff`). The homogeneous bar of Example 4.2 is
 `(m/(lwh))·volume` on the box `[−l/2, l/2] × [−w/2, w/2] × [−h/2, h/2]` (length along `x`).
+
+**The kinetic energy from the volume integral, homogeneous bodies and the change of body frame (pp. 161–163, (4.8)–(4.9); p. 208, Exercises 2 and 3).** The kinetic energy of a mass distribution `μ` along a pose trajectory is `T = ½ ∫ ‖ṗ + Ṙ r‖² dμ` (`RigidBody.kineticEnergyIntegral`), with `ṗ` the translation column and `Ṙ` the rotation block of the actual derivative of the homogeneous pose; the body velocity is the library's `RigidTransform.bodyVelocity` (twist order `(v, ω)`). For a body frame anywhere `T = ½ (Vᵇ)ᵀ [[m I, −ĉ], [ĉ, 𝓘]] Vᵇ` (`RigidBody.distributionInertia`), with `c = ∫ r dμ = m r̄` and `𝓘` about the frame origin; at the mass center (`c = 0`) this is (4.9). The integrals assume a finite distribution (positive mass) with integrable second moment. A homogeneous body of mass `m` on a region `V` is `(m / vol V) · volume|_V` (`RigidBody.homogeneousDistribution`); the bar of Example 4.2 is the case with the density written as `m/(lwh)`. The ellipsoid of Exercise 2(a) is `{(x/a)² + (y/b)² + (z/c)² ≤ 1}` with the frame at its center along the semi-axes, and the cylinder of Exercise 2(b) is `{x² + y² ≤ r², |z| ≤ h/2}` with the frame at its center and `z` along the axis; no density, mass or frame is printed. For Exercise 3 the body seen from a second frame `C` with `g_bc = (R, p)` (the rigid motion taking `C` to `B`) is the image of `μ` under `r ↦ g_bc⁻¹ r = Rᵀ(r − p)` (`RigidBody.reframeDistribution`).
 
 **The bracket formula (4.30) (pp. 176–177; commit `7854d59`).** MLS's `A_{lj}` (4.27), including the printed
 case `A_{lj} = 0` for `l < j`, is `InertialChain.relativeAdjoint l j θ`: the adjoint of
@@ -1482,7 +1512,15 @@ Figure 5.13 with contacts at the edge midpoints; Exercise 2(b): the midpoints `s
 Figure 5.13 parametrization; Exercise 3(b): contacts at `(0, 0, ∓r)` with the identity and the
 rotation by `π` about `x`; Exercise 8(c): the rectangle `[0, 2] × [0, 1]`; Exercise 9: a circle of
 radius `r` about the origin, the contact at angle `α` with tangent `(−sin α, cos α)` and inward
-normal `(−cos α, −sin α)`. Planar frames follow p. 222 (`y`-axis the inward normal, `t ⊗ n = 1`).
+normal `(−cos α, −sin α)`. Planar frames follow p. 222 (`y`-axis the inward normal, `t ⊗ n = 1`). Exercise 2(c): the unit sphere with contacts at `(±1, 0, 0)` and `(0, 0, 1)`; Exercise 5(b): the
+regular tetrahedron `{x : ⟨vₖ, x⟩ ≥ −1}` with vertices `(1, 1, 1)`, `(1, −1, −1)`, `(−1, 1, −1)`,
+`(−1, −1, 1)`, contacts on its faces with the inward face normal `vₖ/√3` as contact `z`-axis
+("no vertex contacts" read as no vertex or edge contacts); Exercise 8(a): the trapezoid with
+vertices `(0, √3/2)`, `(2, √3/2)`, `(3/2, 0)`, `(1/2, 0)`, leg points parametrized from the top
+corners. Exercise 11: the fingertip of Figure 5.17 is horizontal at the foot of the vertical rod
+and points along the last link at `θ = 0`, so `g_st(0) = (I, (0, l₁ + l₂ + l₃, l₀))`; the spatial
+Jacobian does not depend on it. Exercise 12: "equate the locations" is the zero translation of
+`g_{fᵢcᵢ}`, whose derivative gives the translational rows of (5.13).
 
 ### Rolling contact (§6)
 
@@ -1592,6 +1630,43 @@ relative pose `g_{ofᵢ} = x_o⁻¹ g_{psᵢ} g_{sᵢfᵢ}(θᵢ)` by the readou
 `IsOrthogonalChartOn` give, and only at joint vectors that put the fingers at contact poses of the
 chosen `η₀`. Smoothness in the object pose `x_o ∈ SE(3)` is smoothness along every smooth family of
 object poses, read in pose coordinates.
+
+**The three-axis ellipsoid (Exercises 14–15).** For semi-axes `a > b > c > 0` the chart is
+`c(s, t) = ((a/k) cos s √(a² − ν), b sin s cos t, (c/k) sin t √(μ − c²))` with `k = √(a² − c²)`,
+`μ = b² + (a² − b²) sin² s` and `ν = c² + (b² − c²) sin² t`: the confocal coordinates `μ`, `ν` (the
+roots other than `0` of `x²/(a² − λ) + y²/(b² − λ) + z²/(c² − λ) = 1`) reparametrized so that the
+chart is smooth through the vertices `(±a, 0, 0)`. It is orthogonal on all of `ℝ²` and regular exactly
+where `sin s ≠ 0` or `cos t ≠ 0` (proved); the excluded parameters map to the points
+`(±a √((a² − b²)/(a² − c²)), 0, ±c √((b² − c²)/(a² − c²)))`, the four umbilics (the classical fact, not
+proved, since the chart is singular there). The geometric parameters are computed on the patch
+`{cos t > 0}`, where the normal (5.19) is outward; that this patch covers, on
+`(−π, π] × (−π/2, π/2)`, the ellipsoid without the two arcs of `x²/a² + z²/c² = 1` in the plane `y = 0`
+that join the umbilics through `(0, 0, ±c)` is a derivation, not proved. The
+contact point of Exercise 15 is the vertex `(−a, 0, 0) = c(π, 0)` on the longest axis, which faces the
+object in the figure; the principal axes "of length `a`, `b`, `c`" are read as semi-axes.
+
+**Surfaces given as level sets (Exercise 19).** The exercise is read as follows: for a surface
+`{f = 0}` charted by `c` with outward normal and gradient `G` of `f`, the unit normal is `G/‖G‖` and
+the curvature tensor (5.21) is the Hessian `DG` on the tangent plane divided by `‖G‖`,
+`K_ij = c_iᵀ DG c_j/(‖G‖ ‖c_i‖ ‖c_j‖)`; the metric tensor and the torsion form are those of the chart,
+so (5.28) applies unchanged. The test, an ellipsoid rolling on a plane, is Exercise 15(b) for the
+three-axis ellipsoid. A chart-free form of (5.28), with the contact point a pair of points of `ℝ³`, is
+not formalized.
+
+**The contact set of two bodies and the change of chart.** A body's surface is an atlas: charts
+`c i` on domains `U i` indexed by any type, patches allowed to overlap. The contact set `W` is the set
+of relative poses that bring a point of some finger patch onto a point of some object patch with
+opposite Gauss normals; it depends only on the set of surface points with their unit normals. Where two
+orthogonal charts describe the same point with the same normal, their normalized Gauss frames differ
+by a rotation `R_z(θ)` about the normal, and the contact coordinates `(α, α_o, ψ)` in the old chart and
+`(β, α_o, ψ + θ)` in the new one give the same relative pose: the contact angle shifts by the angle
+between the two frames, the configuration does not change.
+
+**Theorem 5.9 and lines of curvature.** Theorem 5.9 is the named statement
+`OrthogonalChartStatement` (smooth chart with injective differential, smooth injective
+reparametrization onto a neighbourhood). A line of curvature is a coordinate line along which
+Rodrigues' formula `n_u = κ c_u` holds; an umbilic of an orthogonal chart is a point where `K` is a
+multiple of the identity.
 
 ## Constrained dynamics conventions
 
@@ -1810,6 +1885,8 @@ names no gravity, and both the horizontal arm and gravity `g` along `−y` in th
 
 **Exercises 1 and 3 (p. 314).** The rolling penny's multipliers are those of (6.4) with the library's sign `d/dt ∂L/∂q̇ − ∂L/∂q = Υ − Aᵀλ`; with that sign `λ = (−mẍ, −mÿ)` on the constraint. The spherical pendulum of Exercise 1 is a point mass at `q ∈ ℝ³` (indices `0, 1, 2` for `x, y, z`, `z` up) on `|q|² = l²`, written as the Pfaffian constraint `A(q) = qᵀ`, and is compared with Example 4.1 (the printed reference to Example 6.1 is read as Example 4.1) through `q = l(sin θ cos φ, sin θ sin φ, −cos θ)`; the comparison is an equivalence off the poles `sin θ = 0`, where the coordinates are singular.
 
+**The two-fingered SCARA grasp, the four-bar linkage and the tendon networks (pp. 291–293, 314–315).** The SCARA grasp of §3.3 uses the hand, contacts and object pose of §5.3: soft-finger contacts at `(0, ∓r, 0)` on the box of Example 5.2, finger bases at `(0, ∓b, 0)`, `R_po = I`, `p_po = (0, 0, a)`, fingertip length zero, finger 1 with links `l₁, l₂` and finger 2 with the library's `l₃, l₄` (Lean joint indices from `0`, so `θ 0 1` is `θ₁₂`). The internal variables are `y = (θ₁₁ + θ₁₂ + θ₁₃, θ₂₁ + θ₂₂ + θ₂₃)` as printed, and `H′` removes the fifth twist coordinate, the object's angular velocity about its `y`-axis through the contacts. Manipulability is Definition 5.5 for the augmented pair `(J̄_h, [[GᵀH′, 0], [0, I]])`; "no internal motions" is the injectivity of `J̄_h`. The four-bar linkage of Exercise 5 is read from its figure as a crank–coupler–slider: the rail through `B` is the `x`-axis with `y` up; link 1 (`l₁`) at `θ₁` from the rail, link 2 (`l₂`) at the relative angle `θ₂`, its end `C` a revolute joint on the slider `T`, and `θ₃` the relative angle of link 3 (rigid with `T`, of length `l₃` along the rail); all angles counterclockwise; joint angles are real numbers, not reduced modulo `2π`, and the crank angle `θ₁ ∈ S¹` is represented by its real lift. The loop constraints are `l₁ sin θ₁ + l₂ sin(θ₁ + θ₂) = 0` and `θ₁ + θ₂ + θ₃ = 0`; for `0 < l₁ < l₂` the branch with the coupler pointing towards the slider is `θ₁ + θ₂ = −arcsin((l₁/l₂) sin θ₁)`. The masses are symbolic point masses `m₁` at the joint of links 1 and 2, `m₂` at `C` and `m₃` at the slider, the links massless, gravity `g` along `−y` and the crank torque at `B`. The tendon networks of Exercise 6 are read from the figure with relative joint angles counterclockwise and pulley radii `r₁`, `r₂` at joints 1 and 2; an extension is the length of the tendon path, with `+r θ` when the path lengthens under a positive rotation (MLS p. 294): passing a joint on the lower side of its pulley, or wrapping counterclockwise onto a pulley it is attached to, adds `r θ`; the upper side, or wrapping clockwise, subtracts it; crossings on the base or along link 1 change no length. In (a) tendon 1 (middle actuator) runs over the joint-1 pulley and is attached to it clockwise, tendon 2 (top actuator) passes under joint 1, crosses to the top of the joint-2 pulley and is attached clockwise, tendon 3 (bottom actuator) passes over joint 1, crosses to the bottom of the joint-2 pulley and is attached counterclockwise; in (b) the lower and upper actuators drive tendons routed as tendons 1 and 2 of (a), and the spring between the links is not part of the actuator kinematics.
+
 ## Nonholonomic conventions
 
 Recorded with commit `6342e10`. Source: MLS printed pp. 317–353, read as text; pp. 325, 336, 340,
@@ -1897,11 +1974,25 @@ continuous, so `φ^X_t` is strictly differentiable. Commuting flows for `[X, Y] 
 `q` uses a complement `C` of `span{Xᵢ(q)}` and the inverse function theorem. Flows commute where
 the bracket vanishes along the trajectories involved, and a field bounded by `M` moves points by
 at most `M|t|`. The sufficiency proofs use flows of fields cut off by a smooth bump to compact
-support. The `C^∞` "if" half of Theorem 7.2 (`FrobeniusSufficiency E`) and Theorem 7.5
-(`ChowStatement E`, smooth generators, `U = ℝᵐ`) remain named propositions, used only as
-hypotheses of conditional results: (7.9) with a `C^∞` map needs flows of class `C^∞` in the
-initial state, and Theorem 7.5 the concatenation of trajectories and a rank-maximality or
-open-mapping step that are not formalized.
+support. The `C^∞` "if" half of Theorem 7.2 (`FrobeniusSufficiency E`) remains a named proposition,
+used only as a hypothesis of conditional results: (7.9) with a `C^∞` map needs flows of class
+`C^∞` in the initial state. Theorem 7.5 (`ChowStatement E`, smooth generators, `U = ℝᵐ`) is
+proved on finite-dimensional spaces (next paragraph).
+
+**Chow's theorem (pp. 329–332).** Composed flows `flowSeq Φ x r w s` apply the letter `w₀`
+with time `s₀` first and `w_{r−1}` last; times may have either sign, the inputs being
+unconstrained, and a word with total time `Σ |sᵢ|` is reached in any time `T > 0` by the
+constant inputs `(sᵢ / c) e_{wᵢ}` on `r` consecutive intervals of length `c = T / r`.
+Concatenation takes the first input and trajectory on `t ≤ T₁` and the second, shifted by
+`T₁`, after. The proof is the maximal-rank argument with flows of the generators only: ranges
+of derivatives of composed flows replace the manifolds `N_k` of p. 330, and the bracket
+`[gⱼ, Z](y)` is the right derivative at `σ = 0` of `(D_xφ^{gⱼ}_σ(y))⁻¹ Z(φ^{gⱼ}_σ(y))`.
+The generators are cut off by a smooth bump outside a ball about `q`, inside which every
+trajectory used stays; MLS's linear independence and completeness of the `gⱼ` are not used.
+`E` is finite-dimensional (MLS: `ℝⁿ`). `L(g)` is reduced to left-normed brackets by the Leibniz
+identity, and the rank condition at `q` gives it near `q` (MLS's Proposition 7.6 assumes it
+near `q₀`). Controllability from local controllability at every point asks `U = −U` and
+`0 ∈ U`.
 
 **Local frames, annihilating fields and the Philip Hall basis (pp. 325–328, 344–345).** A local
 frame of a regular distribution spanned by `g₁, …, g_m` is `k = dim Δ_q` of the generators,
@@ -1923,6 +2014,14 @@ bracket `[g₃, g₁]` is not a Hall product when `g₁ < g₃`; the Hall elemen
 the printed products of length 3 use. Domains: all `q` for the disk
 (`ρ ≠ 0`), `cos φ ≠ 0` for the car (`l ≠ 0`), `cos q₁ ≠ 0` for the finger, `l + d ≠ 0` for the
 hopper (`I, m > 0`).
+
+**Exercises 2, 16 and 17 (commit `f083494`, pp. 349 and 353).** Exercise 2 is stated for `ρ ≠ 0`
+(for `ρ = 0` the constraint is exact) with "nonholonomic" read as not integrable with a `C²` map on
+any nonempty open set. Exercise 16's drift at a point is the least-norm solution
+`f = Aᵀ(AAᵀ)⁻¹c` of `Af = c` for the stacked constraint rows `A` with `AAᵀ` invertible (a choice;
+the input fields span the kernel of `A`). Exercise 17's `σ̄ᵢ` is computed by the printed recursion
+with `σ̄₁ = m`, the number of input fields; stages 1–3 of the bound are proved, stage 3 for fields of
+class `C²` at the point.
 
 ### Chained forms and steering (Chapter 8)
 
@@ -1990,7 +2089,23 @@ at `B` the figure shows. (8.6) for `m` inputs keeps all index pairs and triples,
 its "mod Jacobi identity" relation is a first integral. In §3.2, `L_fh` is the library's
 `lieDerivative`, fields and functions are `C^∞`, `z_k = L^{n−k}_{g₁}h₂` is entry `k − 1` of the
 coordinates, and `Δ₀`'s last generator is `ad^{n−2}_{g₁}g₂` (printed `ad^{n−2}_{g₁}g₁`, which is
-zero).
+zero). The existence of `h₂` is proved when `dim E = n` (MLS: `q ∈ ℝⁿ`), with `h₂` of class
+`C¹` near each point; the named statement, which allows every `n`, is false on `ℝ³` with
+`n = 4`.
+
+**Exercises (commit `f083494`, pp. 344, 349–353 and 391–394; pp. 391, 392 and 394 rendered).**
+"Nilpotent of degree `k`" (pp. 378–379, 391) is read with p. 344's definition: every Lie product of
+the generators of length greater than `k` (every bracketing) is the zero field, and `k` is the
+least such integer. Controllable is read as the controllability rank condition at every point, as
+for Proposition 8.2. Exercise 1's sixth row is read `q̇₆ = ⅙q₁³u₂`; as printed (`u₁`) the system has
+the first integral `q₆ − q₁⁴/24`. Exercise 5's state is `(x₀, y₀, x₁, …, x_{n_x}) × (y₂, …, y_{n_y})`,
+`y₁ = x₀y₀ − x₁` not a state, and its (b) is read with `x_k` for the printed `q_k`. Exercises 8–9's
+"Proposition 8.16" is Proposition 8.4; Exercise 8's normalized input is `s ↦ u(s/c)/c` on `[0, c]`,
+`c = ‖u(0)‖`, with least squares optimality among continuous inputs as a hypothesis. (8.38) is
+`u̇ = Ω(q, p)u − (pᵀ[f, gᵢ])ᵢ`, the multiplier equation being `ṗ = −pᵀ(∂f/∂q + Σuᵢ∂gᵢ/∂q)`.
+Exercise 12's first input is `α₁,₀ + α₁,₁ cos 2πt + α₁,₂ sin 2πt` (the `+` is missing), its
+coefficients indexed `0, …, 5` as `(α₁,₀, α₁,₁, α₁,₂, α₂,₀, α₂,₁, α₂,₂)`, and "full rank" is the
+linear map of `A(α)` onto `ℝ³`.
 
 ## Appendix A conventions
 
@@ -2035,7 +2150,14 @@ for tangent vectors `Xᵢ` at `g` (`Twist.leftTranslatedVolume`), as for the qua
 Theorem A.8 is stated for these left translates: right invariance `Ω_{gh}(X₁h, …) = Ω_g(X₁, …)` and
 conjugation invariance follow from `det Ad_h = 1` with (A.16) at one tangent space,
 `Ω(fξ₁, …, fξ₆) = det f · Ω(ξ)`. Nonvanishing is shown for the determinant form in the twist basis.
-Integration of volume forms and the volume of `SO(3)` are not stated.
+Integration of volume forms on a manifold is not stated. **Exponential coordinates of `SO(3)`.**
+The chart is `ω ↦ e^{ω̂}` on `ℝ³` into the `3 × 3` matrices; its derivative is
+`v ↦ (A(ω)v)^ e^{ω̂}` with `A(ω)` of Example A.12 (at `ω = 0`, `A(0) = I` with Lean's `x / 0 = 0`),
+its spatial Jacobian (columns `((∂e^{ω̂}/∂ωⱼ)(e^{ω̂})ᵀ)^∨`) is `A(ω)` and its body Jacobian
+`A(ω)ᵀ`. The volume of `SO(3)` is the total mass of the measure on matrices obtained as the image,
+under the chart, of the measure on the open ball `‖ω‖ < π` with density `det A(ω)` with respect to
+Lebesgue measure; that measure is defined, concentrated on `SO(3)`, invariant under conjugation by
+rotations, and not shown to be a Haar measure.
 
 **Log functions.** Example A.15's log function is the twist `(A⁻¹p, ω)` for a chosen `ω` with
 `e^{ω̂} = R`; it inverts `exp` (as `Twist.exp ξ 1`) under `sin‖ω‖ ≠ 0`. The single-valued choice
@@ -2075,8 +2197,7 @@ equality `L_g^*df(g) = df(e)` for every `g` (p. 429).
 diffeomorphism for `F_*X` (p. 407); Example A.15's `A⁻¹` and log function need `sin‖ω‖ ≠ 0`, not only `ω ≠ 0`
 (p. 414); Example A.23's magnitude is `M_ξ = √(−¼⟨ξ, ξ⟩_K)`, the printed display giving `M_ξ²`
 (p. 428); the volume of `SO(3)` for the triple-product form is `8π²`, not `8π³ rad³` (p. 431; the integral
-in exponential coordinates is exact, the
-identification of its density is checked numerically); `R_g ∘ R_h = R_{hg}`, printed `R_{gh}`
+in exponential coordinates is exact and its density is the Jacobian determinant of the chart); `R_g ∘ R_h = R_{hg}`, printed `R_{gh}`
 (p. 409); Proposition A.7 fails as printed, in both directions, with the printed definition of a
 left invariant constraint (p. 429); the orbit printed `Rⁿ/{0}` is `ℝⁿ \ {0}` (p. 415). Lemma A.2 is applied in the proof
 of Proposition A.5 to the block `B`, which need not be symmetric; the library proves the
