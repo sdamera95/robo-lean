@@ -213,3 +213,14 @@ import RoboLean.Examples.NonholonomicCar
 import RoboLean.Examples.NonholonomicFinger
 import RoboLean.Examples.NonholonomicHopper
 import RoboLean.Examples.NonholonomicGrowth
+import RoboLean.Nonholonomic.ChainedForm
+import RoboLean.Nonholonomic.SteeringIntegrals
+import RoboLean.Nonholonomic.Steering
+import RoboLean.Nonholonomic.SteeringArbitrary
+import RoboLean.Nonholonomic.SteeringSecondOrder
+import RoboLean.Nonholonomic.OptimalInputs
+import RoboLean.Nonholonomic.SphereRolling
+import RoboLean.Nonholonomic.SphereRollingHand
+import RoboLean.Examples.NonholonomicBrockett
+import RoboLean.Examples.NonholonomicEngel
+import RoboLean.Examples.NonholonomicCarChained
