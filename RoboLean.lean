@@ -304,3 +304,12 @@ import RoboLean.LieGroups.GroupActions
 import RoboLean.LieGroups.ExponentialClosedForms
 import RoboLean.LieGroups.VolumeForms
 import RoboLean.LieGroups.ExponentialInverse
+import RoboLean.LieGroups.MatrixLieGroup
+import RoboLean.LieGroups.LeftTranslation
+import RoboLean.LieGroups.Dimension
+import RoboLean.LieGroups.LieExponential
+import RoboLean.LieGroups.Manifold
+import RoboLean.LieGroups.Haar
+import RoboLean.LieGroups.LeftTranslationConstraints
+import RoboLean.LieGroups.OneForms
+import RoboLean.LieGroups.ManifoldBracket
