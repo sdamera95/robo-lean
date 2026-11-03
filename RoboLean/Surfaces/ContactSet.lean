@@ -38,8 +38,8 @@ nothing requires the patches to be disjoint or the family to be finite). For two
   be described in any chart that covers its contact point at time `t`.
 
 What is not claimed: that the patches of an atlas cover a closed surface, or a global smooth
-structure on `W`. The frame angle `θ` along a motion is a hypothesis with a derivative; its
-existence for smooth chart changes is not proved here.
+structure on `W`. The frame angle `θ` along a motion is a hypothesis with a derivative here; it is
+constructed for orthogonal charts in `Surfaces/ObjectChartTransferAngle`.
 -/
 
 noncomputable section

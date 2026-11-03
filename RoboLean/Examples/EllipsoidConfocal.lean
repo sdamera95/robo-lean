@@ -26,12 +26,11 @@ twice continuously differentiable on all of `ℝ²` and orthogonal at every poin
 exactly where `sin s ≠ 0` or `cos t ≠ 0`, and an orthogonal chart there
 (`isOrthogonalChartOn_confocalChart_regular`); the excluded parameters `sin s = 0`, `cos t = 0` map
 to the points `(±a √((a² − b²)/(a² − c²)), 0, ±c √((b² − c²)/(a² − c²)))`
-(`confocalChart_of_sin_eq_zero_of_cos_eq_zero`), the four umbilics of the ellipsoid (a classical fact,
-not proved here). The patch used for the geometric parameters is `{cos t > 0}` (`confocalDomain`).
-Not proved here: that on `(−π, π] × (−π/2, π/2)` the patch is mapped injectively onto the ellipsoid
-without the two arcs of the ellipse `x²/a² + z²/c² = 1` in the plane `y = 0` that join the umbilics
-through the vertices `(0, 0, ±c)` (a derivation from the signs of `x`, `y`, `z` and the values of
-`μ`, `ν`).
+(`confocalChart_of_sin_eq_zero_of_cos_eq_zero`), the umbilics of the ellipsoid (proved in a regular graph
+chart in `Examples/ConfocalCoverageUmbilics`). The patch used for the geometric parameters is `{cos t > 0}` (`confocalDomain`).
+The patch covers the ellipsoid without the two closed arcs of the plane `y = 0` through the vertices
+`(0, 0, ±c)` (`Examples/ConfocalCoverage`); injectivity on a fundamental domain such as
+`(−π, π] × (−π/2, π/2)` is not proved.
 
 **Geometric parameters** (`exercise14_confocal`): with `μ = b² + (a² − b²) sin² s` and
 `ν = c² + (b² − c²) sin² t`, the normal (5.19) is outward,
@@ -622,8 +621,8 @@ theorem isOrthogonalChartOn_confocalChart_regular (hcb : c < b) (hba : b < a) (h
 
 /-- **The images of the excluded parameters (MLS Exercise 14, p. 262):** where `sin s = 0` and
 `cos t = 0`, the chart point is `(x, 0, z)` with `x² = a² (a² − b²)/(a² − c²)` and
-`z² = c² (b² − c²)/(a² − c²)`: the four umbilics of the ellipsoid in the plane `y = 0` (that these
-points are umbilics is the classical fact, not proved here, since the chart is singular there). -/
+`z² = c² (b² − c²)/(a² − c²)`: the four umbilics of the ellipsoid in the plane `y = 0` (umbilics of
+graph charts regular there, `Examples.isUmbilicAt_confocalChart_excluded`). -/
 theorem confocalChart_of_sin_eq_zero_of_cos_eq_zero (hcb : c < b) (hba : b < a) (hc : 0 < c)
     (hs : sin (α 0) = 0) (ht : cos (α 1) = 0) :
     confocalChart a b c α 1 = 0 ∧

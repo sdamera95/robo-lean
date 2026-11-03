@@ -214,6 +214,9 @@ import RoboLean.Surfaces.LevelSet
 import RoboLean.Surfaces.LinesOfCurvature
 import RoboLean.Surfaces.ContactSet
 import RoboLean.Surfaces.OrthogonalChartProof
+import RoboLean.Surfaces.ObjectChartTransfer
+import RoboLean.Surfaces.ObjectChartTransferAngle
+import RoboLean.Surfaces.Umbilics
 import RoboLean.Geometry.QuaternionRotation
 import RoboLean.Geometry.ScrewCommonNormal
 import RoboLean.Geometry.IsometryRigidBody
@@ -329,6 +332,10 @@ import RoboLean.Nonholonomic.ChainedInvariance
 import RoboLean.Nonholonomic.ExercisesSevenMore
 import RoboLean.Nonholonomic.ExercisesSevenMoreRank
 import RoboLean.Nonholonomic.AngularMomentum
+import RoboLean.Nonholonomic.IntegralsOfClosure
+import RoboLean.Nonholonomic.IntegralsOfClosureSmooth
+import RoboLean.Nonholonomic.NilpotencyBridge
+import RoboLean.Nonholonomic.NilpotencyBridgeFiveState
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
@@ -392,6 +399,10 @@ import RoboLean.Examples.ExerciseEightMore
 import RoboLean.Examples.ExerciseEightMoreEngel
 import RoboLean.Examples.ExerciseSevenModel
 import RoboLean.Examples.NonholonomicExerciseMore
+import RoboLean.Examples.IntegralsOfClosure
+import RoboLean.Examples.IntegralsOfClosureHeisenberg
+import RoboLean.Examples.ConfocalCoverage
+import RoboLean.Examples.ConfocalCoverageUmbilics
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
