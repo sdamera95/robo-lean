@@ -189,6 +189,13 @@ import RoboLean.Kinematics.SerialChainSmooth
 import RoboLean.Grasp.RollingHandSmooth
 import RoboLean.Geometry.QuaternionRotation
 import RoboLean.Geometry.ScrewCommonNormal
+import RoboLean.Geometry.IsometryRigidBody
+import RoboLean.Geometry.PlanarRigidMotion
+import RoboLean.Geometry.PlanarRotationCircle
+import RoboLean.Geometry.PlanarRigidVelocity
+import RoboLean.Geometry.CayleyParameters
+import RoboLean.Geometry.HybridVelocity
+import RoboLean.Geometry.HybridVelocityWrench
 import RoboLean.Kinematics.Gruebler
 import RoboLean.Kinematics.SelfMotion
 import RoboLean.Kinematics.ParallelMechanism
@@ -196,6 +203,7 @@ import RoboLean.Examples.ElbowManipulatorSolutions
 import RoboLean.Examples.PlanarThreeLinkSelfMotion
 import RoboLean.Examples.FourBarUncertainty
 import RoboLean.Control.ExponentialArrival
+import RoboLean.Control.ConstrainedManipulator
 import RoboLean.Examples.PlanarTwoLinkRegulation
 import RoboLean.Demo.ArrivalTime
 import RoboLean.Demo.ArrivalConstants
@@ -224,6 +232,10 @@ import RoboLean.Nonholonomic.SphereRollingHand
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
+import RoboLean.Examples.IsometryConverse
+import RoboLean.Examples.SlotConstraint
+import RoboLean.Examples.SlotConstraintWorkspace
+import RoboLean.Examples.WallConstraint
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
