@@ -184,6 +184,12 @@ import RoboLean.Dynamics.NewtonEulerSpatialMomentum
 import RoboLean.Dynamics.InertiaFrameChange
 import RoboLean.Dynamics.ViscousFriction
 import RoboLean.Dynamics.PendulumExercises
+import RoboLean.Dynamics.KineticEnergyIntegral
+import RoboLean.Dynamics.MassDistributionFrameChange
+import RoboLean.Dynamics.InertiaIntegral
+import RoboLean.Dynamics.ScaraGrasp
+import RoboLean.Dynamics.TendonExercise
+import RoboLean.Dynamics.FourBarDynamics
 import RoboLean.Examples.PoseChart
 import RoboLean.Control.RobotAugmentedPD
 import RoboLean.Examples.RobotAugmentedPD
