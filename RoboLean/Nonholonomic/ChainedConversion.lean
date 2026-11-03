@@ -25,7 +25,9 @@ all of constant rank and involutive": `Δ₀ = span{g₁, g₂, ad_{g₁}g₂, �
   from `L_{[f, g]} = L_f L_g − L_g L_f` (`lieDerivative_adIter_iterate_eq_zero`). The printed
   conditions give the hypotheses on `h₁` (`ChainedConversionConditions.lieDerivative_g₂`).
 * The existence of `h₂` ("guaranteed by Frobenius' theorem") is the named statement
-  `ChainedConversionStatement`, not proved; `hasDerivAt_chainedCoordinates_of_statement` combines
+  `ChainedConversionStatement`, false as stated and proved with `dim E = n` and a smooth `h₂` in
+  `FrobeniusSmoothChained` (`chainedConversionStatement_of_finrank`);
+  `hasDerivAt_chainedCoordinates_of_statement` combines
   it with the printed conditions. The book also does not show, and nothing here shows, that `φ` is
   a diffeomorphism or that `β(q)` is invertible.
 
@@ -241,7 +243,8 @@ conditions on an open set `U`, near every point of `U` there is a smooth `h₂` 
 whose differential is independent of `dh₁`. As stated here, with `n` unrelated to the dimension of
 `E`, this is false (`Examples/ChainedConversionCounterexample`, `n = 4` on `ℝ³`); MLS's `n` is the
 dimension of the state space, and with `dim E = n` the existence holds with a `C¹` function `h₂`
-(`Nonholonomic/ChainedConversionProof`), the smooth form resting on the smooth Frobenius theorem. -/
+(`Nonholonomic/ChainedConversionProof`) and with a smooth `h₂` by the smooth Frobenius theorem
+(`Nonholonomic/FrobeniusSmoothChained`, `chainedConversionStatement_of_finrank`). -/
 def ChainedConversionStatement (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] : Prop :=
   ∀ (g₁ g₂ : E → E) (n : ℕ) (h₁ : E → ℝ) (U : Set E), ContDiff ℝ ∞ g₁ → ContDiff ℝ ∞ g₂ →
     ContDiff ℝ ∞ h₁ → IsOpen U → ChainedConversionConditions g₁ g₂ n h₁ U → ∀ q₀ ∈ U,

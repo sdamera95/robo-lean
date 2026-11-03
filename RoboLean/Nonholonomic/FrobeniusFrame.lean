@@ -23,8 +23,9 @@ only if it is involutive", stated without proof; integrability is eq. (7.9).
   the named statement `FrobeniusSufficiency` with `C¹` in place of `C^∞`
   (`frobeniusSufficiency_classOne`).
 
-**Not proved here, and why.** `FrobeniusSufficiency` asks a `C^∞` defining map; the chart is
-built from flows, and the flows of this library are known to be `C¹` in the initial state only.
+**Not proved here.** `FrobeniusSufficiency` asks a `C^∞` defining map; the chart is built from
+flows, and this module uses only their `C¹` dependence on the initial state; the smooth form is
+proved in `FrobeniusSmooth` from the `C^k` flows of `Control/FlowCk`.
 
 **Conventions.** Mathlib's bracket `lieBracket ℝ` (the book's sign); `IsInvolutiveOn` with sections
 differentiable on the set; `IsIntegrableAtOfClass` (Chapter 7, `Integrability2`); coordinates of

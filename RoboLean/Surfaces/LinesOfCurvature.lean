@@ -8,14 +8,13 @@ and `c_v` are orthogonal. **Theorem 5.9.** Locally, there exists an orthogonal c
 surfaces. The proof can be found in any standard book on differential geometry." The curvature
 tensor is (5.21), p. 245.
 
-**Theorem 5.9 is recorded as a named statement** (`OrthogonalChartStatement`), not proved: for a
-smooth chart with injective differential, every parameter has a neighbourhood that a smooth
-injective reparametrization makes orthogonal. The classical proofs rectify two transverse line
-fields at once (the lines of curvature away from umbilics, or a coordinate line field and its
-orthogonal field): they need two first integrals of class `C²` with independent differentials. The
-library's flow box (Chapter 7) gives a local inverse of class `C¹` of a composed flow, whose second
-coordinate lines are not integral curves of the second field; it does not give these first
-integrals, and the reparametrized chart would be `C¹` where `IsOrthogonalChartOn` asks for `C²`.
+**Theorem 5.9 is recorded as a named statement** (`OrthogonalChartStatement`) and proved in
+`OrthogonalChartProof` (`orthogonalChartStatement`): for a smooth chart with injective
+differential, every parameter has a neighbourhood that a smooth injective reparametrization makes
+orthogonal. The classical proofs rectify two transverse line fields at once (the lines of
+curvature away from umbilics, or a coordinate line field and its orthogonal field); the proof in
+`OrthogonalChartProof` rectifies one field orthogonal to the first coordinate lines by its smooth
+flow (`Control/FlowCk`), keeping the second coordinate, so that no umbilic is excluded.
 
 **Proved here, without flows.**
 
@@ -47,7 +46,7 @@ namespace Surface
 
 variable {c : (Fin 2 → ℝ) → Vec3} {α : Fin 2 → ℝ}
 
-/-- **MLS Theorem 5.9, p. 244, as a named statement (not proved):** "Locally, there exists an
+/-- **MLS Theorem 5.9, p. 244, as a named statement, proved in `OrthogonalChartProof`:** "Locally, there exists an
 orthogonal chart for all regular surfaces." For a chart `c` smooth on an open `U` with injective
 differential, every `α₀ ∈ U` is the image of a point `β₀` of an open `V` under a smooth
 reparametrization `φ : V → U`, injective on `V`, with `φ(V)` a neighbourhood of `α₀`, such that
