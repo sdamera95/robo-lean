@@ -234,6 +234,9 @@ import RoboLean.Kinematics.RedundantManipulator
 import RoboLean.Kinematics.ResolvedRate
 import RoboLean.Kinematics.EulerSingularity
 import RoboLean.Kinematics.StewartPlatform
+import RoboLean.Kinematics.SphericalWristAngles
+import RoboLean.Kinematics.SphericalWrist
+import RoboLean.Kinematics.ElbowExercisesSpheres
 import RoboLean.Examples.PlanarTwoLinkJacobianDerivative
 import RoboLean.Nonholonomic.VectorField
 import RoboLean.Nonholonomic.Distribution
@@ -276,6 +279,11 @@ import RoboLean.Examples.ConverseLyapunovC1Instance
 import RoboLean.Examples.CommutingFlowsSine
 import RoboLean.Examples.FlowsGroupSine
 import RoboLean.Examples.FlowsTwoSidedSine
+import RoboLean.Examples.SphericalWristElbow
+import RoboLean.Examples.ElbowExerciseIsotropy
+import RoboLean.Examples.SlotConstraintJoint
+import RoboLean.Examples.SlotConstraintJointDynamics
+import RoboLean.Examples.WallConstraintPointMass
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
@@ -288,3 +296,5 @@ import RoboLean.LieGroups.MatrixExponential
 import RoboLean.LieGroups.CanonicalCoordinates
 import RoboLean.LieGroups.GroupActions
 import RoboLean.LieGroups.ExponentialClosedForms
+import RoboLean.LieGroups.VolumeForms
+import RoboLean.LieGroups.ExponentialInverse
