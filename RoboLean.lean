@@ -207,6 +207,9 @@ import RoboLean.Kinematics.SerialChainSmooth
 import RoboLean.Grasp.RollingHandSmooth
 import RoboLean.Grasp.SoftFingerAntipodal
 import RoboLean.Grasp.DistributedContact
+import RoboLean.Grasp.ScaraFingertip
+import RoboLean.Grasp.TetrahedronGrasp
+import RoboLean.Grasp.ExerciseGraspsSphere
 import RoboLean.Surfaces.LevelSet
 import RoboLean.Surfaces.LinesOfCurvature
 import RoboLean.Surfaces.ContactSet
@@ -341,6 +344,8 @@ import RoboLean.Examples.NilpotentEightState
 import RoboLean.Examples.NonholonomicExerciseBrockett
 import RoboLean.Examples.NonholonomicExerciseJacobian
 import RoboLean.Examples.NonholonomicExerciseEulerLagrange
+import RoboLean.Examples.ScaraFingertip
+import RoboLean.Examples.GraspEdgeTrapezoid
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
@@ -364,3 +369,5 @@ import RoboLean.LieGroups.Haar
 import RoboLean.LieGroups.LeftTranslationConstraints
 import RoboLean.LieGroups.OneForms
 import RoboLean.LieGroups.ManifoldBracket
+import RoboLean.LieGroups.ExpDerivative
+import RoboLean.LieGroups.HaarChange
