@@ -294,6 +294,12 @@ import RoboLean.Nonholonomic.FrobeniusFrame
 import RoboLean.Nonholonomic.Proposition73
 import RoboLean.Nonholonomic.PhilipHall
 import RoboLean.Nonholonomic.LocalFramesFiltration
+import RoboLean.Nonholonomic.Nilpotent
+import RoboLean.Nonholonomic.TwoChain
+import RoboLean.Nonholonomic.OptimalInputsMore
+import RoboLean.Nonholonomic.ExercisesSeven
+import RoboLean.Nonholonomic.ExercisesSevenDrift
+import RoboLean.Nonholonomic.ExercisesSevenGrowth
 import RoboLean.Examples.NonholonomicBrockett
 import RoboLean.Examples.NonholonomicEngel
 import RoboLean.Examples.NonholonomicCarChained
@@ -330,6 +336,11 @@ import RoboLean.Examples.ParallelExerciseSliderCrank
 import RoboLean.Examples.ParallelExerciseTruss
 import RoboLean.Examples.FigureManipulatorThreeDof
 import RoboLean.Examples.FigureManipulatorInclined
+import RoboLean.Examples.NilpotentFiveState
+import RoboLean.Examples.NilpotentEightState
+import RoboLean.Examples.NonholonomicExerciseBrockett
+import RoboLean.Examples.NonholonomicExerciseJacobian
+import RoboLean.Examples.NonholonomicExerciseEulerLagrange
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
