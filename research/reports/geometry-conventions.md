@@ -242,6 +242,32 @@ translation coefficient on `0<θ<2π` and scales both twist components; zero
 rotation is handled separately. This selection has no proved global smoothness
 or uniqueness guarantee and is not a numerical logarithm implementation.
 
+**Definition 2.1 and its converse (pp. 21–22).** A map `g : Vec3 → Vec3` is a rigid body
+transformation (`IsRigidBodyTransformation`) when it preserves Euclidean distances and
+`g(p + v × w) − g(p) = (g(p + v) − g(p)) × (g(p + w) − g(p))` at every base point `p`: the action on
+vectors is defined by differences of points, as printed. The converse needs only the base point
+`0`: such a map is affine (Mathlib's `Isometry.affineIsometryOfStrictConvexSpace`, which needs no
+surjectivity), its linear part is orthogonal, and the cross-product clause forces determinant `+1`;
+so the maps of Definition 2.1 are exactly the point actions of `SE(3)`, and the reflection of p. 21
+is excluded. A raw `Fin 3 → ℝ` sup norm would make the length clause a different claim.
+
+**The plane and `SE(2)` (Exercises 10–11, pp. 75–76).** Planar points and vectors are
+`Vec2 := EuclideanSpace ℝ (Fin 2)`, ordered `(x, y)`; the planar grasp modules keep `Fin 2 → ℝ` for
+their positions. `PlanarRotation` is Mathlib's `specialOrthogonalGroup (Fin 2) ℝ`; `ofAngle θ` is
+`[[cos θ, −sin θ], [sin θ, cos θ]]`, counterclockwise for `θ > 0`; `ω̂ = [[0, −ω], [ω, 0]]`. A planar
+rigid motion `(p, R)` has named fields `rotation`, `translation`, composes as `RigidTransform` does
+(`g * h` applies `h` first), and has the homogeneous matrix `[[R, p], [0, 1]]` with coordinates
+`x, y`, homogeneous. A planar twist is `(v, ω)` with hat `[[ω̂, v], [0, 0]]`. The embedding into
+`SE(3)` sends `(p, R)` to `((p, 0), [[R, 0], [0, 1]])`, a rotation about `+z` followed by a
+translation in `z = 0`, and is a group homomorphism. The unit circle is `Metric.sphere 0 1` in
+`Vec2`, matched with `SO(2)` by the first column. Planar velocities (Exercise 11(d)) take the
+derivative of the homogeneous matrix entry by entry; `ġg⁻¹` and `g⁻¹ġ` use the inverse in `SE(2)`.
+
+**Cayley parameters (Exercise 5, p. 73).** `R_a = (I − â)⁻¹(I + â)` with `â = Vec3.hat a` and
+Mathlib's matrix inverse; `det(I − â) = 1 + ‖a‖²`, so the inverse always exists. The recovery
+`â = (R − I)(R + I)⁻¹` needs `R + I` invertible, a hypothesis the exercise does not print: every
+`R_a + I` is invertible, so the rotations by `π` have no Cayley parameters.
+
 ## Twist, adjoint, and wrench conventions
 
 Use twist order `(v, ω)` and wrench order `(f, τ)`, with linear coordinates
@@ -401,6 +427,15 @@ equals the twist–wrench pairing for every pair of nonparallel finite screws, i
 (`d = 0`) included, where the sign of `n` does not matter. Parallel axes use `α = atan2(0, ω₁·ω₂)`
 (`0` or `π`), for which the product does not depend on the distance. Infinite-pitch screws have no
 form of (2.72); their reciprocity is stated directly (checked with commit `7117f86`).
+
+**Hybrid velocity (Exercise 18, pp. 78–79).** `V^h = (ṗ, ωˢ)` is read from the derivative of the
+homogeneous pose matrix, with the same derivative evidence as `spatialVelocity`; linear coordinates
+come first. `Ad_p` and `Ad_R` in part (b) are the adjoints (2.58) of the pure translation `(p, I)` and
+the pure rotation `(0, R)`. A fixed change of spatial frame multiplies the pose on the left, a fixed
+change of body frame on the right. A body wrench in hybrid coordinates is
+`F^h = Wrench.transform (0, R) Fᵇ = (R fᵇ, R τᵇ)`: the same force and moment at the body origin,
+written in the orientation of the spatial frame; under a change of body frame the body wrench is
+re-expressed at the new body origin by `Wrench.transform b⁻¹`.
 
 ## Source inspection and evidence scope
 
@@ -745,6 +780,62 @@ subspace of dimension `fⱼ`. The admissible velocities have dimension at least 
 manifold structure; internal motions are joint trajectories that stay in it near the time
 considered, and their rates lie in the null space of the spatial Jacobian. Example 3.17's arm is the
 printed position map with angles from `+x`, not a `SerialChain` (checked with commit `7117f86`).
+
+**Denavit–Hartenberg parameters.** `RigidTransform.denavitHartenberg α a d φ` is the transform of
+MLS p. 93 with rotation `Rz(φ) Rx(α)` and translation `(a cos φ, a sin φ, d)`; its homogeneous
+matrix is the printed one entry by entry. In a `DenavitHartenbergChain` the joint variable is added
+to a stored reference value of `φᵢ` (revolute) or `dᵢ` (prismatic), so that `θ = 0` is the
+configuration with the stored parameters; the book's identification `φᵢ = θᵢ` is the stored value
+`0`. The relative twists of (3.7) are `(0, 0, 0, 0, 0, 1)` and `(0, 0, 1, 0, 0, 0)` in the proximal
+link frame, and the chain is read as a `LinkFrameChain`, whose base-frame twists are (3.10).
+
+**Base frames, tool frames and reference configurations.** A new base frame with
+`g_{s's} = g` changes the twists to `Ad_g ξᵢ` and the reference tool pose to `g g_st(0)`; the base
+frame at the reference tool frame is the case `g = g_st(0)⁻¹`. Taking `θ₀` as the reference
+configuration replaces the twists by the columns of `Jˢ(θ₀)` (the joint axes at `θ₀`), the reference
+tool pose by `g_st(θ₀)` and the joint space by its translate by `-θ₀`. A new tool frame moving with
+the end-effector is `g_{st'} = g_st h` with `h` constant; it changes neither the spatial Jacobian nor
+the spatial velocity.
+
+**Resolved rates.** The claim of MLS pp. 117–118 that integrating (3.57) moves the end-effector
+from `g₁` to `g₂` is stated with hypotheses the book omits: the workspace path has a derivative at
+every time of `[0, T]` (two-sided, the path being defined on the real line), a solution `θ` of
+(3.57) on `[0, T]` is given (its existence is a hypothesis), the Jacobian is invertible along it and
+`g_st(θ(0)) = g₁`. For a general chain the hypothesis is `Jˢ(θ)θ̇ = Vˢ`; the six-joint form uses the
+six rows `(v, ω)` numbered `0, …, 5` in order.
+
+**Redundant manipulators.** `J† = Jᵀ(JJᵀ)⁻¹` (p. 130) is the library's `Composite.rightPinv` of the
+six-row spatial Jacobian and is used under full row rank. For the statics (3.63) an end-effector
+wrench `Fₑ` applied by the environment, as a body wrench at the tool origin, enters Lagrange's
+equations as the generalized force `(Jᵇ)ᵀFₑ`, the joint force whose power is `Fₑ · Vᵇ` (p. 121);
+with actuator torques `τ` the generalized force is `τ + (Jᵇ)ᵀFₑ`. Static equilibrium is the
+constant motion; the book's `F` in `τ = JᵀF` is the wrench the end-effector exerts, `F = -Fₑ`.
+
+**Spherical joints and the Stewart platform.** A spherical joint about `q` is the rigid motion
+`(R, q - Rq)` with `R` free (p. 139), and its velocity is `(-ω × q, ω)`, read as the three columns
+`(-eₖ × q, eₖ)` (p. 140); three revolute joints through `q` are a different model with singular
+configurations. One leg of (3.72) is `g_s(R_s) e^{ξ̂θ} g_t(R_t) g_st(0)` with `g_t` about the reference
+tool pivot `p = g_st(0) q_t` in base coordinates and `ξ = (u, 0)`, `u` the unit reference direction
+from `q_s` to `p` (`p ≠ q_s`). The printed `θᵢ = ‖q_si − g_st q_ti‖` (p. 140) is the leg length; the
+extension with `θ = 0` at the reference configuration is that length minus `‖p − q_s‖`, recorded as
+a corrected printing. "`θᵢ` nonzero" (p. 141) and "`θᵢ > 0`" (Exercise 22(b)) are read as a nonzero
+current leg length. The actuated prismatic joints transmit the pure forces `(w, c × w)` along the
+current leg directions `w` through the tool pivots `c` (moment about the base origin).
+
+**Chapter 3 worked examples and exercises.** Example 3.4's positions are the printed (3.14) with
+angles from `+x`, the dextrous workspace the positions reached with every real orientation `φ`; the
+printed "by `2l₃` on the inner and outer edges" is read as moving each edge of the reachable annulus
+by `2l₃`, and positive lengths are assumed. Example 3.6's two solutions are the two branches of the
+planar solution (3.16) for the point `(y, -x)` of Figure 3.7a's plane (the SCARA's zero configuration
+points along `+y`), under its hypotheses. Example 3.10's spanning wrenches assume `l₁l₂ sin θ₂ ≠ 0`.
+The Stanford arm of Example 3.9 has its joint axes read from Figure 3.14 and the printed `ωᵢ'`, with
+the tool frame at the wrist centre. Exercise 13 is read with the `2 × 2` position Jacobian and
+condition number `1` as `JᵀJ = σ²I`, `σ ≠ 0`. Exercise 14's chains are rotation-only chains of
+three revolute joints through the origin, singular in the sense of p. 123. Exercise 18 is answered
+for the library's measures, which use the body Jacobian. The Gruebler counts of Exercises 20–22 read
+the links and joints from the printed figures: the slider–crank's bar `l₃` is rigid with the slider,
+a pin joining three links counts as two joints, and each Stewart leg is two bodies joined by the
+prismatic joint.
 
 **Evidence scope.** The declarations named here were elaborated and audited for axioms with
 commit `3e5bdd1`, and the `lake build` of `RoboLean.lean` was checked
@@ -1097,6 +1188,23 @@ matrix gives one with `φ t s x = Φ(t, s)x`, `D = Φ`. The converse function is
 with the sup norm through `‖x‖² ≤ x ⬝ x ≤ n‖x‖²`; the four bounds are stated for `t ≥ 0` and
 `‖x‖ ≤ ε/2`, half the `ε` of Definition 4.3, so that `∂V/∂x` is taken inside the ball where the
 exponential estimate holds; `‖∂V/∂x‖` is the operator norm for the sup norm.
+
+**Differentiable dependence on initial conditions.** A differentiable flow is constructed
+(`exists_isDifferentiableFlow`) for a field `f(t, x)` on a real Banach space that is continuous
+in `t ≥ 0` for every `x` and has a Fréchet derivative `Df(t, y)` in `y`, continuous in `(t, y)`
+and bounded in operator norm by `K` on `[0, ∞) × E`. These replace MLS's "Lipschitz in `x`,
+uniformly in `t`, and piecewise continuous in `t`" (p. 179): a bounded derivative is the same as
+the uniform Lipschitz bound for a differentiable field, continuity in `t` gives the derivative
+at every time that `IsSolution` asks, and a continuous derivative is the standard hypothesis of
+differentiable dependence. The field is extended to negative times by its value at `0`; the
+solutions are global (forward and backward) solutions of the extended field, from Picard–Lindelöf
+on intervals of a length fixed by `K` glued by uniqueness; `D(·, s, x)` is the state-transition
+matrix of `A(τ) = Df(τ, φ(τ, s, x))`. For every such flow `(t, x) ↦ D(t, s, x)` is continuous on
+`[s, ∞) × E`, so `φ(t, s, ·)` is strictly differentiable; continuity of `D` in the initial time
+`s` and higher derivatives are not proved. For `ℝⁿ` the converse of Theorem 4.5
+with all four bounds then holds under these hypotheses with no flow hypothesis
+(`exponentiallyStable_iff_exists_lyapunov_of_fderiv`). A field whose derivative is bounded only
+near the origin is not covered.
 
 **Robots under PD control (Proposition 4.9, p. 193, for every robot, p. 301).** For a robot
 `Control.RobotSystem p`, PD with compensation of `N` is `F = N(x, ẋ) − K_vẋ − K_p(x − x_d)` for a
@@ -1594,6 +1702,24 @@ Holonomic data (`IsHolonomic e h`): `h` on the composite configuration relabeled
 (`J_hᵀλ = τ − (M_fθ̈ + C_fθ̇ + N_f)`, `Gλ = M_pẍ + C_pẋ + N_p`). Hypotheses where used: `J` invertible,
 `M_f` symmetric, differentiability along motions, the derivative of `σ` along motions and the rate `Bd`.
 
+**Constrained manipulators (Chapter 4 §6, pp. 200–205).** A constraint surface `h(θ) = 0`,
+`h : ℝⁿ → ℝᵏ`, with a parameterization `f : ℝᵐ → ℝⁿ` is the hypothesis structure
+`Control.IsSurfaceParametrization h f`: `h` and `f` of class `C²` (MLS: smooth), `f` injective,
+`h ∘ f = 0`, the gradients of `h` independent at the points `f(φ)`, `m + k = n`, and `∂f/∂φ` onto
+`ker ∂h/∂θ`; from these `J = ∂f/∂φ` is injective. The robot is any `(M, C, N)`
+(`Control.RobotSystem n`); the constrained equations are `M θ̈ + C θ̇ + N + (∂h/∂θ)ᵀμ = τ`, the sign
+of (6.4), so that under the hybrid law (4.63) the multiplier equals the commanded normal force `λ`.
+Motions on the surface are taken in the form `θ = f ∘ φ`, with `θ̈ = Jφ̈ + J̇φ̇`,
+`J̇ = MapJacobian.jacDot f φ φ̇`. Lemma 4.2(2) for (4.62) is stated in the congruence form of
+Lemma 6.1 and along motions, where `J̇ᵀMJ + JᵀṀJ + JᵀMJ̇` is the derivative of `M̃` given an entrywise
+derivative `Ṁ` of `M(f(φ(s)))`. The convergence of (4.63),
+deferred by the book, is the closed loop `ë + K_vė + K_pe = 0` with exponential tracking along
+Proposition 4.8. The slot of §6.3 and the wall of Chapter 6 Exercise 7 are treated in workspace
+coordinates (Exercise 12), where the parameterization is affine; in joint torques the normal term is
+`λ∇h(θ) = λJ_p(θ)ᵀn`, not the printed `λn`. Exercise 12(d) compares the two routes for any
+joint-space parameterization `f` of the slot defined near a slot position (`p ∘ f` the workspace path
+on a neighborhood): the arm's reach is bounded, so no such `f` covers the whole line.
+
 ## Nonholonomic conventions
 
 Recorded with commit `6342e10`. Source: MLS printed pp. 317–353, read as text; pp. 325, 336, 340,
@@ -1656,10 +1782,22 @@ trajectories from `q₀` staying in `V` on `[0, T]`, `R^V(q₀, ≤ T)` the unio
 local controllability asks `R^V(q₀, ≤ T)` to be a neighborhood of `q₀` for every neighborhood `V`
 and every `T > 0`. Reversal needs `U = −U` and rescaling `TU ⊆ U`; MLS states neither.
 
-**Flows as hypotheses.** No flow of a vector field is constructed: Mathlib has local flows that are
-Lipschitz, not differentiable, in the initial state. The "if" half of Theorem 7.2
-(`FrobeniusSufficiency E`) and Theorem 7.5 (`ChowStatement E`, smooth generators, `U = ℝᵐ`) are
-named propositions, used only as hypotheses of conditional results.
+**Flows (pp. 322–324).** The flow `φ^X_t(q)` of an autonomous field `X` is `φ t 0 q` for a flow
+`φ` of the system `fun _ => X` in the sense of `IsDifferentiableFlow` (existence and uniqueness
+of solutions, joint continuity, the derivative in the initial state with the variational
+equation), for `t ≥ 0`; backward motions are the flow of `−X`: `twoSidedFlow φ φ' t` is
+`φ^X_t` for `t ≥ 0` and `φ^{−X}_{−t}` for `t < 0`, with the group property for all real `t`,
+`s` and an integral curve of `X` on the whole line; the inverse `φ^{−X}_t` of `φ^X_t` and
+commuting flows are stated for nonnegative times. Such flows
+exist for every field with a continuous derivative bounded in operator norm on a real Banach
+space (MLS: smooth complete fields on `ℝⁿ`). "`φ^f_t` is a local diffeomorphism" (p. 323) is
+read as: `φ^X_t` is a bijection differentiable at every point with the differentiable inverse
+`φ^{−X}_t`; for a continuous bounded derivative of the field the derivative of `φ^X_t` is
+continuous, so `φ^X_t` is strictly differentiable. Commuting flows for `[X, Y] = 0` (p. 324) use Mathlib's bracket and a bound
+`‖DX‖ ≤ K`. The "if" half of Theorem 7.2 (`FrobeniusSufficiency E`) and Theorem 7.5
+(`ChowStatement E`, smooth generators, `U = ℝᵐ`) remain named propositions, used only as
+hypotheses of conditional results: (7.9) asks a `C^∞` map, and the flows here have first
+derivatives only.
 
 **Printed errors and domains.** Example 7.4 (p. 336): the text names `θ̇ = u₁` and `φ̇ = u₂`, the
 columns of (7.13) give `φ̇ = u₁`, `θ̇ = u₂`; the columns are used. Example 7.7 (p. 341): `g₁`'s
@@ -1669,3 +1807,96 @@ fields are independent where `cos φ ≠ 0`, not "when `φ ≠ ±π`". Exercise 
 unit-time input along `t ↦ q(Tt)` is `T u(Tt)`, not `u(t/T)`. Domains: all `q` for the disk
 (`ρ ≠ 0`), `cos φ ≠ 0` for the car (`l ≠ 0`), `cos q₁ ≠ 0` for the finger, `l + d ≠ 0` for the
 hopper (`I, m > 0`).
+
+### Chained forms and steering (Chapter 8)
+
+Recorded with commit `66b2eb0`. Source: MLS printed pp. 355–394, read as text; pp. 360, 371, 385 and
+387 rendered.
+
+**Model systems.** Brockett's system (8.2), Engel's system (Example 8.4), the second-order system
+of p. 363 and the one-chain system (8.7) are drift-free systems on `Fin n → ℝ`; the book's `qᵢ` is
+the entry `i − 1` (`q₁` entry `0`, `q_{k+2}` entry `k + 1`), and for p. 363 the order is
+`(q₁, q₂, q₁₂, q₁₂₁, q₁₂₂)`. The one-chain fields are `g₁ = e₁ + (0, 0, q₂, …, qₙ₋₁)` and
+`g₂ = e₂`; `ad^0_{g₁} g₂ = g₂`, `ad^{k+1}_{g₁} g₂ = [g₁, ad^k_{g₁} g₂]` with the library's bracket,
+and `e_j` is the zero vector for `j > n`, so Lemma 8.1 reads `ad^k_{g₁} g₂ = (−1)^k e_{k+2}` for every
+`k`. The `m`-input system (8.4)–(8.5) keeps the whole matrix `Y` with `Ẏ = quᵀ − uqᵀ`; the book's
+`qᵢⱼ`, `i < j`, are the entries `Yᵢⱼ`.
+
+**Inputs and trajectories of the steering statements (pp. 363–366).** The inputs are the printed
+sinusoids, continuous in time, not piecewise constant; trajectories are those of the drift-free
+system (`IsTrajectory`: continuous on `[0, 1]`, the equation away from finitely many times).
+Every steering statement holds for every trajectory from every initial state; trajectories exist
+for continuous inputs (iterated integrals). Algorithm 3's input (`algorithm3Input c a b`) is the
+constant `c` on `[0, 1)` and, on `[k, k + 1)`, `k ≥ 1`, the sinusoids of step `k` shifted to start at
+`k`; Proposition 8.3 concatenates the steps on `[0, n − 1]`. Points reachable by sinusoidal steering
+are not members of the reachable sets of Chapter 7, which use piecewise constant inputs.
+
+**Optimal inputs (pp. 371–373).** The multiplier `p(t)` lies in the dual `E →L[ℝ] ℝ`;
+`‖u‖² = Σuᵢ²` (not Mathlib's sup norm). The necessary conditions (8.12)–(8.13) are hypotheses
+along a curve on `[0, T]`, with two-sided derivatives at every time of `[0, T]`; optimality, the
+existence of an optimal input and the printed rank condition do not enter.
+
+**Corrected printings and domains.** p. 360: with the printed `Λ = [[0, −λ], [λ, 0]]`, the state
+from the origin has `q₃(1) = +‖u(0)‖²/λ`, so the cost to reach `(0, 0, a)` is `λa` and, for
+`a > 0`, least at `n = +1` (printed `−(1/λ)‖u(0)‖²`, `−λa`, `n = −1`); `‖u(0)‖² = 2πa` stands.
+Example 8.3 (p. 371): the printed change of coordinates converts the printed rewritten system,
+which is not (7.14) after an input change; for (7.14) the conversion is `z₂ = (1/l) sec³θ tan φ`,
+`v₁ = cos θ u₁`, `u₂ = −(3/l) sin²φ sec θ tan θ v₁ + l cos³θ cos²φ v₂`. Algorithm 3 (p. 365): step 2
+steers `q_{k+2}` (printed `qₖ`), and the proof's returning coordinates are `qᵢ`, `i < k + 2`
+(printed `i < k`). Domains: `cos θ ≠ 0`, `cos φ ≠ 0`, `l ≠ 0` for the car in chained form;
+`ρ ≠ 0`, `cos u_f ≠ 0` for the sphere; `λ ≠ 0` for the stationary state of (8.3); `n ≥ 2` for the
+filtration level of Proposition 8.2.
+
+**Grasp and sphere (pp. 382–387).** (8.31) is stated at one configuration with a matrix `J_h⁺`
+satisfying `J_hJ_h⁺Gᵀ = Gᵀ` (not printed; true for the Moore–Penrose inverse of a manipulable grasp
+and for any right inverse). `R_ψ` is the library's `angleMatrix ψ` (p. 250), with `R_ψ² = I`, so the
+`R_ψ` of (8.35) equals the `R_ψ⁻¹` that (8.34) gives. The contact angle along a path
+`α_f = (u_f, v_f)` solves `ψ̇ = −sin u_f · v̇_f`; Theorem 8.6 is proved for the boundary of a chart
+rectangle traversed counterclockwise as four unit-time coordinate segments, with the area
+`∫∫ cos u du dv` of the book's area form; Proposition 8.7 is stated for `0 ≤ l < π/2`.
+
+## Appendix A conventions
+
+Recorded with commit `c2bad4e`. Source: MLS printed pp. 403–434 and Exercise 17 of Chapter 2
+(p. 78), read as text; pp. 428, 431 and 432 also as rendered images.
+
+**Forms on `se(3)`.** `se(3)` is identified with `ℝ⁶` through the twist coordinates `(v, ω)`, linear
+part first, as in Chapter 2 and p. 411 (p. 417's `(ω, v)` is a misprint). A bilinear form is its
+`6 × 6` matrix, `Ψ(ξ, η) = ξᵀ Ψ η` (`Twist.form`), indexed by `Fin 3 ⊕ Fin 3` like
+`Twist.adjointMatrix`. Invariance under change of frame is (A.11), `Ad_hᵀ Ψ Ad_h = Ψ` for every
+rigid transform `h` (`Twist.IsAdInvariant`), equivalent to (A.10). Quadratic forms are symmetric;
+metrics are positive definite in Mathlib's sense (`Matrix.PosDef`).
+
+**Quadratic forms on `SE(3)`.** A quadratic form on `SE(3)` is read as a form `Ψ_e` on `se(3)`
+extended by left translation, `Ψ_g(X, Y) = Ψ_e(g⁻¹X, g⁻¹Y)`, where a tangent vector at `g` is a
+`4 × 4` matrix `X` with `g⁻¹X ∈ se(3)`, so `X = gξ̂` (`Twist.leftTranslatedForm`,
+`Twist.IsTangentAt`); the tangent maps of `L_h`, `R_h` and `I_h` are `X ↦ hX`, `X ↦ Xh` and
+`X ↦ hXh⁻¹`. Smooth dependence on `g` is not stated, and no manifold structure on `SE(3)` is used;
+the manifold version is open.
+
+**Length scale.** A change of length scale by `c` maps `(v, ω)` to `(cv, ω)` (`Twist.scaleLength`):
+the hyperbolic metric scales by `c`, the Killing form is unchanged, the pitch scales by `c`.
+
+**Killing form.** `⟨ξ₁, ξ₂⟩_K = trace(ad_ξ₁ ∘ ad_ξ₂)` with `ad_ξ = [ξ, ·]` the library's twist
+bracket (Example A.8, equal to the matrix commutator of the hat matrices), which gives
+`−4 ω₁ · ω₂`. On `so(3)` alone the trace form is `−2 ω₁ · ω₂`; the display of p. 431 uses the
+`se(3)` form.
+
+**Vector fields on matrix groups.** Left invariant fields are written on the whole matrix space,
+`X_A(g) = gA`, with Mathlib's bracket (the sign of p. 407 and of Chapter 7); brackets of matrix
+fields use the entrywise norm, derivatives of the matrix exponential the `L^∞` operator norm, as in
+the library's twist exponential. Proposition A.1 is stated for diffeomorphisms of real normed
+spaces, the push-forward being `(F_*X)_q = DF(F⁻¹q) X(F⁻¹q)`.
+
+**Manipulability on `6 × 6` matrices.** `σ_min` and `σ_max` of a `6 × 6` matrix with rows `(v, ω)`
+are Mathlib's singular values of index 5 and 0 of its Euclidean linear map, as in the
+manipulability measures of Chapter 3.
+
+**Corrected printings and added hypotheses.** Proposition A.1 is printed for a smooth map but needs a
+diffeomorphism for `F_*X` (p. 407); Example A.15's `A⁻¹` needs `sin‖ω‖ ≠ 0`, not only `ω ≠ 0`
+(p. 414); Example A.23's magnitude is `M_ξ = √(−¼⟨ξ, ξ⟩_K)`, the printed display giving `M_ξ²`
+(p. 428); the volume of `SO(3)` for the triple-product form is `8π²`, not `8π³ rad³` (p. 431, not
+stated in Lean); the orbit printed `Rⁿ/{0}` is `ℝⁿ \ {0}` (p. 415). Lemma A.2 is applied in the proof
+of Proposition A.5 to the block `B`, which need not be symmetric; the library proves the
+nonsymmetric form for `n ≥ 3`. Example A.13's norm, which the book does not name, is the operator
+norm.
