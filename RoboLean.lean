@@ -452,3 +452,8 @@ import RoboLean.Cell.LoopSupervisor
 import RoboLean.Cell.AssuredInstance
 import RoboLean.Cell.AssuredInstanceMotion
 import RoboLean.Cell.AssuredInstanceTight
+import RoboLean.Cell.TrackingRight
+import RoboLean.Cell.TrackingMoveRight
+import RoboLean.Cell.TrackingLoopRight
+import RoboLean.Cell.AssuredInstanceRight
+import RoboLean.Cell.AssuredInstanceRightStep
