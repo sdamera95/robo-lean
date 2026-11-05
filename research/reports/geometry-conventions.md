@@ -911,6 +911,33 @@ plane of the arm, read from the elliptical caps of its cylinder (cylinders along
 drawn with circular caps) and from the second marked point on the axis of `θ₁`, which the third
 axis meets at `(0, 0, −a tan γ)`; the figure draws `γ = 45°`; tool at `(l, 0, 0)`.
 
+**The manipulators of Figure 3.24.** The figure carries no dimensions and is drawn in the style of
+Figure 3.4: vertical cylinders are joints about `+z`, cylinders drawn along the arm are joints about
+`+y`, cylinders drawn in the depth direction are joints about `−x`, the directions Example 3.2
+assigns; boxes are prismatic joints. Base frames as in Example 3.2, `z` along the vertical axis and `y`
+along the arm at `θ = 0`, tool frames parallel to the base frame at the point where the last axes
+meet. (ii) the inverse elbow: `+z`, `+y`, `−x` through `p_b = (0, 0, l₀)`, `−x` through `(0, l₁, l₀)`,
+`−x`, `+y` through `w = (0, l₁ + l₂, l₀)`; the first three axes are read as meeting at `p_b` and axes 5
+and 6 at `w`. (iv) the Rhino: a slide along `+y` (the box at the base, its arrow along the drawn arm),
+then `+z`, `−x` through `p_s = (0, 0, l₀)`, `−x` through `(0, l₁, l₀)`, `−x`, `+y` through
+`w = (0, l₁ + l₂, l₀)`. (i) and (iii) are read as the elbow manipulator of Example 3.2 and the Stanford
+arm of Example 3.9; Figure 3.24 draws their wrists in the order `−x`, `+z`, `+y`, Figures 3.4 and 3.14
+in the order `+z`, `−x`, `+y`; both are spherical wrists. Inverse-kinematics steps are stated as
+necessary conditions on a solution of `g_st(θ) = g_d` with `g₁ = g_d g_st(0)⁻¹`; inverse motions are
+`e^{−ξ̂θ}`, written `Twist.exp ξ (−θ)`.
+
+**Chapter 3 Exercises 5, 7 and 12.** The elbow with non-intersecting shoulder axes (Exercise 5) moves
+the second axis of Example 3.2 to `(0, d, l₀)` along `y`, the only direction that separates the two
+axes, and the rest of the arm with it. For the SCARA (Exercise 7) the extension is read off the height;
+Subproblem 5 applies only once the height is known, at a point `(δ, l₁ + l₂, z)`. Exercise 12's task
+ellipsoid `E_β = {y : Σ (yᵢ/αᵢ)² ≤ β}` has its axes along the coordinate axes; the printed
+`max{β : J(B₁) ⊂ E_β}` is read as the least such `β`, the set being closed upwards.
+
+**The truss near a leg of zero length.** `trussShift Θ i ε` translates the platform by
+`ε (cos αᵢ, sin αᵢ)`, gives leg `i` the length `ε` with its angles unchanged, and gives every other leg
+`k` the angle `αₖ + arg zₖ`, the length `dₖ‖zₖ‖` and the platform angle `βₖ − arg zₖ`, with
+`zₖ = 1 + (ε/dₖ) e^{i(αᵢ − αₖ)}`; kinematic singularity is that of K35.
+
 **Evidence scope.** The declarations named here were elaborated and audited for axioms with
 commit `3e5bdd1`, and the `lake build` of `RoboLean.lean` was checked
 separately. K13 and the planar workspace rows were checked with commit `f237457`, built against
@@ -1279,7 +1306,10 @@ solutions are global (forward and backward) solutions of the extended field, fro
 on intervals of a length fixed by `K` glued by uniqueness; `D(·, s, x)` is the state-transition
 matrix of `A(τ) = Df(τ, φ(τ, s, x))`. For every such flow `(t, x) ↦ D(t, s, x)` is continuous on
 `[s, ∞) × E`, so `φ(t, s, ·)` is strictly differentiable; continuity of `D` in the initial time
-`s` and higher derivatives are not proved. For `ℝⁿ` the converse of Theorem 4.5
+`s` is not proved. On a finite-dimensional space a field of class `C^k` with bounded derivatives of
+orders `1` to `k` (`HasBoundedIteratedFDeriv 1 k F`) has flows of class `C^k` in the initial state,
+by induction through the augmented field `(x, M) ↦ (F(x), DF(x)M)` cut off in `M` outside a ball
+that contains `D` on the time window; the second derivative solves the second variational equation. For `ℝⁿ` the converse of Theorem 4.5
 with all four bounds then holds under these hypotheses with no flow hypothesis
 (`exponentiallyStable_iff_exists_lyapunov_of_fderiv`). A field whose derivative is bounded only
 near the origin is not covered.
@@ -1637,11 +1667,14 @@ object poses, read in pose coordinates.
 roots other than `0` of `x²/(a² − λ) + y²/(b² − λ) + z²/(c² − λ) = 1`) reparametrized so that the
 chart is smooth through the vertices `(±a, 0, 0)`. It is orthogonal on all of `ℝ²` and regular exactly
 where `sin s ≠ 0` or `cos t ≠ 0` (proved); the excluded parameters map to the points
-`(±a √((a² − b²)/(a² − c²)), 0, ±c √((b² − c²)/(a² − c²)))`, the four umbilics (the classical fact, not
-proved, since the chart is singular there). The geometric parameters are computed on the patch
+`(±a √((a² − b²)/(a² − c²)), 0, ±c √((b² − c²)/(a² − c²)))`, umbilics of the graph charts
+`(u, v, ±c √(1 − u²/a² − v²/b²))`, which are regular there (proved; the confocal chart is singular
+there, so the umbilic is read in a regular chart, and that there are no other umbilics is not
+proved). The geometric parameters are computed on the patch
 `{cos t > 0}`, where the normal (5.19) is outward; that this patch covers, on
 `(−π, π] × (−π/2, π/2)`, the ellipsoid without the two arcs of `x²/a² + z²/c² = 1` in the plane `y = 0`
-that join the umbilics through `(0, 0, ±c)` is a derivation, not proved. The
+that join the umbilics through `(0, 0, ±c)` is proved for the image of the whole patch (the
+parameters with `cos t > 0`; injectivity on the fundamental domain is not claimed). The
 contact point of Exercise 15 is the vertex `(−a, 0, 0) = c(π, 0)` on the longest axis, which faces the
 object in the figure; the principal axes "of length `a`, `b`, `c`" are read as semi-axes.
 
@@ -1660,13 +1693,20 @@ opposite Gauss normals; it depends only on the set of surface points with their 
 orthogonal charts describe the same point with the same normal, their normalized Gauss frames differ
 by a rotation `R_z(θ)` about the normal, and the contact coordinates `(α, α_o, ψ)` in the old chart and
 `(β, α_o, ψ + θ)` in the new one give the same relative pose: the contact angle shifts by the angle
-between the two frames, the configuration does not change.
+between the two frames, the configuration does not change. Along a motion, for orthogonal charts (class `C²`) and parameter curves with derivatives at `t`,
+the frame angle is a local choice `θ(s) = θ(t) + arcsin(sin θ_s cos θ(t) − cos θ_s sin θ(t))` with a
+derivative at `t`, where `cos θ_s = xᵀx'` and `sin θ_s = yᵀx'` for the normalized partials; it is
+determined up to multiples of `2π`, and the transfers of Theorem 5.11 across a change of the
+finger or object chart then need no angle hypothesis.
 
 **Theorem 5.9 and lines of curvature.** Theorem 5.9 is the named statement
 `OrthogonalChartStatement` (smooth chart with injective differential, smooth injective
-reparametrization onto a neighbourhood). A line of curvature is a coordinate line along which
-Rodrigues' formula `n_u = κ c_u` holds; an umbilic of an orthogonal chart is a point where `K` is a
-multiple of the identity.
+reparametrization onto a neighbourhood), proved with one flow: the parameter field
+`Y = −(g₁₂/g₁₁)e₁ + e₂`, cut off near the point, and `θ(β) = Φ^Y(β₂ − α₀₂, (β₁, α₀₂))`, whose
+`β₁`-lines are horizontal and whose `β₂`-lines are integral curves of `Y`. A line of curvature is a
+coordinate line along which Rodrigues' formula `n_u = κ c_u` holds; an umbilic of an orthogonal
+chart is a point where `K` is a multiple of the identity; a chart along lines of curvature is not
+constructed.
 
 ## Constrained dynamics conventions
 
@@ -1934,7 +1974,9 @@ equality (`Constrained.IsIntegrableOn`) with a witness of class `C²` (`IsC2Inte
 open set and spanned near the point by `C¹` fields; Proposition 7.4's "if" near each point with
 a `C¹` defining map, for constraints with `C¹` entries and independent rows. The named
 `FrobeniusSufficiency E` (`C^∞` generators and defining maps) carries
-`[FiniteDimensional ℝ E]`: without it the proposition forces `E` to be finite-dimensional.
+`[FiniteDimensional ℝ E]`: without it the proposition forces `E` to be finite-dimensional. It is
+proved on every finite-dimensional space, with smooth defining maps from the flow box of smooth
+two-sided flows.
 
 **Filtration and Lie algebra (pp. 326, 340–341).** `Δᵢ` is spanned by the generators and the
 left-normed brackets `[gⱼ, w]` of a generator with a field spanning `Δᵢ₋₁`; `Δ₀ = 0`, so
@@ -1974,9 +2016,10 @@ continuous, so `φ^X_t` is strictly differentiable. Commuting flows for `[X, Y] 
 `q` uses a complement `C` of `span{Xᵢ(q)}` and the inverse function theorem. Flows commute where
 the bracket vanishes along the trajectories involved, and a field bounded by `M` moves points by
 at most `M|t|`. The sufficiency proofs use flows of fields cut off by a smooth bump to compact
-support. The `C^∞` "if" half of Theorem 7.2 (`FrobeniusSufficiency E`) remains a named proposition,
-used only as a hypothesis of conditional results: (7.9) with a `C^∞` map needs flows of class
-`C^∞` in the initial state. Theorem 7.5 (`ChowStatement E`, smooth generators, `U = ℝᵐ`) is
+support. For a field bounded with bounded derivatives of orders `1` to `k` on a finite-dimensional
+space the two-sided flow is of class `C^k` in `(t, x)`, time being made a state variable by the field
+`(λ, x) ↦ (0, χ(λ)X(x))`; the `C^∞` "if" half of Theorem 7.2 (`FrobeniusSufficiency E`) is proved
+with these flows. Theorem 7.5 (`ChowStatement E`, smooth generators, `U = ℝᵐ`) is
 proved on finite-dimensional spaces (next paragraph).
 
 **Chow's theorem (pp. 329–332).** Composed flows `flowSeq Φ x r w s` apply the letter `w₀`
@@ -2004,6 +2047,16 @@ order is by length, then generators by index and brackets of equal length lexico
 (MLS fixes only condition 2), and condition 3 is read recursively. The basis property is not
 formalized.
 
+**Integrals of the involutive closure (pp. 339–341).** "`Δ̄_q` has a constant rank `n − p`" is read
+as constant `finrank` of `L(g₁, …, g_m)(y)` on an open set; the integrals are functions with
+independent differentials spanning the annihilator `(Δ̄_y)^⊥`, of class `C¹` in one form and smooth
+in the other; for constraints, the null space of `A(y)` is the span of the input fields on the set.
+The "`⟺`" of p. 339 is read from feasible curves to level sets (the converse fails when `Δ̄ ≠ Δ`).
+The maximum number of integrals is stated for functions whose differentials vanish on `Δ̄` and for
+smooth integrals of the constraints on an open neighbourhood. Nilpotency of order `k` is the same
+on fields, on formal products and in the Lie algebra of smooth fields; the instance of Example
+7.12 uses the five-state fields of Chapter 8 Exercise 2 with `g₃ = [g₁, g₂]`.
+
 **Printed errors and domains.** Example 7.4 (p. 336): the text names `θ̇ = u₁` and `φ̇ = u₂`, the
 columns of (7.13) give `φ̇ = u₁`, `θ̇ = u₂`; the columns are used. Example 7.7 (p. 341): `g₁`'s
 denominator is `I + m(l + d)²` (p. 334), not `I + (l + d)²`, and the printed rank claim near `l = 0`
@@ -2022,6 +2075,41 @@ any nonempty open set. Exercise 16's drift at a point is the least-norm solution
 the input fields span the kernel of `A`). Exercise 17's `σ̄ᵢ` is computed by the printed recursion
 with `σ̄₁ = m`, the number of input fields; stages 1–3 of the bound are proved, stage 3 for fields of
 class `C²` at the point.
+
+**Constraints, codistributions and the Lie algebra of fields (commit `75c5b45`, pp. 318–328 and
+339–345).** A single constraint is `ω : E → (E →L[ℝ] ℝ)` and several are `A : E → (E →L[ℝ] F)`,
+their rows the forms `φ ∘ A(q)`; the codistribution `Ω_q` is the range of the transpose of
+`A(q)`, and `Δ = Ω^⊥` is `ker A(q)` (finite dimension). The integrating factor (7.4) is read
+pointwise with the kernel equality of Chapter 6 and a nonvanishing factor; (7.5) is the symmetry
+`D(αω)(q) v v' = D(αω)(q) v' v`, and its converse is stated on open convex sets (the whole space
+included) through Mathlib's Poincaré lemma for closed one-forms. The control form (7.6) chooses
+the input time by time. The smooth fields form the submodule `smoothFields E` of `E → E` with
+Mathlib's `LieRing` and `LieAlgebra ℝ` structures (the bracket of p. 324); `L(g)` agrees with the
+Lie subalgebra the generators generate when `m ≥ 1`; the involutive closure `Δ̄` is the span of
+`L(g)` over smooth functions. Proposition 7.3 on the whole space is stated under the normal form of
+the book's proof at every point: a fixed `S : F →L E` with `A(y) ∘ S` invertible for all `y`.
+Integrals of the constraints are functions of class `C^∞` on an open set with `L_{gⱼ} h = 0`. The
+degree of nonholonomy exists at every point with `κ + rank Δ₁ ≤ n + 1`; "`κ < n`" (p. 340) needs
+`rank Δ₁ ≥ 2` and fails for one field on `ℝ`. Lie products are evaluated in any Lie ring; nilpotent
+of order 3 is read on formal products of length greater than 3; the basis claim of p. 345 is read
+in Mathlib's free Lie algebra, where the case of three generators and length at most 3 is proved
+through the free associative algebra with the commutator bracket (a local instance), and refuted
+for vector fields. Example 7.3 (p. 335) is corrected to `a₁₃ = ml² + mrl cos ψ₁`,
+`a₂₃ = ml² + mrl cos ψ₂`, with which Example 7.8's bracket (p. 342) is exact.
+
+**Exercises 1, 6, 12–15 (commit `ae9b863`, pp. 349–353).** Exercise 1's "usual smoothness and
+regularity assumptions" are a finite-dimensional state space, `C^∞` input fields and a filtration
+regular near the point; the rank condition is its filtration form `Δᵢ(q₀) = ℝⁿ` for some `i`.
+Exercise 6 places trailer `i`'s axle centre at `P_{i−1} − dᵢ(cos θᵢ, sin θᵢ)`, `dᵢ ≠ 0`, with the
+no-slip constraint `−Ṗᵢ,ₓ sin θᵢ + Ṗᵢ,ᵧ cos θᵢ = 0` and the car's equations of §7.3 given.
+Exercise 12(a) reads the total angular momentum in the body frame as `Mω + u₁c₁ + u₂c₂` with `M`
+invertible; 12(b) is stated on `3 × 3` matrices with the fields `R ↦ Rb̂` and `b₁ × b₂ ≠ 0` for
+independence, not in Euler parameters. Exercise 13's cat is two point masses `m` on massless rods of
+length `d` in free fall, the mass centre as origin and zero angular momentum about it; the state is
+`(s₁, s₂) ∈ ℝ³ × ℝ³` with `S² × S²` the unit pairs, and "controllable" is answered on the unfolded
+configurations `s₁ ≠ s₂`. Exercise 14's program is the library's Philip Hall generator with its
+order. Exercise 15's "degree of nonholonomy `N + 2`" is assessed at `N = 0` against the car of
+§7.3 in its coordinates `(x, y, θ, φ)`.
 
 ### Chained forms and steering (Chapter 8)
 
@@ -2090,8 +2178,9 @@ its "mod Jacobi identity" relation is a first integral. In §3.2, `L_fh` is the 
 `lieDerivative`, fields and functions are `C^∞`, `z_k = L^{n−k}_{g₁}h₂` is entry `k − 1` of the
 coordinates, and `Δ₀`'s last generator is `ad^{n−2}_{g₁}g₂` (printed `ad^{n−2}_{g₁}g₁`, which is
 zero). The existence of `h₂` is proved when `dim E = n` (MLS: `q ∈ ℝⁿ`), with `h₂` of class
-`C¹` near each point; the named statement, which allows every `n`, is false on `ℝ³` with
-`n = 4`.
+`C¹` near each point and, from Frobenius' theorem with smooth defining maps, with `h₂` smooth on
+the whole space (a bump equal to `1` near the point); the named statement, which allows every
+`n`, is false on `ℝ³` with `n = 4`.
 
 **Exercises (commit `f083494`, pp. 344, 349–353 and 391–394; pp. 391, 392 and 394 rendered).**
 "Nilpotent of degree `k`" (pp. 378–379, 391) is read with p. 344's definition: every Lie product of
@@ -2106,6 +2195,28 @@ the first integral `q₆ − q₁⁴/24`. Exercise 5's state is `(x₀, y₀, x�
 Exercise 12's first input is `α₁,₀ + α₁,₁ cos 2πt + α₁,₂ sin 2πt` (the `+` is missing), its
 coefficients indexed `0, …, 5` as `(α₁,₀, α₁,₁, α₁,₂, α₂,₀, α₂,₁, α₂,₂)`, and "full rank" is the
 linear map of `A(α)` onto `ℝ³`.
+
+**Algorithm 1, Example 8.2 and Engel's inputs (commit `75c5b45`, pp. 360–362, 368 and 374).**
+Algorithm 1's input is the constant `q_f − q₀` on `[0, 1)` and then, on `[k, k + 1)`, the pair
+input `uᵢ = sin 2π(t − k)`, `uⱼ = b_{k−1} cos 2π(t − k)` for the pairs `i < j` in the order of
+`pairsList m`, one pair per unit of time; the target needs `Y_f − Y₀` skew-symmetric, because
+`Yₖₗ + Yₗₖ` is a first integral of (8.5). Example 8.2's change of coordinates is stated where
+`cos θ > 0` (for `cos θ < 0` the printed `ż₄ = z₃/√(1 − z₃²) v₁` holds with the opposite sign),
+pointwise in time. Engel's multipliers are `pᵢ = p(eᵢ)`; the pendulum equation `α̈ = 2p₄r sin α`
+and its first integral `(α̇)² = b − 2δ cos α` are stated for `q̇₁ = r sin α` and
+`α̇ = 2(p₃ + q₁p₄)` on an interval, with `p₃, p₄` constant as the necessary conditions give.
+
+**Exercises 1's question, 3(c), 4, 7 and 10 (commit `ae9b863`, pp. 374 and 391–393).** Exercise 1's
+"nonlinear change of coordinates" is a smooth map `ψ` from the new coordinates to the old, with the
+fields of the one-chain system the pullbacks `(Dψ)⁻¹ gᵢ ∘ ψ` (Mathlib's `pullback`) of the corrected
+fields and `Dψ` invertible at one point; input transformations are not included. Exercise 3(c)'s
+input concatenates the pair inputs `uᵢ = sin 2πt`, `uⱼ = −2πỸᵢⱼ cos 2πt` over the pairs `i < j`,
+one unit of time each. Exercise 4's coefficients are indexed from `0` (`a 0 = a₁`, …); the endpoint
+equations are stated for every zero-mean continuous input through primitives vanishing at `0` and
+`1`. Exercise 7's formula for `u⁽ⁿ⁾` is the recursion `uᵢ⁽ⁿ⁾ = −(DⁿX_{gᵢ})(φ)` with `D` the derivation
+`D X_w = −Σⱼ X_{gⱼ} X_{[gⱼ, w]}` of the polynomials in the pairings `φ_w = pᵀg_w(q)`, the input
+fields `C^∞` and the necessary conditions at every time. Exercise 10 takes the polar form
+`u = r(sin α, cos α)`, `r ≠ 0`, as a hypothesis (as Example 8.4 does) and stops before (8.19).
 
 ## Appendix A conventions
 
