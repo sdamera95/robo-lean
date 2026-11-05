@@ -1,6 +1,6 @@
 name = "roboLean"
 version = "0.1.0"
-defaultTargets = ["RoboLean", "planar-arm-supervisor"]
+defaultTargets = ["RoboLean", "planar-arm-supervisor", "cell-supervisor"]
 
 [[require]]
 name = "mathlib"
@@ -13,3 +13,7 @@ name = "RoboLean"
 [[lean_exe]]
 name = "planar-arm-supervisor"
 root = "RoboLean.Demo.Main"
+
+[[lean_exe]]
+name = "cell-supervisor"
+root = "RoboLean.Cell.Main"

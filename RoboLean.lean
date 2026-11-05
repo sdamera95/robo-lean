@@ -139,6 +139,7 @@ import RoboLean.Examples.ConstrainedDynamics
 import RoboLean.Examples.HandDynamics
 import RoboLean.Design.PlanarArmSchedulerSupervisor
 import RoboLean.Design.PlanarArmWrapSchedulerSupervisor
+import RoboLean.Design.CellSupervisor
 import RoboLean.Dynamics.PseudoInverse
 import RoboLean.Control.RobotSystem
 import RoboLean.Dynamics.HandControl
@@ -433,3 +434,6 @@ import RoboLean.LieGroups.ExpDerivative
 import RoboLean.LieGroups.HaarChange
 import RoboLean.Cell.Loop
 import RoboLean.Cell.Assured
+import RoboLean.Cell.Supervisor
+import RoboLean.Cell.SupervisorRefines
+import RoboLean.Cell.SupervisorInstances
