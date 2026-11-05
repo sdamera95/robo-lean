@@ -431,3 +431,5 @@ import RoboLean.LieGroups.OneForms
 import RoboLean.LieGroups.ManifoldBracket
 import RoboLean.LieGroups.ExpDerivative
 import RoboLean.LieGroups.HaarChange
+import RoboLean.Cell.Loop
+import RoboLean.Cell.Assured
