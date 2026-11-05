@@ -1,0 +1,393 @@
+{
+ "version": 2,
+ "frame": "library frame of the three-link arm: base yaw axis is the z axis, z up, table plane z = 0, shoulder at (0, 0, l0), at theta = 0 the arm lies along +y; tool(theta) = (-sin t0 R, cos t0 R, l0 - l1 sin t1 - l2 sin(t1 + t2)), R = l1 cos t1 + l2 cos(t1 + t2); the elbow point is the same with l2 = 0; negative t1 raises the arm",
+ "units": "metres for lengths, degrees for cell corners and waypoints, radians for the inflation",
+ "arm": {
+  "l0": 0.4,
+  "l1": 0.425,
+  "l2": 0.392,
+  "l0_exact": "2/5",
+  "l1_exact": "17/40",
+  "l2_exact": "49/125"
+ },
+ "link_radius": 0.06,
+ "link_radius_exact": "3/50",
+ "clearance": 0.03,
+ "clearance_exact": "3/100",
+ "cell_inflation_rad": 0.05,
+ "cell_inflation_rad_exact": "1/20",
+ "links": "two capsules of radius link_radius around the segments shoulder-elbow and elbow-tool; the base column below the shoulder is not modelled as a link",
+ "obstacles": [
+  {
+   "name": "table",
+   "kind": "halfspace",
+   "n": [
+    0,
+    0,
+    1
+   ],
+   "beta": 0.0,
+   "meaning": "z <= 0"
+  },
+  {
+   "name": "divider",
+   "kind": "box",
+   "lo": [
+    -0.01,
+    0.3,
+    0.0
+   ],
+   "hi": [
+    0.01,
+    0.9,
+    0.3
+   ],
+   "meaning": "plate in the plane x = 0 between the pick side x < 0 and the place side x > 0"
+  },
+  {
+   "name": "shelf",
+   "kind": "box",
+   "lo": [
+    0.4,
+    0.0,
+    0.0
+   ],
+   "hi": [
+    0.95,
+    0.75,
+    0.12
+   ],
+   "meaning": "place shelf on the side x > 0, top at z = 0.12"
+  },
+  {
+   "name": "rear_wall",
+   "kind": "halfspace",
+   "n": [
+    0,
+    1,
+    0
+   ],
+   "beta": -0.25,
+   "meaning": "y <= -0.25, a wall behind the base"
+  }
+ ],
+ "cells": [
+  {
+   "name": "pick",
+   "lo_deg": [
+    45,
+    -45,
+    0
+   ],
+   "hi_deg": [
+    75,
+    0,
+    30
+   ]
+  },
+  {
+   "name": "cross",
+   "lo_deg": [
+    -60,
+    -45,
+    0
+   ],
+   "hi_deg": [
+    60,
+    -30,
+    45
+   ]
+  },
+  {
+   "name": "place",
+   "lo_deg": [
+    -75,
+    -45,
+    0
+   ],
+   "hi_deg": [
+    -45,
+    0,
+    15
+   ]
+  }
+ ],
+ "joint_envelope": {
+  "lo_deg": [
+   -81,
+   -51,
+   -6
+  ],
+  "hi_deg": [
+   81,
+   6,
+   51
+  ],
+  "note": "every cell inflated by 1/10 rad in each joint lies in this box (6 degrees >= 1/10 rad since pi >= 3); no clearance certificate is claimed on the margin beyond the 1/20 rad inflation"
+ },
+ "certificates": {
+  "note": "separating plane (n, beta) with |n| <= 1: the obstacle lies in n.p <= beta, and n.p >= beta + link_radius + clearance at the shoulder, elbow and tool points for every theta of the inflated cell",
+  "pick": {
+   "table": {
+    "n": [
+     0,
+     0,
+     1
+    ],
+    "beta": 0.0
+   },
+   "divider": {
+    "n": [
+     -0.8,
+     -0.6,
+     0
+    ],
+    "beta": -0.09
+   },
+   "shelf": {
+    "n": [
+     -1,
+     0,
+     0
+    ],
+    "beta": -0.4
+   },
+   "rear_wall": {
+    "n": [
+     0,
+     1,
+     0
+    ],
+    "beta": -0.25
+   }
+  },
+  "cross": {
+   "table": {
+    "n": [
+     0,
+     0,
+     1
+    ],
+    "beta": 0.0
+   },
+   "divider": {
+    "n": [
+     0,
+     0,
+     1
+    ],
+    "beta": 0.3
+   },
+   "shelf": {
+    "n": [
+     0,
+     0,
+     1
+    ],
+    "beta": 0.12
+   },
+   "rear_wall": {
+    "n": [
+     0,
+     1,
+     0
+    ],
+    "beta": -0.25
+   }
+  },
+  "place": {
+   "table": {
+    "n": [
+     0,
+     0,
+     1
+    ],
+    "beta": 0.0
+   },
+   "divider": {
+    "n": [
+     0.8,
+     -0.6,
+     0
+    ],
+    "beta": -0.09
+   },
+   "shelf": {
+    "n": [
+     0,
+     0,
+     1
+    ],
+    "beta": 0.12
+   },
+   "rear_wall": {
+    "n": [
+     0,
+     1,
+     0
+    ],
+    "beta": -0.25
+   }
+  }
+ },
+ "waypoints": [
+  {
+   "name": "home",
+   "deg": [
+    0,
+    -40,
+    30
+   ],
+   "role": "home",
+   "cells": [
+    "cross"
+   ]
+  },
+  {
+   "name": "lift_pick",
+   "deg": [
+    50,
+    -35,
+    30
+   ],
+   "role": "via",
+   "cells": [
+    "pick",
+    "cross"
+   ]
+  },
+  {
+   "name": "lift_place",
+   "deg": [
+    -50,
+    -35,
+    15
+   ],
+   "role": "via",
+   "cells": [
+    "cross",
+    "place"
+   ]
+  },
+  {
+   "name": "pick_1",
+   "deg": [
+    50,
+    0,
+    30
+   ],
+   "role": "pick",
+   "cells": [
+    "pick"
+   ]
+  },
+  {
+   "name": "pick_2",
+   "deg": [
+    60,
+    0,
+    30
+   ],
+   "role": "pick",
+   "cells": [
+    "pick"
+   ]
+  },
+  {
+   "name": "pick_3",
+   "deg": [
+    70,
+    0,
+    30
+   ],
+   "role": "pick",
+   "cells": [
+    "pick"
+   ]
+  },
+  {
+   "name": "place_1",
+   "deg": [
+    -50,
+    0,
+    15
+   ],
+   "role": "place",
+   "cells": [
+    "place"
+   ]
+  },
+  {
+   "name": "place_2",
+   "deg": [
+    -60,
+    0,
+    15
+   ],
+   "role": "place",
+   "cells": [
+    "place"
+   ]
+  },
+  {
+   "name": "place_3",
+   "deg": [
+    -70,
+    0,
+    15
+   ],
+   "role": "place",
+   "cells": [
+    "place"
+   ]
+  }
+ ],
+ "cycle_template": [
+  "lift_pick",
+  "pick_i",
+  "lift_pick",
+  "lift_place",
+  "place_j",
+  "lift_place"
+ ],
+ "cycles": [
+  [
+   "home",
+   "lift_pick",
+   "pick_1",
+   "lift_pick",
+   "lift_place",
+   "place_1",
+   "lift_place",
+   "lift_pick"
+  ],
+  [
+   "lift_pick",
+   "pick_2",
+   "lift_pick",
+   "lift_place",
+   "place_2",
+   "lift_place",
+   "lift_pick"
+  ],
+  [
+   "lift_pick",
+   "pick_3",
+   "lift_pick",
+   "lift_place",
+   "place_3",
+   "lift_place",
+   "lift_pick"
+  ]
+ ],
+ "cycle_note": "a run starts at home, moves to lift_pick, then repeats the template for any pick slot i and place slot j; consecutive waypoints share a cell",
+ "straight_move_check": [
+  "pick_2",
+  "place_2"
+ ],
+ "straight_move_note": "the straight joint-space move from a pick slot to a place slot passes theta0 = 0 with the tool low and penetrates the divider; no cell contains both ends",
+ "tool_lipschitz_L": 1.46,
+ "tool_lipschitz_L_exact": "73/50",
+ "tool_lipschitz_note": "|tool(theta) - tool(theta')|_2 <= L max_i |theta_i - theta'_i| for all theta, theta' (L^2 >= (l1 + 2 l2)^2 + (l1 + l2)^2)",
+ "envelope_inflation_rad_exact": "1/10"
+}
