@@ -20,7 +20,7 @@ smaller than `ρ` (`demoArm_exponentialBoundOn`), so the arrival time of the dem
 (`demo_planarDist_le_at_sample_of_run`). For the demo's tolerance `0.02` and initial state errors
 below `ρ = 8` the certified arrival time lies between `1 807 968` s and `19 887 648` s
 (`demo_le_arrivalTime`, `demo_arrivalTime_le`, `demo_lt_arrivalTime`), so the demo's period
-`0.5` s times its age bound `18`, nine seconds, is far below it: these constants do not certify
+`0.5` s times its age bound `45`, `22.5` s, is far below it: these constants do not certify
 the demo's timeout; an age bound of `39 775 296` ticks at `0.5` s does
 (`demo_planarDist_le_at_bound_of_run`). The constants come from the Lyapunov function of the proof
 of Proposition 4.10 and are conservative; they are not a statement about the arm's actual
@@ -300,10 +300,10 @@ theorem demo_le_arrivalTime : 1807968 ≤ arrivalTime 34 (demoRate 8) 8 (1 / 100
   linarith
 
 /-- **The demo's own timeout is below the certified arrival time (the demo report's parameters;
-MLS Definition 4.3, p. 180).** The demo's period `0.5` s times its age bound `18` is nine seconds,
-and `9 < arrivalTime 34 (demoRate 8) 8 (1/100)` (`demo_le_arrivalTime`): the explicit constants
+MLS Definition 4.3, p. 180).** The demo's period `0.5` s times its age bound `45` is `22.5` s,
+and `22.5 < arrivalTime 34 (demoRate 8) 8 (1/100)` (`demo_le_arrivalTime`): the explicit constants
 do not certify the demo's configuration. -/
-theorem demo_lt_arrivalTime : (18 : ℝ) * (1 / 2) < arrivalTime 34 (demoRate 8) 8 (1 / 100) :=
+theorem demo_lt_arrivalTime : (45 : ℝ) * (1 / 2) < arrivalTime 34 (demoRate 8) 8 (1 / 100) :=
   lt_of_lt_of_le (by norm_num) demo_le_arrivalTime
 
 /-- **Design statement with explicit numbers (MLS eq. (3.16), p. 98, Proposition 4.10, p. 194;

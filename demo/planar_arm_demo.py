@@ -43,9 +43,10 @@ de = Iz2 + m2 * r2 ** 2
 Kp = np.eye(2)
 Kv = np.eye(2)
 
-# supervisor loop settings (the demo's choice, tuned by experiment)
+# supervisor loop settings (the demo's choice): with this bound every admitted command of the
+# scenario finishes before the timeout
 period = 0.5
-bound = 18
+bound = 45
 tol = 0.02
 hold_after = 8
 

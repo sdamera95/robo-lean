@@ -10,7 +10,7 @@
 # file, the sibling of the repository).
 #
 # Traces: random traces drawn with numpy from a fixed seed over the demo's eleven targets
-# (l1 = 1, l2 = 1/2, bound = 18), plus the protocol transcript supervisor-transcript.txt read
+# (l1 = 1, l2 = 1/2, bound = 45), plus the protocol transcript supervisor-transcript.txt read
 # with the executable's grammar.
 #
 # Action file out/veil-trace-actions.jsonl, JSON lines:
@@ -58,7 +58,7 @@ kinds = ["request", "admit", "reject", "finish", "tick", "timeout"]
 # ------------------------------------------------------------------
 # demo instance, exact guard and protocol helpers (as in planar_arm_demo.py)
 
-l1, l2, bound = F(1), F(1, 2), 18
+l1, l2, bound = F(1), F(1, 2), 45
 points = [(F(1), F(1, 2)), (F(3, 2), F(1)), (F(0), F(1)), (F(1, 4), F(1, 8)), (F(-1), F(1, 2)),
           (F(1, 2), F(-1)), (F(-2), F(1)), (F(6, 5), F(-1, 2)), (F(3, 5), F(1, 5)),
           (F(9, 10), F(6, 5)), (F(0), F(-1, 5))]
@@ -96,7 +96,7 @@ def trace(a, b, n, pts, steps):
 # random traces
 
 seed = 20261027
-ntraces, length = 200, 80
+ntraces, length = 200, 200
 probs = [0.12, 0.12, 0.06, 0.02, 0.60, 0.08]
 follow_p = 0.7
 
