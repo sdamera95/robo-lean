@@ -437,3 +437,9 @@ import RoboLean.Cell.Assured
 import RoboLean.Cell.Supervisor
 import RoboLean.Cell.SupervisorRefines
 import RoboLean.Cell.SupervisorInstances
+import RoboLean.Cell.Geometry
+import RoboLean.Cell.GeometryLipschitz
+import RoboLean.Cell.Scene
+import RoboLean.Cell.Cells
+import RoboLean.Cell.CellsLoop
+import RoboLean.Cell.CellsSupervisor
