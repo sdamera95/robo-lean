@@ -19,7 +19,7 @@ exe = repo / ".lake/build/bin/cell-supervisor"
 nominal = dict(
     omega=80.0, delta=0.05, h=0.1, T=2.0, bound=25, dt=0.00025, ctrl=0.001, limit=150.0,
     coulomb=[0.0] * 3, viscous=[0.0] * 3, armature=[0.0] * 3, counts=0, cutoff=0.0, delay=False,
-    payload=0.0, load_radius=0.035, fault=None, tail=1.0,
+    payload=0.0, load_radius=0.035, fault=None, tail=1.0, model=None,
 )
 
 
@@ -63,6 +63,13 @@ def build(scene, cfg):
     m.dof_armature[:] = cfg["armature"]
     m.dof_damping[:] = cfg["viscous"]
     m.dof_frictionloss[:] = cfg["coulomb"]
+    # model error of the plant: factors on each link's mass, mass-centre offset and principal
+    # inertias (the link lengths and joint axes stay exact; the controller keeps the nominal model)
+    if cfg.get("model"):
+        ids = [m.body(b).id for b in ("link1", "link2", "link3")]
+        m.body_mass[ids] *= cfg["model"]["mass"]
+        m.body_ipos[ids] *= np.array(cfg["model"]["offset"])[:, None]
+        m.body_inertia[ids] *= np.array(cfg["model"]["inertia"])[:, None]
     return m
 
 
@@ -179,9 +186,10 @@ def run(scene, cfg, plan, sup):
             if stop_at is not None and k >= stop_at:
                 break
         f = cfg["fault"]
-        if f and len(moves) > f["move"] and t >= moves[f["move"]]["t0"] + f["frac"] * T and m.dof_frictionloss[f["joint"]] < f["torque"]:
-            m.dof_frictionloss[f["joint"]] = f["torque"]
-            events.append(dict(k=k_ctrl / nper, cmd="fault", joint=f["joint"]))
+        if f and len(moves) > f["move"] and t >= moves[f["move"]]["t0"] + f["frac"] * T and m.dof_damping[f["joint"]] < f["damping"]:
+            # the joint seizes: a brake modelled as a very large viscous damping (implicit integration)
+            m.dof_damping[f["joint"]] = f["damping"]
+            events.append(dict(k=k_ctrl / nper, cmd="fault", joint=f["joint"], t=t))
         r, rd, rdd = arm.reference(a, b, t0, T, t)
         tau = arm.computed_torque(w, r, rd, rdd, q_meas, vf)
         ctl_tau.append(tau)
@@ -203,7 +211,13 @@ def run(scene, cfg, plan, sup):
     trace = dict(t=np.array(log_t), q=np.array(log_q), v=np.array(log_v), qacc=np.array(log_a), tau=np.array(log_tau),
                  mv=np.array(log_mv), ctl_tau=np.array(ctl_tau), ctl_mv=np.array(ctl_mv), dist=np.array(dist).reshape(-1, 2, len(oid)))
     trace["bnd"] = np.array(bnd, float)
-    return dict(moves=moves, events=events, trace=trace, obstacles=obs)
+    out = dict(moves=moves, events=events, trace=trace, obstacles=obs)
+    fe = [e for e in events if e["cmd"] == "fault"]
+    if fe:
+        # how far the seized joint moved between the seizure and the end of the run
+        qj = trace["q"][trace["t"] >= fe[0]["t"], fe[0]["joint"]]
+        out["fault_motion_deg"] = float(np.degrees(np.abs(qj - qj[0]).max()))
+    return out
 
 
 def analyse(scene, cfg, out):
@@ -243,6 +257,8 @@ def analyse(scene, cfg, out):
         sel = (i == j + 1) & ((t <= mv["t_end"]) if mv["outcome"] == "timeout" else True)
         cs = ctl_i == j + 1
         # cells containing both ends; the excess of the configuration beyond the best inflated cell
+        # (cell_excess_rad <= 0 means inside the inflated cell) and the excursion beyond the
+        # uninflated cell (excursion_rad = cell_excess_rad + inflation, allowed up to the inflation)
         both = np.all((lo <= mv["a"] + 1e-12) & (mv["a"] <= hi + 1e-12) & (lo <= mv["b"] + 1e-12) & (mv["b"] <= hi + 1e-12), 1)
         q = tr["q"][sel]
         exc = np.maximum(lo[both][:, None] - infl - q, q - hi[both][:, None] - infl).max(2).max(1).min() if both.any() else None
@@ -266,11 +282,14 @@ def analyse(scene, cfg, out):
             minvd_over_w2delta=float(np.abs(minvd[sel]).max() / (w**2 * delta)),
             m0_visited=float(lam[sel].min()),
             cell_excess_rad=None if exc is None else float(exc),
+            excursion_rad=None if exc is None else float(exc + infl),
             dist=dict(zip(out["obstacles"], tr["dist"][cs].min(0).min(0).tolist())),
             dist_ref=dict(zip(out["obstacles"], arm.capsule_distance(qc[cs], scene).min(0).min(0).tolist())),
             dist_link=[dict(zip(out["obstacles"], x)) for x in tr["dist"][cs].min(0).tolist()],
             tau_cmd_peak=np.abs(tr["ctl_tau"][cs]).max(0).tolist(), tau_applied_peak=np.abs(tr["tau"][sel]).max(0).tolist(),
             saturated=int((np.abs(tr["ctl_tau"][cs]) >= (cfg["limit"] or np.inf) - 1e-9).any(1).sum()),
+            tau_step_max=float(np.abs(np.diff(tr["ctl_tau"][cs], axis=0)).max()) if cs.sum() > 1 else 0.0,
+            tau_step_rms=float(np.sqrt((np.diff(tr["ctl_tau"][cs], axis=0)**2).mean())) if cs.sum() > 1 else 0.0,
             finish=fin, tool_bound=L * delta,
             meas_q_max=float(bd[kb, 1].max()), meas_v_max=float(bd[kb, 2].max()),
             due_boundaries=int(dueb.sum()), arrival_disagree=int((dueb & (bd[:, 4] != bd[:, 5])).sum()),

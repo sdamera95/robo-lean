@@ -134,10 +134,28 @@ def frac(x):
     return F(str(x))
 
 
-def waypoints(scene):
-    """Waypoints by name: exact degrees (Fractions) and radians."""
-    return {w["name"]: dict(exact=tuple(frac(x) for x in w["deg"]), role=w["role"],
-                            rad=np.radians([float(frac(x)) for x in w["deg"]])) for w in scene["waypoints"]}
+# waypoints the evaluation adds to the scene file's table, in rational degrees: two more pick slots
+# and two more place slots on the corners of their cells, and a low crossing point in the cross cell
+# only (a crossing through it is two admitted moves, lift_pick -> cross_low -> lift_place)
+extra_waypoints = [
+    {"name": "pick_4", "deg": [45, 0, 30], "role": "pick"},
+    {"name": "pick_5", "deg": [75, 0, 30], "role": "pick"},
+    {"name": "place_4", "deg": [-45, 0, 15], "role": "place"},
+    {"name": "place_5", "deg": [-75, 0, 15], "role": "place"},
+    {"name": "cross_low", "deg": [0, -30, 45], "role": "via"},
+]
+
+
+def waypoints(scene, extra=True):
+    """Waypoints by name (the scene's, and the evaluation's extras): exact degrees (Fractions) and
+    radians. Every extra waypoint is checked to lie in some cell of the scene."""
+    table = scene["waypoints"] + (extra_waypoints if extra else [])
+    W = {w["name"]: dict(exact=tuple(frac(x) for x in w["deg"]), role=w["role"],
+                         rad=np.radians([float(frac(x)) for x in w["deg"]])) for w in table}
+    for w in extra_waypoints if extra else []:
+        x = W[w["name"]]["exact"]
+        assert any(all(lo[k] <= x[k] <= hi[k] for k in range(3)) for lo, hi in cells(scene)), w["name"]
+    return W
 
 
 def cells(scene):

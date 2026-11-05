@@ -1,8 +1,8 @@
 # Differential check of the Python stand-in supervisor (the reference kept only for this check)
-# against the supervisor executable: the 500 campaign runs at omega = 60 are driven by the
+# against the supervisor executable: the campaign runs at omega = 80, delta = 0.05 are driven by the
 # stand-in, and every line sent to it is replayed through a fresh executable, answer by answer.
 # Prints the agreement or the first difference. Usage:
-#   uv run python check_standin.py [runs] [workers] [earlier campaign.jsonl to compare records with]
+#   uv run python check_standin.py [runs] [workers] [earlier campaign jsonl to compare records with]
 import json
 import sys
 from multiprocessing import Pool
@@ -44,7 +44,7 @@ def check(job):
 
 
 with Pool(workers) as pool:
-    res = pool.map(check, jobs.campaign(nruns, 60.0), chunksize=1)
+    res = pool.map(check, jobs.campaign(nruns, 80.0, 0.05), chunksize=1)
 diffs = [r[2] for r in res if r[2]]
 print("runs", len(res), "answer lines compared", sum(r[1] for r in res), "runs with a difference", len(diffs))
 print("first difference", diffs[0] if diffs else None)

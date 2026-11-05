@@ -38,6 +38,11 @@ def save(fig, name):
     plt.close(fig)
 
 
+S = json.load(open(out / "summary.json"))
+dw, dd = S["design_point"]["omega"], S["design_point"]["delta"]
+design = rf"$\omega={dw}$ rad/s, $\delta={dd}$ rad"
+
+
 def load(name):
     return [json.loads(l) for l in open(out / f"{name}.jsonl")]
 
@@ -57,8 +62,10 @@ def box_faces(lo, hi):
 # ------------------------------------------------------------------
 # the scene with the arm and one cycle's swept links
 
-tr, moves, events, cfg = trace("c0000")
-cyc = moves[1:8]
+tr, moves, events, cfg = trace(f"c{dw}-{dd}-0000")
+# the first pick-place cycle: from leaving home up to the return to lift_pick after the place slot
+placed = next(i for i, mv in enumerate(moves) if arm.waypoints(scene)[mv["to"]]["role"] == "place")
+cyc = moves[1:next(i for i in range(placed, len(moves)) if moves[i]["to"] == "lift_pick") + 1]
 t_end = cyc[-1]["t_end"]
 q = tr["q"][(tr["t"] <= t_end)][::400]
 P = arm.points(q)
@@ -86,10 +93,10 @@ ax.set_xlim(-0.9, 0.9), ax.set_ylim(-0.3, 1.0), ax.set_zlim(0, 0.9)
 ax.set_box_aspect((1.8, 1.3, 0.9))
 ax.view_init(elev=24, azim=-62)
 ax.set_xlabel("$x$ (m)", labelpad=-6), ax.set_ylabel("$y$ (m)", labelpad=-6)
-ax.text2D(1.03, 0.55, "$z$ (m)", transform=ax.transAxes, fontsize=7.5)
+ax.text2D(1.09, 0.58, "$z$ (m)", transform=ax.transAxes, fontsize=7.5)
 ax.tick_params(pad=-2, labelsize=6)
 ax.legend(loc="upper left", frameon=False, fontsize=6.5)
-ax.set_title("(a) scene, one cycle's swept links", fontsize=7.5, pad=0)
+ax.set_title("(a) scene, one cycle's swept links (" + design + ")", fontsize=7.5, pad=0)
 ax2 = fig.add_subplot(1, 2, 2)
 for o in scene["obstacles"]:
     if o["kind"] == "box":
@@ -119,7 +126,7 @@ save(fig, "scene")
 # ------------------------------------------------------------------
 # measured against certified over the campaign
 
-R = load("campaign")
+R = load(f"campaign-{dw}-{dd}")
 w, dl = R[0]["cfg"]["omega"], R[0]["cfg"]["delta"]
 e = np.array([r["e_over_delta"] for r in R])
 z = np.array([r["z_over_wdelta"] for r in R])
@@ -138,7 +145,7 @@ ax.axvline(1, color=DARK, linestyle="--", linewidth=0.7)
 ax.text(0.97, ax.get_ylim()[1] * 0.5, "certified", rotation=90, ha="right", va="center", fontsize=6.5, color=DARK)
 ax.set_xlabel("tube use per move"), ax.set_ylabel("moves")
 ax.legend(frameon=False, loc="upper center", fontsize=6.2)
-ax.set_title("(a) tracking tube", fontsize=7.5)
+ax.set_title(rf"(a) tube, $\delta={dd}$ rad", fontsize=7.5)
 ax = axs[1]
 cols = {"table": GREY, "divider": VERM, "shelf": GREEN, "rear_wall": BLUE}
 for o, v in dist_o.items():
@@ -163,14 +170,15 @@ ax.set_xlabel("finish boundary $-\\,k_0$"), ax.set_ylabel("moves")
 ax.set_title("(c) finish time", fontsize=7.5)
 ax = axs[3]
 sharp = np.array([r["minvd_over_w2delta"] for r in R])
-ax.scatter(pay, dn / (m0 * w**2 * dl), s=1.5, color=VERM, alpha=0.4, linewidths=0, label=r"$\|d\|_2/(m_0\omega^2\delta)$")
-ax.scatter(pay, sharp, s=1.5, color=BLUE, alpha=0.4, linewidths=0, zorder=3, label=r"$\max_i|(\hat M^{-1}d)_i|/(\omega^2\delta)$")
+ax.scatter(pay, sharp, s=2.5, color=BLUE, alpha=0.6, linewidths=0, zorder=3, label=r"$\max_i|(\hat M^{-1}d)_i|/(\omega^2\delta)$ (assumed)")
+ax.scatter(pay, dn / (m0 * w**2 * dl), s=1.5, color=VERM, alpha=0.25, linewidths=0, label=r"$\|d\|_2/(m_0\omega^2\delta)$ (secondary)")
 ax.axhline(1, color=DARK, linestyle="--", linewidth=0.7)
 ax.set_ylim(0, max(1.5, (dn / (m0 * w**2 * dl)).max() * 1.45))
 ax.set_xlabel("payload (kg)"), ax.set_ylabel("measured / allowed")
 ax.legend(frameon=False, fontsize=6, loc="upper left", markerscale=4, borderaxespad=0.1)
-ax.set_title("(d) disturbance hypothesis", fontsize=7.5)
-fig.tight_layout(w_pad=0.6)
+ax.set_title(rf"(d) disturbance, $\omega^2\delta={round(w**2 * dl)}$ rad/s$^2$", fontsize=7.5)
+fig.suptitle(f"randomized campaign, {len({r['run'] for r in R})} runs, {len(R)} moves, design point " + design, fontsize=7.5, y=0.985)
+fig.tight_layout(w_pad=0.6, rect=(0, 0, 1, 0.97))
 save(fig, "campaign")
 
 # ------------------------------------------------------------------
@@ -191,9 +199,13 @@ tto = [mv for mv in moves if mv["outcome"] == "timeout"][0]["t_end"]
 keep = t <= tto
 ax.plot(t[keep], np.degrees(r[keep, 0]), color=GREY, linestyle="--", label=r"reference $r_0$")
 ax.plot(t, np.degrees(tr["q"][:, 0]), color=BLUE, label=r"base yaw $\theta_0$")
-tf = [e for e in events if e["cmd"] == "fault"][0]["k"] * cfg["h"]
+fe = [e for e in events if e["cmd"] == "fault"][0]
+tf = fe["t"]
 ax.axvline(tf, color=VERM, linewidth=0.7)
+held = np.degrees(np.abs(tr["q"][t >= tf, 0] - tr["q"][t >= tf, 0][0]).max())
 ax.text(tf + 0.1, 40, "joint seizes", color=VERM, fontsize=6.5)
+ax.text(tf - 0.15, 18, f"held: moves {round(held, 4)} deg\nafter the seizure", color=DARK, fontsize=6.2, ha="right")
+ax.set_title("fault run, " + design, fontsize=7.5)
 ax.axvline(tto, color=DARK, linewidth=0.7, linestyle=":")
 ax.set_ylabel("angle (deg)")
 ax.legend(frameon=False, fontsize=6.2, loc="lower left")
@@ -223,13 +235,13 @@ save(fig, "fault")
 # ------------------------------------------------------------------
 # stress: the bounds against payload and friction
 
-S = json.load(open(out / "summary.json"))
-fig, axs = plt.subplots(1, 2, figsize=(6.9, 1.9), sharey=True)
-for ax, key, lab in ((axs[0], "stress-payload", "payload (kg)"), (axs[1], "stress-friction", "Coulomb friction per joint (N m)")):
+fig, axs = plt.subplots(1, 2, figsize=(6.9, 2.1), sharey=True)
+for ax, key, lab, ttl in ((axs[0], "stress-payload", "payload (kg)", "(a) payload sweep"), (axs[1], "stress-friction", "Coulomb friction per joint (N m)", "(b) friction sweep")):
     L = S[key]["levels"]
+    ax.set_title(ttl + ", " + design, fontsize=7.5)
     v = np.array([x["level"] for x in L])
-    ax.plot(v, [x["hyp"] for x in L], "o-", color=VERM, markersize=2.5, label=r"$\max\|d\|_2/(m_0\omega^2\delta)$")
-    ax.plot(v, [x["hyp_sharp"] for x in L], "v--", color=VERM, markersize=2.5, label=r"$\max|(\hat M^{-1}d)_i|/(\omega^2\delta)$")
+    ax.plot(v, [x["hyp_sharp"] for x in L], "v-", color=VERM, markersize=2.5, label=r"$\max|(\hat M^{-1}d)_i|/(\omega^2\delta)$")
+    ax.plot(v, [x["hyp"] for x in L], "o--", color=VERM, markersize=2.5, alpha=0.6, label=r"$\max\|d\|_2/(m_0\omega^2\delta)$")
     ax.plot(v, [x["tube_e"] for x in L], "s-", color=BLUE, markersize=2.5, label=r"$\max|e_i|/\delta$")
     ax.plot(v, [scene["clearance"] / max(x["dist_min"], 1e-3) for x in L], "^-", color=GREEN, markersize=2.5, label=r"$c\,/\,$min distance")
     ax.plot(v, [x["torque_peak"] / 150 for x in L], "d-", color=ORANGE, markersize=2.5, label="peak commanded torque / 150 N m")
@@ -237,12 +249,12 @@ for ax, key, lab in ((axs[0], "stress-payload", "payload (kg)"), (axs[1], "stres
     late = [x["level"] for x in L if x["timeouts"] or x["late"]]
     if late:
         ax.axvspan(min(late), v.max(), color="0.9", zorder=0)
-        ax.text(min(late), 0.06, " late finishes and timeouts", fontsize=6.5, color=DARK)
+        ax.text(min(late), 0.1, " late finishes\n and timeouts", fontsize=6.5, color=DARK, transform=ax.get_xaxis_transform())
     ax.set_yscale("log")
     ax.set_xlabel(lab)
 axs[0].set_ylabel("measured / certified")
 h, l = axs[0].get_legend_handles_labels()
 fig.legend(h, l, frameon=False, fontsize=6.5, loc="upper center", ncol=5)
-fig.tight_layout(w_pad=0.6, rect=(0, 0, 1, 0.9))
+fig.tight_layout(w_pad=0.6, rect=(0, 0, 1, 0.86))
 save(fig, "stress")
 print("figures in", figdir)
