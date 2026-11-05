@@ -448,3 +448,6 @@ import RoboLean.Cell.Tracking
 import RoboLean.Cell.TrackingMove
 import RoboLean.Cell.ArmInertia
 import RoboLean.Cell.TrackingLoop
+import RoboLean.Cell.LoopSupervisor
+import RoboLean.Cell.AssuredInstance
+import RoboLean.Cell.AssuredInstanceMotion
