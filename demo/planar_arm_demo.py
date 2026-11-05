@@ -43,10 +43,12 @@ de = Iz2 + m2 * r2 ** 2
 Kp = np.eye(2)
 Kv = np.eye(2)
 
-# supervisor loop settings (the demo's choice): with this bound every admitted command of the
-# scenario finishes before the timeout
+# supervisor loop settings: the age bound is the one that
+# RoboLean.Demo.demo_planarDist_le_at_bound_of_run_sharp certifies for this arm, period and
+# tolerance (the ideal arm is within the tolerance at the sample of the timeout when a command
+# starts with a state error below 8); the commands of the scenario finish long before it
 period = 0.5
-bound = 45
+bound = 232
 tol = 0.02
 hold_after = 8
 
@@ -360,9 +362,10 @@ for i, (a, b) in enumerate(zip(np.flatnonzero(d == 1), np.flatnonzero(d == -1)))
     ax.axvspan(st[a], st[b], color=blue, alpha=0.12, lw=0, label="busy" if i == 0 else None)
 ax.step(st, age, where="post", color=blue, lw=1.5, label="age")
 ax.axhline(bound, color=muted, lw=1, ls="--")
-ax.text(st[0], bound + 0.4, "bound = " + str(bound), color=muted, fontsize=8)
+ax.text(st[0], bound * 1.1, "bound = " + str(bound), color=muted, fontsize=8)
 ax.set_ylabel("age (ticks)")
-ax.set_ylim(0, bound + 5)
+ax.set_yscale("symlog", linthresh=2)  # linear up to 2 ticks, logarithmic up to the bound
+ax.set_ylim(0, bound * 2.5)
 ax.legend(frameon=False, fontsize=8, loc="upper right", ncol=2)
 ax.set_title("Supervisor timeline", color=ink)
 ax = axs[1]

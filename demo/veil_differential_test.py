@@ -10,8 +10,9 @@
 # file, the sibling of the repository).
 #
 # Traces: random traces drawn with numpy from a fixed seed over the demo's eleven targets
-# (l1 = 1, l2 = 1/2, bound = 45), plus the protocol transcript supervisor-transcript.txt read
-# with the executable's grammar.
+# (l1 = 1, l2 = 1/2, bound = 45, shorter than the demo loop's 232 so that commands time out within
+# a trace), plus the protocol transcript supervisor-transcript.txt read with the executable's
+# grammar.
 #
 # Action file out/veil-trace-actions.jsonl, JSON lines:
 #   header {"trace": i, "targets": k, "reachable": [bools], "bound": n, "a": "1", "b": "1/2",

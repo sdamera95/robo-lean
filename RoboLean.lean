@@ -247,9 +247,11 @@ import RoboLean.Control.FlowJointC1
 import RoboLean.Control.ConverseLyapunovC1
 import RoboLean.Control.FlowCk
 import RoboLean.Control.FlowSecondDerivative
+import RoboLean.Control.RegulationRate
 import RoboLean.Examples.PlanarTwoLinkRegulation
 import RoboLean.Demo.ArrivalTime
 import RoboLean.Demo.ArrivalConstants
+import RoboLean.Demo.ArrivalRate
 import RoboLean.Kinematics.JacobianDerivative
 import RoboLean.Kinematics.DenavitHartenberg
 import RoboLean.Kinematics.ReferenceConfiguration
@@ -403,6 +405,7 @@ import RoboLean.Examples.IntegralsOfClosure
 import RoboLean.Examples.IntegralsOfClosureHeisenberg
 import RoboLean.Examples.ConfocalCoverage
 import RoboLean.Examples.ConfocalCoverageUmbilics
+import RoboLean.Examples.PlanarTwoLinkRate
 import RoboLean.LieGroups.InvariantMetrics
 import RoboLean.LieGroups.TwistForms
 import RoboLean.LieGroups.LeftInvariantForms
