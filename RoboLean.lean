@@ -464,3 +464,4 @@ import RoboLean.Cell.SupervisorContractHand
 import RoboLean.Cell.AssuredContractInstance
 import RoboLean.Cell.LoopOpenNecessity
 import RoboLean.Cell.Witness
+import RoboLean.Cell.AssuredTorque
