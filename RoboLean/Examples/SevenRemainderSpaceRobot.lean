@@ -102,10 +102,10 @@ theorem spaceG1_contDiff {I m : ℝ} (hI : 0 < I) (hm : 0 ≤ m) (l r : ℝ) :
     simp only [spaceG1, spaceA13, spaceA33]
     simp only [Fin.reduceFinMk, Matrix.cons_val]
     refine ContDiff.neg (ContDiff.div ?_ ?_ fun q => hD q)
-    · exact contDiff_const.add (contDiff_const.mul (contDiff_cos.comp (contDiff_apply ℝ ℝ 0)))
+    · exact contDiff_const.add (contDiff_const.mul (contDiff_cos.comp (contDiff_apply ℝ _ 0)))
     · exact (((contDiff_const.add (contDiff_const.mul (contDiff_cos.comp
-        (contDiff_apply ℝ ℝ 0))))).add (contDiff_const.mul (contDiff_cos.comp
-        (contDiff_apply ℝ ℝ 1))))
+        (contDiff_apply ℝ _ 0))))).add (contDiff_const.mul (contDiff_cos.comp
+        (contDiff_apply ℝ _ 1))))
 
 /-- **MLS Example 7.3, p. 335:** `g₂` is smooth for `I > 0`, `m ≥ 0`. -/
 theorem spaceG2_contDiff {I m : ℝ} (hI : 0 < I) (hm : 0 ≤ m) (l r : ℝ) :
@@ -119,10 +119,10 @@ theorem spaceG2_contDiff {I m : ℝ} (hI : 0 < I) (hm : 0 ≤ m) (l r : ℝ) :
     simp only [spaceG2, spaceA23, spaceA33]
     simp only [Fin.reduceFinMk, Matrix.cons_val]
     refine ContDiff.neg (ContDiff.div ?_ ?_ fun q => hD q)
-    · exact contDiff_const.add (contDiff_const.mul (contDiff_cos.comp (contDiff_apply ℝ ℝ 1)))
+    · exact contDiff_const.add (contDiff_const.mul (contDiff_cos.comp (contDiff_apply ℝ _ 1)))
     · exact (((contDiff_const.add (contDiff_const.mul (contDiff_cos.comp
-        (contDiff_apply ℝ ℝ 0))))).add (contDiff_const.mul (contDiff_cos.comp
-        (contDiff_apply ℝ ℝ 1))))
+        (contDiff_apply ℝ _ 0))))).add (contDiff_const.mul (contDiff_cos.comp
+        (contDiff_apply ℝ _ 1))))
 
 /-- **MLS Example 7.8, p. 342, corrected printing:** `[g₁, g₂] = g₃`, the printed bracket, with the
 corrected `a₁₃ = ml² + mrl cos ψ₁`, `a₂₃ = ml² + mrl cos ψ₂` (for `I > 0`, `m ≥ 0`). -/
@@ -306,13 +306,13 @@ theorem spaceG3_contDiff {I m : ℝ} (hI : 0 < I) (hm : 0 ≤ m) (l r : ℝ) :
     simp only [spaceG3, spaceA33]
     simp only [Fin.reduceFinMk, Matrix.cons_val]
     refine ContDiff.div ?_ ?_ fun q => hD q
-    · refine contDiff_const.mul (((contDiff_const.mul (contDiff_sin.comp (contDiff_apply ℝ ℝ 0))).sub
-        (contDiff_const.mul (contDiff_sin.comp ((contDiff_apply ℝ ℝ 0).sub
-          (contDiff_apply ℝ ℝ 1))))).add (contDiff_const.mul (contDiff_sin.comp
-          (contDiff_apply ℝ ℝ 1))))
+    · refine contDiff_const.mul (((contDiff_const.mul (contDiff_sin.comp (contDiff_apply ℝ _ 0))).sub
+        (contDiff_const.mul (contDiff_sin.comp ((contDiff_apply ℝ _ 0).sub
+          (contDiff_apply ℝ _ 1))))).add (contDiff_const.mul (contDiff_sin.comp
+          (contDiff_apply ℝ _ 1))))
     · exact ((((contDiff_const.add (contDiff_const.mul (contDiff_cos.comp
-        (contDiff_apply ℝ ℝ 0))))).add (contDiff_const.mul (contDiff_cos.comp
-        (contDiff_apply ℝ ℝ 1))))).pow 2
+        (contDiff_apply ℝ _ 0))))).add (contDiff_const.mul (contDiff_cos.comp
+        (contDiff_apply ℝ _ 1))))).pow 2
 
 /-- **MLS Example 7.8, p. 342:** at `q = 0`, `[g₁, g₃](0) = (0, 0, −2m²l²r(l + r)/a₃₃(0)²)`. -/
 theorem spaceRobot_lieBracket_g1_g3_zero {I m : ℝ} (hI : 0 < I) (hm : 0 ≤ m) (l r : ℝ) :

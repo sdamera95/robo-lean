@@ -237,7 +237,7 @@ theorem isSurfaceParametrization_joints (hl₁ : 0 < l₁) (hl : l₁ < l₂) :
       fun_prop
     · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_zero]
       fun_prop
-  · have hp : ContDiff ℝ 2 fun φ : Fin 1 → ℝ => φ 0 := contDiff_apply ℝ ℝ 0
+  · have hp : ContDiff ℝ 2 fun φ : Fin 1 → ℝ => φ 0 := contDiff_apply ℝ _ 0
     have hc : ContDiff ℝ 2 fun φ : Fin 1 → ℝ => couplerAngle l₁ l₂ (φ 0) := hcd.comp hp
     unfold joints
     refine contDiff_pi.2 fun i => ?_

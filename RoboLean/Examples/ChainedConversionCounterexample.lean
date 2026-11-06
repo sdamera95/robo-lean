@@ -175,8 +175,9 @@ theorem not_chainedConversionStatement : ¬ ChainedConversionStatement (Fin 3 �
   intro hS
   have hg1 : ContDiff ℝ ∞ counterG1 := contDiff_const
   have hg2 : ContDiff ℝ ∞ counterG2 :=
-    contDiff_const.add ((contDiff_apply ℝ ℝ (0 : Fin 3)).smul contDiff_const)
-  have hh1 : ContDiff ℝ ∞ counterH1 := contDiff_apply ℝ ℝ (0 : Fin 3)
+    contDiff_const.add ((contDiff_apply ℝ _ (0 : Fin 3) :
+      ContDiff ℝ _ fun x : Fin 3 → ℝ => x 0).smul contDiff_const)
+  have hh1 : ContDiff ℝ ∞ counterH1 := contDiff_apply ℝ _ (0 : Fin 3)
   obtain ⟨V, -, hq₀V, -, h₂, -, hΔ, hli⟩ :=
     hS counterG1 counterG2 4 counterH1 univ hg1 hg2 hh1 isOpen_univ counter_conditions 0 (mem_univ 0)
   have h0 := hli 0 hq₀V

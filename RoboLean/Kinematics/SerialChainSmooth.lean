@@ -44,7 +44,7 @@ theorem contDiff_poe_toHomogeneous (c : SerialChain n) (i j : HomogeneousIndex) 
     ContDiff ℝ k fun θ : Fin n → ℝ => (c.poe θ).toHomogeneous i j :=
   RigidTransform.contDiff_toHomogeneous_list_prod
     (fun l a b => (Twist.contDiff_exp_toHomogeneous_apply (c.twist l) a b).comp
-      (contDiff_apply ℝ ℝ l)) i j
+      (contDiff_apply ℝ _ l)) i j
 
 /-- **The forward kinematics map is smooth (MLS eq. (3.3), p. 87, differentiated in eqs.
 (3.51)–(3.52), p. 115; p. 255, "`g_{pfᵢ}` is a smooth function of `θ`").** For every chain, every

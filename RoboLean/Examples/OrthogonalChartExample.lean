@@ -44,10 +44,11 @@ p. 244).** -/
 theorem contDiff_saddleChart : ContDiff ℝ ∞ saddleChart := by
   refine (PiLp.continuousLinearEquiv 2 ℝ (fun _ : Fin 3 => ℝ)).symm.contDiff.comp ?_
   refine contDiff_pi.2 fun i => ?_
+  have hx : ∀ i : Fin 2, ContDiff ℝ ∞ fun x : Fin 2 → ℝ => x i := fun i => contDiff_apply ℝ _ i
   fin_cases i
-  · simpa using contDiff_apply ℝ ℝ (0 : Fin 2)
-  · simpa using contDiff_apply ℝ ℝ (1 : Fin 2)
-  · simpa using (contDiff_apply ℝ ℝ (0 : Fin 2)).mul (contDiff_apply ℝ ℝ (1 : Fin 2))
+  · simpa using hx 0
+  · simpa using hx 1
+  · simpa using (hx 0).mul (hx 1)
 
 /-- **The projection to the first two coordinates inverts the saddle chart (for MLS Theorem 5.9,
 p. 244).** -/

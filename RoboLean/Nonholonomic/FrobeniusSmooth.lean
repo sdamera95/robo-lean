@@ -155,7 +155,7 @@ private theorem contDiff_foldr_of_contDiff {n : WithTop ℕ∞} {Φ : Fin k → 
   | nil => simpa using contDiff_snd
   | cons i l ih =>
     simp only [List.foldr_cons]
-    exact (hΦ i).comp (((contDiff_apply ℝ ℝ i).comp contDiff_fst).prodMk ih)
+    exact (hΦ i).comp (((contDiff_apply ℝ _ i).comp contDiff_fst).prodMk ih)
 
 /-- **The composed flow is `C^n` in the times and the initial point (MLS pp. 330–331, for
 Propositions 7.6–7.7 and Theorem 7.2, p. 326):** if every `(t, x) ↦ Φᵢ(t, x)` is of class `C^n`

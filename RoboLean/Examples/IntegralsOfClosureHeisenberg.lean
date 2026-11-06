@@ -163,7 +163,9 @@ theorem heisField_integrals (q : Fin 4 → ℝ) :
     intro j
     fin_cases j
     · exact contDiff_const
-    · exact contDiff_const.add (contDiff_apply ℝ ℝ (0 : Fin 4) |>.smul contDiff_const)
+    · exact contDiff_const.add
+        ((contDiff_apply ℝ _ (0 : Fin 4) : ContDiff ℝ _ fun x : Fin 4 → ℝ => x 0).smul
+          contDiff_const)
   obtain ⟨V, hV, hqV, -, h, hC, hli, hspan⟩ := exists_integrals_of_involutiveClosure hg
     isOpen_univ (fun y _ => finrank_lieAlgebraAt_heisField y) (mem_univ q)
   exact ⟨V, hV, hqV, h, hC, hli, hspan⟩

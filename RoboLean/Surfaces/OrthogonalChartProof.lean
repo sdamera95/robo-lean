@@ -116,9 +116,10 @@ theorem exists_orthogonal_reparametrization {c : (Fin 2 → ℝ) → Vec3} {U : 
     fun p t => isIntegralCurve_twoSidedFlow hφ hφ' p t
   set θ : (Fin 2 → ℝ) → (Fin 2 → ℝ) :=
     fun β => twoSidedFlow φ φ' (β 1 - α₀ 1) (α₀ + (β 0 - α₀ 0) • e₀) with hθ_def
+  have hβ : ∀ i : Fin 2, ContDiff ℝ ∞ fun β : Fin 2 → ℝ => β i := fun i => contDiff_apply ℝ _ i
   have hθc : ContDiff ℝ ∞ θ := hΦ.comp
-    (((contDiff_apply ℝ ℝ 1).sub contDiff_const).prodMk
-      (contDiff_const.add (((contDiff_apply ℝ ℝ 0).sub contDiff_const).smul contDiff_const)))
+    (((hβ 1).sub contDiff_const).prodMk
+      (contDiff_const.add (((hβ 0).sub contDiff_const).smul contDiff_const)))
   have hθd : ∀ β, DifferentiableAt ℝ θ β := fun β => (hθc.differentiable (by simp)) β
   have hθα₀ : θ α₀ = α₀ := by simp [hθ_def, hΦ0]
   -- near `α₀` the flow stays in the ball where `X = Y`

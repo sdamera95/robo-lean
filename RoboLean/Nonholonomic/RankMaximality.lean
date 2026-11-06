@@ -107,8 +107,8 @@ theorem contDiff_flowSeq {Φ : Fin m → ℝ → E → E}
   | zero => exact contDiff_snd
   | succ r ih =>
     have hinit : ContDiff ℝ 1 fun p : (Fin (r + 1) → ℝ) × E => Fin.init p.1 :=
-      contDiff_pi.2 fun i => (contDiff_apply ℝ ℝ _).comp contDiff_fst
-    exact (hΦ (w (Fin.last r))).comp (((contDiff_apply ℝ ℝ (Fin.last r)).comp contDiff_fst).prodMk
+      contDiff_pi.2 fun i => (contDiff_apply ℝ _ _).comp contDiff_fst
+    exact (hΦ (w (Fin.last r))).comp (((contDiff_apply ℝ _ (Fin.last r)).comp contDiff_fst).prodMk
       ((ih (Fin.init w)).comp (hinit.prodMk contDiff_snd)))
 
 omit [NormedAddCommGroup E] [NormedSpace ℝ E] in

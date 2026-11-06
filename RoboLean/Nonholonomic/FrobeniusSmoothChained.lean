@@ -101,7 +101,7 @@ private theorem exists_chainedConversion_contDiffAt [FiniteDimensional ℝ E] {g
   obtain ⟨i, hli⟩ := hex
   set h₂ : E → ℝ := fun q => H q i with hh₂
   have hh₂c : ∀ q ∈ V₀, ContDiffAt ℝ ∞ h₂ q := fun q hq =>
-    (contDiff_apply ℝ ℝ i).contDiffAt.comp q (hHc q hq)
+    (contDiff_apply ℝ _ i).contDiffAt.comp q (hHc q hq)
   have hfd : ∀ q ∈ V₀, fderiv ℝ h₂ q = (ContinuousLinearMap.proj i).comp (fderiv ℝ H q) := by
     intro q hq
     have hd := ((hHc q hq).differentiableAt (by simp)).hasFDerivAt
