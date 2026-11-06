@@ -457,3 +457,9 @@ import RoboLean.Cell.TrackingMoveRight
 import RoboLean.Cell.TrackingLoopRight
 import RoboLean.Cell.AssuredInstanceRight
 import RoboLean.Cell.AssuredInstanceRightStep
+import RoboLean.Cell.SupervisorContract
+import RoboLean.Cell.LoopOpen
+import RoboLean.Cell.AssuredContract
+import RoboLean.Cell.SupervisorContractHand
+import RoboLean.Cell.AssuredContractInstance
+import RoboLean.Cell.LoopOpenNecessity
