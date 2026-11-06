@@ -53,7 +53,7 @@ variants = {
 }
 for w in sorted({float(c[0]) for c in candidates}):
     for name, v in variants.items():
-        cfg = dict(base, omega=w, delta=0.03, **v)
+        cfg = dict(base, omega=w, delta=0.03, **sim.tolerances(w, 0.03), **v)
         sup = sim.supervisor()
         o = sim.run(jobs.scene, cfg, [], sup)
         sup.close()

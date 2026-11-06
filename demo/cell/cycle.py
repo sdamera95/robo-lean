@@ -1,4 +1,5 @@
-# One pick-place cycle, on the ideal plant and on the realistic plant, with the per-move numbers.
+# One pick-place cycle, on the ideal plant and on the realistic plant, with the per-move numbers;
+# both at the nominal gain and tube radius, with the program's tolerances for them.
 # Usage: uv run python cycle.py [outdir]
 import json
 import sys
@@ -14,9 +15,6 @@ out = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("out")
 out.mkdir(parents=True, exist_ok=True)
 scene = arm.load_scene()
 plan = ["lift_pick", "pick_2", "lift_pick", "place_2", "lift_place", "place_2", "lift_place", "lift_pick"]
-
-realistic = dict(sim.nominal, limit=150.0, coulomb=[2.0, 2.0, 1.0], viscous=[1.0, 1.0, 0.5], armature=[0.05] * 3,
-                 counts=2**18, cutoff=100.0, delay=True, payload=1.0)
 
 
 def go(name, cfg):
@@ -36,9 +34,9 @@ def go(name, cfg):
     print("  rejected", [e["target"] for e in rej])
     with open(out / f"cycle-{name}.jsonl", "w") as f:
         for r in recs:
-            f.write(json.dumps(dict(r, run=name, cfg={k: v for k, v in cfg.items()})) + "\n")
+            f.write(json.dumps(dict(r, run=name, cfg=cfg), default=str) + "\n")
     return o, recs
 
 
 go("ideal", sim.nominal)
-go("realistic", realistic)
+go("realistic", sim.realistic)

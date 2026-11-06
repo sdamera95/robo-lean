@@ -1,4 +1,4 @@
-# Run one mode of the evaluation with the supervisor executable driving every decision. One JSON
+# Run one mode of the evaluation with the cell program taking every decision. One JSON
 # line per move goes to <outdir>/<mode>.jsonl, the event logs to <outdir>/<mode>-events.jsonl and
 # the traces of selected runs to <outdir>/traces/. Usage:
 #   uv run python campaign.py <mode> <outdir> <runs> <workers> <omega> <delta>

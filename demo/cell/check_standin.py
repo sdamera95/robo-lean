@@ -1,7 +1,9 @@
-# Differential check of the Python stand-in supervisor (the reference kept only for this check)
-# against the supervisor executable: the campaign runs at omega = 80, delta = 0.05 are driven by the
-# stand-in, and every line sent to it is replayed through a fresh executable, answer by answer.
-# Prints the agreement or the first difference. Usage:
+# Differential check of the Python stand-in (the reference kept only for this check) against the
+# cell program on the boundary protocol: the campaign runs at omega = 80, delta = 0.05 are driven by
+# the stand-in, and every line sent to it is replayed through a fresh instance of the program, answer
+# by answer. The program is started by the command in CELL_SUPERVISOR_CMD (default
+# .lake/build/bin/cell-supervisor, run from the repository root). Prints the agreement or the first
+# difference. Usage:
 #   uv run python check_standin.py [runs] [workers] [earlier campaign jsonl to compare records with]
 import json
 import sys

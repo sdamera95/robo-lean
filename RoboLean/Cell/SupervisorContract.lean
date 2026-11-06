@@ -7,7 +7,7 @@ This file states, as one proposition `RoboLean.Cell.Supervisor.Contract p`, what
 executable cell supervisor `RoboLean.Cell.Supervisor` guarantees about the state it reaches: six
 clauses on the commanded waypoint, the age and the fault flag. It proves nothing. The statement is
 written with fully qualified names and imports only `RoboLean.Cell.Supervisor`, which needs no
-Mathlib, so that the same text elaborates in the Veil project under its own Lean release. There,
+Mathlib, so that the same text elaborates in the Veil project, which shares this library's Lean release. There,
 the proposition is proved for every parameter value from the verification conditions of the Veil
 model of the supervisor, which Veil's SMT solver discharges with proof reconstruction, through a
 refinement from this program to that model.

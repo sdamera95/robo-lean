@@ -56,7 +56,7 @@ def campaign(nruns, w, delta, keep=3):
     out, tag = [], f"c{w:g}-{delta:g}-"
     for s in range(nruns):
         rng = np.random.default_rng([20261105, s])
-        cfg = dict(sim.nominal, **fixed, **draw(rng), omega=w, delta=delta)
+        cfg = dict(sim.nominal, **fixed, **draw(rng), omega=w, delta=delta, **sim.tolerances(w, delta))
         out.append((f"{tag}{s:04d}", s, cfg, plan(rng, 4), s < keep))
     return out
 
@@ -65,7 +65,7 @@ def make(mode, nruns, w, delta):
     """The runs of one mode at gain w and tube radius delta."""
     if mode == "campaign":
         return campaign(nruns, w, delta)
-    nominal = dict(sim.nominal, omega=w, delta=delta)
+    nominal = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta))
     jobs = []
     if mode == "stress-payload":
         for mp in (0, 2, 4, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60):
@@ -112,7 +112,7 @@ def one(job, outdir=None, sup=None):
         tr = o["trace"]
         np.savez_compressed(outdir / "traces" / f"{tag}.npz", **{k: v for k, v in tr.items()},
                             moves=json.dumps([{k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in mv.items()} for mv in o["moves"]]),
-                            events=json.dumps(o["events"]), cfg=json.dumps(cfg))
+                            events=json.dumps(o["events"]), cfg=json.dumps(cfg, default=str))
     c = {k: cfg[k] for k in ("omega", "delta", "payload", "coulomb", "viscous", "armature", "model", "counts", "cutoff", "delay", "limit", "fault")}
     lines = [dict(r, run=tag, seed=seed, supervisor=sup.kind, cfg=c) for r in recs]
     ev = dict(run=tag, seed=seed, supervisor=sup.kind, events=o["events"], fault_motion_deg=o.get("fault_motion_deg"))

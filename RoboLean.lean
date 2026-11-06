@@ -465,3 +465,9 @@ import RoboLean.Cell.AssuredContractInstance
 import RoboLean.Cell.LoopOpenNecessity
 import RoboLean.Cell.Witness
 import RoboLean.Cell.AssuredTorque
+import RoboLean.Cell.Policy
+import RoboLean.Cell.PolicyRun
+import RoboLean.Cell.LoopMeasured
+import RoboLean.Cell.AssuredMeasured
+import RoboLean.Cell.AssuredProgram
+import RoboLean.Cell.AssuredProgramInstance

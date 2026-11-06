@@ -1,11 +1,15 @@
 # One supervised run of the pick-and-place cell in MuJoCo: the plant with its non-idealities, the
 # 1 kHz computed-torque controller on the nominal model, and the loop at period h whose every
-# decision is the supervisor's answer on its line protocol. The run returns its event log, its
-# traces and one record per move with every measured quantity next to the bound it is checked
-# against. The time loop is sequential by causality (closed loop with an external supervisor);
-# every per-sample quantity is computed afterwards on the whole trace at once.
+# decision is the cell program's: at each period boundary the harness sends the boundary index, the
+# sample and the planner's new requests, and acts on the actions the program answers. The run
+# returns its event log, its traces and one record per move with every measured quantity next to
+# the bound it is checked against. The time loop is sequential by causality (closed loop with an
+# external program); every per-sample quantity is computed afterwards on the whole trace at once.
+import math
+import os
 import shlex
 import subprocess
+from fractions import Fraction
 from pathlib import Path
 
 import mujoco
@@ -14,21 +18,36 @@ import numpy as np
 import arm
 
 repo = Path(__file__).resolve().parents[2]
-exe = repo / ".lake/build/bin/cell-supervisor"
+# the command that starts the program, run from the repository root
+exe = os.environ.get("CELL_SUPERVISOR_CMD", ".lake/build/bin/cell-supervisor")
+
+
+def tolerances(w, delta):
+    """The arrival tolerances the program decides with at gain w and tube radius delta, as exact
+    rationals: the position tolerance in degrees, delta plus 1/2000 rad rounded up to a quarter
+    degree, and the speed tolerance 2 w delta + 1/5 in rad/s (at (80, 0.03): 7/4 and 5)."""
+    w, delta = Fraction(str(w)), Fraction(str(delta))
+    return dict(pos_tol_deg=Fraction(math.ceil(4 * math.degrees(float(delta) + 1 / 2000)), 4),
+                vel_tol=2 * w * delta + Fraction(1, 5))
+
 
 nominal = dict(
     omega=80.0, delta=0.05, h=0.1, T=2.0, bound=25, dt=0.00025, ctrl=0.001, limit=150.0,
     coulomb=[0.0] * 3, viscous=[0.0] * 3, armature=[0.0] * 3, counts=0, cutoff=0.0, delay=False,
-    payload=0.0, load_radius=0.035, fault=None, tail=1.0, model=None,
+    payload=0.0, load_radius=0.035, fault=None, tail=1.0, model=None, **tolerances(80.0, 0.05),
 )
+
+# the realistic plant of one cycle: friction, rotor inertia, encoders, filter, delay and a payload
+realistic = dict(nominal, limit=150.0, coulomb=[2.0, 2.0, 1.0], viscous=[1.0, 1.0, 0.5], armature=[0.05] * 3,
+                 counts=2**18, cutoff=100.0, delay=True, payload=1.0)
 
 
 class Exe:
-    """The supervisor executable on its line protocol; every line sent and every answer is kept."""
+    """The cell program on its line protocol; every line sent and every answer is kept."""
 
     kind = "exe"
 
-    def __init__(self, cmd=str(exe)):
+    def __init__(self, cmd=exe):
         self.p = subprocess.Popen(shlex.split(cmd), cwd=repo, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
         self.transcript = []
 
@@ -83,31 +102,47 @@ def run(scene, cfg, plan, sup):
     obs = [o["name"] for o in scene["obstacles"]]
     oid = [m.geom(o).id for o in obs]
     pay = m.body("payload").id
-    w, delta, T, h, ctrl = cfg["omega"], cfg["delta"], cfg["T"], cfg["h"], cfg["ctrl"]
+    w, T, h, ctrl = cfg["omega"], cfg["T"], cfg["h"], cfg["ctrl"]
     nsub, nper, nT = round(ctrl / cfg["dt"]), round(h / ctrl), round(T / h)
-    da, va = delta, 2 * w * delta
     res = 2 * np.pi / cfg["counts"] if cfg["counts"] else 0.0
     alpha = 1 - np.exp(-2 * np.pi * cfg["cutoff"] * ctrl) if cfg["cutoff"] else 1.0
+    # the sample sent to the program is in encoder counts; on the plant without quantization
+    # (counts 0) the controller reads the exact position and only the sample sent to the program is
+    # quantized, at 2^40 counts per revolution
+    cpr = cfg["counts"] or 2**40
+    step = 2 * np.pi / cpr
+    # the program's tolerances in radians, for the record of the arrival test only
+    pt, vt = np.radians(float(cfg["pos_tol_deg"])), float(cfg["vel_tol"])
 
     home = scene["waypoints"][[x["role"] for x in scene["waypoints"]].index("home")]["name"]
+    name = {W[n]["exact"]: n for n in W}
+    words = lambda n: " ".join(fmt(x) for x in W[n]["exact"])
+    at = lambda wd: name[tuple(Fraction(x) for x in wd.split(","))]
     cells_words = " ".join(" ".join(fmt(x) for x in lo + hi) for lo, hi in cl)
-    ans = sup.send(f"params {cfg['bound']} {' '.join(fmt(x) for x in W[home]['exact'])} {cells_words}")
-    events = [dict(k=0, cmd="params", ans=ans.split()[0])]
+    events = []
+    for line in (f"params {cfg['bound']} {words(home)} {cells_words}",
+                 f"policy {fmt(Fraction(str(h)))} {fmt(Fraction(str(T)))} {fmt(cfg['pos_tol_deg'])} {fmt(cfg['vel_tol'])} {cpr}"):
+        ans = sup.send(line)
+        if not ans.startswith("ok "):
+            raise RuntimeError(line + " -> " + ans)
+        events.append(dict(k=0, cmd=line.split()[0], ans="ok"))
     d.qpos[:] = W[home]["rad"]
     mujoco.mj_forward(m, d)
 
     # moves: (name_from, name_to, a, b, t0, k0); index -1 is the hold at home before the first move
     moves = []
     a = b = W[home]["rad"].copy()
-    # the run starts with the rest move home -> home admitted at boundary 0, as in the loop model
-    t0, cur, queue, busy, faulted, age = 0.0, home, [home] + list(plan), False, False, 0
+    # the planner's requests reach the program at boundary 0: home first, so that the program's first
+    # decision is the rest move home -> home admitted at boundary 0, as in the loop model
+    t0, reqs, busy = 0.0, [home] + list(plan), False
     qprev = np.round(d.qpos / res) * res if res else d.qpos.copy()
     vf = np.zeros(3)
     tau_prev = None
     log_t, log_q, log_v, log_a, log_tau, log_mv = [], [], [], [], [], []
     ctl_tau, ctl_mv, dist, end_k, stop_at = [], [], [], None, None
-    # at every boundary: k, max |measured - true| of position and velocity, and, while a busy move
-    # is due, the arrival test on the measured and on the true sample
+    # a record that decides nothing: at every boundary, k, max |sample - true| of position and
+    # velocity, and, while a busy move is due, the arrival test with the program's tolerances (in
+    # radians) on the sample and on the true state
     bnd = []
     k_ctrl = 0
     while True:
@@ -120,68 +155,50 @@ def run(scene, cfg, plan, sup):
         qprev = q_meas
         if k_ctrl % nper == 0:
             k = k_ctrl // nper
-            if busy:
-                mv = moves[-1]
-                arrived = np.all(np.abs(q_meas - mv["b"]) <= da) and np.all(np.abs(vf) <= va)
-                arrived_true = np.all(np.abs(d.qpos - mv["b"]) <= da) and np.all(np.abs(d.qvel) <= va)
-                due = k - mv["k0"] >= nT
-                bnd.append([k, np.abs(q_meas - d.qpos).max(), np.abs(vf - d.qvel).max(), due, arrived, arrived_true])
-            else:
-                bnd.append([k, np.abs(q_meas - d.qpos).max(), np.abs(vf - d.qvel).max(), False, False, False])
-            if busy:
-                if k - mv["k0"] >= nT and arrived:
-                    word, st = parse(sup.send("finish"))
-                    events.append(dict(k=k, cmd="finish", ans=word))
-                    mv.update(k_end=k, outcome="finish", t_end=t)
-                    cur = mv["to"]
-                    if W[cur]["role"] == "pick":
+            counts = np.round(d.qpos / step).astype(np.int64)
+            qs = counts * step
+            due = busy and k - moves[-1]["k0"] >= nT
+            arr = busy and bool(np.all(np.abs(qs - moves[-1]["b"]) <= pt) and np.all(np.abs(vf) <= vt))
+            arr_true = busy and bool(np.all(np.abs(d.qpos - moves[-1]["b"]) <= pt) and np.all(np.abs(d.qvel) <= vt))
+            bnd.append([k, np.abs(qs - d.qpos).max(), np.abs(vf - d.qvel).max(), due, arr, arr_true])
+
+            # the sample: the encoder counts and the exact rational value of each velocity estimate
+            sample = [str(c) for c in counts] + [fmt(Fraction(float(x))) for x in vf]
+            line = " ".join(["boundary", str(k)] + sample + [words(n) for n in reqs])
+            reqs = []
+            ans = sup.send(line)
+            word, st = parse(ans)
+            if word != "ok" or "acts" not in st:
+                raise RuntimeError(line + " -> " + ans)
+            for act in st["acts"].split(";") if st["acts"] != "-" else []:
+                kind, _, wd = act.partition(":")
+                if kind == "admit":
+                    frm, to, k0 = at(st["src"]), at(st["goal"]), int(st["start"])
+                    # the reference starts at the control clock's time of boundary k0
+                    a, b, t0 = W[frm]["rad"].copy(), W[to]["rad"].copy(), k0 * nper * ctrl
+                    moves.append(dict(frm=frm, to=to, a=a, b=b, t0=t0, k0=k0, k_end=None, outcome=None))
+                    events.append(dict(k=k, cmd="admit", target=to, ans="ok"))
+                if kind == "reject":
+                    events.append(dict(k=k, cmd="reject", target=at(wd), ans="ok"))
+                if kind == "tick":
+                    events.append(dict(k=k, cmd="tick", ans="ok"))
+                if kind == "finish":
+                    events.append(dict(k=k, cmd="finish", ans="ok"))
+                    moves[-1].update(k_end=k, outcome="finish", t_end=t)
+                    role = W[at(st["at"])]["role"]
+                    if role == "pick":
                         m.body_mass[pay] = cfg["payload"]
                         m.body_inertia[pay] = 0.4 * cfg["payload"] * cfg["load_radius"]**2 + 1e-12
-                    if W[cur]["role"] == "place":
+                    if role == "place":
                         m.body_mass[pay], m.body_inertia[pay] = 1e-9, 1e-12
-                elif age == cfg["bound"]:
-                    word, st = parse(sup.send("timeout"))
-                    events.append(dict(k=k, cmd="timeout", ans=word))
-                    mv.update(k_end=k, outcome="timeout", t_end=t)
+                if kind == "timeout":
+                    events.append(dict(k=k, cmd="timeout", ans="ok"))
+                    moves[-1].update(k_end=k, outcome="timeout", t_end=t)
                     # protective stop: hold the measured configuration
                     a = b = q_meas.copy()
                     t0 = t
-                else:
-                    word, st = parse(sup.send("tick"))
-                    events.append(dict(k=k, cmd="tick", ans=word))
-                busy, faulted, age = st["busy"] == "true", st["faulted"] == "true", int(st["age"])
-            elif not faulted:
-                # idle: forward requests, reject the unlinked ones (a blocked admit leaves the state
-                # unchanged), and admit the first linked one; no admission at a boundary that
-                # already had its policy action (finish or timeout above)
-                while queue:
-                    name = queue[0]
-                    wd = " ".join(fmt(x) for x in W[name]["exact"])
-                    sup.send(f"request {wd}")
-                    ans = sup.send(f"admit {wd}")
-                    word, st2 = parse(ans)
-                    if ans == "blocked not-linked":
-                        word, st2 = parse(sup.send(f"reject {wd}"))
-                        events.append(dict(k=k, cmd="reject", target=name, ans=word))
-                        queue.pop(0)
-                        continue
-                    events.append(dict(k=k, cmd="admit", target=name, ans=ans if word != "ok" else "ok"))
-                    if word == "ok":
-                        queue.pop(0)
-                        a, b, t0 = W[cur]["rad"].copy(), W[name]["rad"].copy(), t
-                        moves.append(dict(frm=cur, to=name, a=a, b=b, t0=t, k0=k, k_end=None, outcome=None))
-                        busy, faulted, age = st2["busy"] == "true", st2["faulted"] == "true", int(st2["age"])
-                    break
-            else:
-                # faulted: the protective stop admits nothing; the harness tries once and records the answer
-                if queue:
-                    name = queue.pop(0)
-                    wd = " ".join(fmt(x) for x in W[name]["exact"])
-                    sup.send(f"request {wd}")
-                    ans = sup.send(f"admit {wd}")
-                    events.append(dict(k=k, cmd="admit", target=name, ans=ans))
-                    queue = []
-            if stop_at is None and not busy and (not queue or faulted):
+            busy, faulted, pending = st["busy"] == "true", st["faulted"] == "true", st["pending"] != "-"
+            if stop_at is None and not busy and (not pending or faulted):
                 stop_at = k + round(cfg["tail"] / h)
             if stop_at is not None and k >= stop_at:
                 break

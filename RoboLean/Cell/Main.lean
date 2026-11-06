@@ -1,7 +1,7 @@
-import RoboLean.Cell.Supervisor
+import RoboLean.Cell.Policy
 
 /-!
-# Line protocol of the executable cell supervisor
+# Line protocol of the executable cell supervisor and its policy
 
 `main` reads one command per line on standard input and answers one line per command on standard
 output, flushing after every answer. All angles are in degrees, each a rational written `n`,
@@ -9,25 +9,42 @@ output, flushing after every answer. All angles are in degrees, each a rational 
 
 * `params bound h0 h1 h2 [lo0 lo1 lo2 hi0 hi1 hi2]...`: set the age bound (a natural number), the
   home waypoint `(h0, h1, h2)` and the cells, six numbers each (lower corner, upper corner), and
-  reset the state to `State.init` at the home waypoint;
+  reset the state to `State.init` at the home waypoint; the per-action commands are enabled;
 * `request a b c`, `admit a b c`, `reject a b c`, `finish`, `tick`, `timeout`: apply the action
-  with `step`;
-* `state`: report the state; `quit`: report the state and stop.
+  with `step` (per-action commands, available between `params` and `policy`);
+* `policy h T posTol velTol cpr`: after `params`, set the policy's period `h` and move duration
+  `T` (seconds), its arrival tolerances (degrees, radians per second) and the encoder resolution
+  (counts per revolution), reset the state to `Policy.State.init`, and switch to the boundary
+  protocol: from then until the next `params` only `boundary`, `state` and `quit` are accepted;
+* `boundary k c0 c1 c2 v0 v1 v2 [a b c]...`: the period boundary `k` (it must be the number of
+  boundaries answered since `policy`), the sample (three encoder counts, three joint speeds in
+  radians per second, each a rational) and the requests that arrived since the last boundary
+  (three angles each); the program decides with `Policy.boundary` and applies every action with
+  `step`;
+* `state`: report the supervisor's state; `quit`: report it and stop.
 
-Answers are `ok <state>` (the state as `State.render` writes it), `blocked <guard>` (the first
-failing guard, as `Action.blocker` names it; the state is unchanged) or `error <reason>`. Blank
-lines are ignored and the program stops at the end of its input. Because `params` resets the
-state, every state reported after `params` is `run p (State.init p.home) acts` for the parameters
-`p` and the accepted actions `acts` since then, the case covered by
-`RoboLean.Cell.Supervisor.reachableState_of_run`. That theorem concerns the Lean definitions; the
-compiler, the interpreter and the operating system that execute them are trusted, not verified.
-A design model, not from MLS.
+Answers are `ok <state>` (the supervisor's state as `State.render` writes it) for the per-action
+commands, `params`, `state` and `quit`; `ok <policy state>` for `policy`; `ok acts=<actions>
+<policy state>` for `boundary`, the actions as `Policy.renderActions` and the state as
+`Policy.State.render` write them; `blocked <guard>` (the first failing guard, as `Action.blocker`
+names it; the state is unchanged) for a per-action command; `error <reason>` otherwise, with the
+state unchanged. Blank lines are ignored and the program stops at the end of its input.
+
+Because `params` resets the state, every state reported after `params` and before `policy` is
+`run p (State.init p.home) acts` for the parameters `p` and the accepted actions `acts` since
+then. Because `policy` resets the state and only `boundary` changes it afterwards, the states
+reported by the answers to `boundary 0`, `boundary 1`, … are `st 1`, `st 2`, … and the actions
+reported are `acts 0`, `acts 1`, … of `Policy.IsProgramRun cfg reqs smp st acts` for the
+configuration `cfg` and the requests and samples sent. Those statements concern the Lean
+definitions; the compiler, the interpreter and the operating system that execute them are
+trusted, not verified. A design model, not from MLS.
 -/
 
 namespace RoboLean.Cell.Supervisor
 
 /-- Parse the cells of a `params` line: groups of six rationals, the lower and the upper corner
-of a box in degrees, each corner at most the other coordinate by coordinate. Not from MLS. -/
+of a box in degrees, each corner at most the other coordinate by coordinate. A design
+convention, not from MLS. -/
 def parseCells : List String → Except String (List Box)
   | [] => .ok []
   | a₀ :: a₁ :: a₂ :: b₀ :: b₁ :: b₂ :: rest =>
@@ -40,7 +57,7 @@ def parseCells : List String → Except String (List Box)
   | _ => .error "bad params"
 
 /-- Parse the arguments of `params bound h0 h1 h2 [lo0 lo1 lo2 hi0 hi1 hi2]...`: a natural age
-bound, the home waypoint and the cells. Not from MLS. -/
+bound, the home waypoint and the cells. A design convention, not from MLS. -/
 def parseParams : List String → Except String Params
   | bound :: h₀ :: h₁ :: h₂ :: cells =>
     match RoboLean.Demo.parseNat? bound, parseWaypoint? h₀ h₁ h₂ with
@@ -52,7 +69,8 @@ def parseParams : List String → Except String Params
 end RoboLean.Cell.Supervisor
 
 open RoboLean.Cell.Supervisor in
-/-- Run the line protocol of the cell supervisor on standard input and output. Not from MLS. -/
+/-- Run the line protocol of the cell supervisor and its policy on standard input and output.
+A design convention, not from MLS. -/
 def main : IO Unit := do
   let stdin ← IO.getStdin
   let stdout ← IO.getStdout
@@ -60,7 +78,10 @@ def main : IO Unit := do
     stdout.putStrLn msg
     stdout.flush
   let mut params : Option Params := none
-  let mut s := State.init (0, 0, 0)
+  let mut cfg : Option RoboLean.Cell.Policy.Config := none
+  let mut st : RoboLean.Cell.Policy.State :=
+    { sup := State.init (0, 0, 0), src := (0, 0, 0), goal := (0, 0, 0), start := 0, pending := [] }
+  let mut next : Nat := 0
   repeat
     let line ← stdin.getLine
     if line.isEmpty then break
@@ -68,25 +89,55 @@ def main : IO Unit := do
     match words with
     | [] => continue
     | ["quit"] =>
-      reply ("ok " ++ s.render)
+      reply ("ok " ++ st.sup.render)
       break
-    | ["state"] => reply ("ok " ++ s.render)
+    | ["state"] => reply ("ok " ++ st.sup.render)
     | "params" :: args =>
       match parseParams args with
       | .ok p =>
         params := some p
-        s := State.init p.home
-        reply ("ok " ++ s.render)
+        cfg := none
+        st := { sup := State.init p.home, src := p.home, goal := p.home, start := 0, pending := [] }
+        next := 0
+        reply ("ok " ++ st.sup.render)
       | .error e => reply ("error " ++ e)
-    | _ =>
+    | "policy" :: args =>
       match params with
       | none => reply "error no params"
       | some p =>
+        match RoboLean.Cell.Policy.parseConfig p args with
+        | .ok c =>
+          cfg := some c
+          st := RoboLean.Cell.Policy.State.init c
+          next := 0
+          reply ("ok " ++ st.render)
+        | .error e => reply ("error " ++ e)
+    | "boundary" :: k :: c₀ :: c₁ :: c₂ :: v₀ :: v₁ :: v₂ :: reqs =>
+      match cfg with
+      | none => reply "error no policy"
+      | some c =>
+        match RoboLean.Demo.parseNat? k, RoboLean.Cell.Policy.parseSample? c₀ c₁ c₂ v₀ v₁ v₂,
+            RoboLean.Cell.Policy.parseWaypoints reqs with
+        | some k, some smp, some ws =>
+          if k ≠ next then reply ("error expected boundary " ++ toString next)
+          else
+            match RoboLean.Cell.Policy.boundary c k ws smp st with
+            | some (acts, st') =>
+              st := st'
+              next := next + 1
+              reply ("ok acts=" ++ RoboLean.Cell.Policy.renderActions acts ++ " " ++ st'.render)
+            | none => reply "error blocked"
+        | _, _, _ => reply "error bad boundary"
+    | _ =>
+      match params, cfg with
+      | none, _ => reply "error no params"
+      | some _, some _ => reply "error policy mode"
+      | some p, none =>
         match Action.parse words with
         | .error e => reply ("error " ++ e)
         | .ok act =>
-          match step p s act with
+          match step p st.sup act with
           | some s' =>
-            s := s'
-            reply ("ok " ++ s.render)
-          | none => reply ("blocked " ++ (act.blocker p s).getD "guard")
+            st := { st with sup := s' }
+            reply ("ok " ++ s'.render)
+          | none => reply ("blocked " ++ (act.blocker p st.sup).getD "guard")
