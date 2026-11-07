@@ -17,10 +17,14 @@ import numpy as np
 
 import arm
 import model
+import queue_planner
+import queue_reference
 
 repo = Path(__file__).resolve().parents[2]
 # the command that starts the program, run from the repository root
 exe = os.environ.get("CELL_SUPERVISOR_CMD", ".lake/build/bin/cell-supervisor")
+# the command that starts the program on the queue supervisor, run from the repository root
+exe_queue = os.environ.get("CELL_SUPERVISOR_QUEUE_CMD", ".lake/build/bin/cell-supervisor-queue")
 
 
 def tolerances(w, delta, eps_q=Fraction(1, 2000), eps_v=Fraction(1, 5)):
@@ -72,8 +76,28 @@ class Exe:
         self.p.wait()
 
 
-def supervisor():
-    return Exe()
+class QueueExe(Exe):
+    """The program on the queue supervisor. Every line is also sent to the Python reference of its
+    protocol (queue_reference.py), whose answer must be the program's: the reference only labels
+    each request's outcome (queued, or refused with the conditions that failed), which the
+    program's answer does not carry, and the queue just before an admission; it decides nothing."""
+
+    kind = "exe-queue"
+
+    def __init__(self, cmd=exe_queue):
+        super().__init__(cmd)
+        self.ref = queue_reference.QueueSupervisor()
+
+    def send(self, line):
+        ans = super().send(line)
+        ref = self.ref.send(line)
+        if ref != ans:
+            raise RuntimeError("reference differs: " + line + " -> " + ans + " / " + str(ref))
+        return ans
+
+
+def supervisor(queue=False):
+    return QueueExe() if queue else Exe()
 
 
 def fmt(x):
@@ -122,7 +146,11 @@ def build(scene, cfg):
 
 
 def run(scene, cfg, plan, sup):
-    """Drive one run. `plan` is the list of waypoint names the planner requests, in order."""
+    """Drive one run. `plan` is the list of waypoint names the planner requests, in order. With
+    `cfg["queue"]` (the queue's capacity, the urgent scenario's probabilities or None, the seed of
+    its draws) the program is the queue supervisor's, `sup` a `QueueExe`, and the requests are sent
+    by `queue_planner.QueuePlanner`; otherwise the whole plan is sent at boundary 0."""
+    queue = cfg.get("queue")
     W = arm.waypoints(scene)
     cl = arm.cells(scene)
     m = build(scene, cfg)
@@ -167,7 +195,8 @@ def run(scene, cfg, plan, sup):
     at = lambda wd: name[tuple(Fraction(x) for x in wd.split(","))]
     cells_words = " ".join(" ".join(fmt(x) for x in lo + hi) for lo, hi in cl)
     events = []
-    for line in (f"params {cfg['bound']} {words(home)} {cells_words}",
+    bound_words = str(cfg["bound"]) + (" " + str(queue["capacity"]) if queue else "")
+    for line in (f"params {bound_words} {words(home)} {cells_words}",
                  f"policy {fmt(Fraction(str(h)))} {fmt(Fraction(str(T)))} {fmt(cfg['pos_tol_deg'])} {fmt(cfg['vel_tol'])} {cpr}"):
         ans = sup.send(line)
         if not ans.startswith("ok "):
@@ -186,6 +215,11 @@ def run(scene, cfg, plan, sup):
     # the planner's requests reach the program at boundary 0: home first, so that the program's first
     # decision is the rest move home -> home admitted at boundary 0, as in the loop model
     t0, reqs, busy = 0.0, [home] + list(plan), False
+    if queue:
+        # the planner sends the requests; the queue and the fault flag of the program's last answer,
+        # the move it admitted at the last boundary, and the priority of each queued waypoint
+        pl = queue_planner.QueuePlanner(reqs, W, queue["capacity"], queue["urgent"], queue["seed"])
+        qnames, qfaulted, adm, qprio = [], False, None, {}
     qprev = np.round(d.qpos[sq] / res) * res if res else d.qpos[sq].copy()
     vf = np.zeros(3)
     tau_prev = held = ta = unstable = None
@@ -226,12 +260,24 @@ def run(scene, cfg, plan, sup):
 
             # the sample: the encoder counts and the exact rational value of each velocity estimate
             sample = [str(c) for c in counts] + [fmt(Fraction(float(x))) for x in vf]
-            line = " ".join(["boundary", str(k)] + sample + [words(n) for n in reqs])
-            reqs = []
+            if queue:
+                reqs = pl.requests(qnames, qfaulted, adm)
+                line = " ".join(["boundary", str(k)] + sample + [words(n) + " " + p for n, p in reqs])
+            else:
+                line = " ".join(["boundary", str(k)] + sample + [words(n) for n in reqs])
             ans = sup.send(line)
             word, st = parse(ans)
             if word != "ok" or "acts" not in st:
                 raise RuntimeError(line + " -> " + ans)
+            if queue:
+                # each request's outcome as the reference labels it (the program's answer has been
+                # checked equal to the reference's)
+                for (n, p), o in zip(reqs, sup.ref.outcomes):
+                    events.append(dict(k=k, cmd="request", target=n, prio=p, outcome=queue_reference.outcome_words(o), ans="ok"))
+                    if o["queued"]:
+                        qprio[n] = p
+                adm = None
+            reqs = []
             for act in st["acts"].split(";") if st["acts"] != "-" else []:
                 kind, _, wd = act.partition(":")
                 if kind == "admit":
@@ -239,7 +285,13 @@ def run(scene, cfg, plan, sup):
                     # the reference starts at the control clock's time of boundary k0
                     a, b, t0 = W[frm]["rad"].copy(), W[to]["rad"].copy(), k0 * nper * ctrl
                     moves.append(dict(frm=frm, to=to, a=a, b=b, t0=t0, k0=k0, k_end=None, outcome=None))
-                    events.append(dict(k=k, cmd="admit", target=to, ans="ok"))
+                    ev = dict(k=k, cmd="admit", target=to, ans="ok")
+                    if queue:
+                        # the admitted waypoint's priority and the queue just before the admission
+                        adm = (frm, to, qprio.pop(to))
+                        moves[-1]["prio"] = adm[2]
+                        ev.update(prio=adm[2], queue=[name[w] for w in sup.ref.admitted["queue"]])
+                    events.append(ev)
                 if kind == "reject":
                     events.append(dict(k=k, cmd="reject", target=at(wd), ans="ok"))
                 if kind == "tick":
@@ -262,7 +314,15 @@ def run(scene, cfg, plan, sup):
                     # protective stop: hold the measured configuration
                     a = b = q_meas.copy()
                     t0 = t
-            busy, faulted, pending = st["busy"] == "true", st["faulted"] == "true", st["pending"] != "-"
+                    if queue:
+                        # the timeout rejects the queued requests and empties the queue
+                        qprio = {}
+            if queue:
+                busy, faulted = st["busy"] == "true", st["faulted"] == "true"
+                qnames, qfaulted = [at(x) for x in st["requested"].split(";")] if st["requested"] != "-" else [], faulted
+                pending = bool(qnames) or pl.left()
+            else:
+                busy, faulted, pending = st["busy"] == "true", st["faulted"] == "true", st["pending"] != "-"
             if stop_at is None and not busy and (not pending or faulted):
                 stop_at = k + round(cfg["tail"] / h)
             if stop_at is not None and k >= stop_at:
@@ -426,4 +486,7 @@ def analyse(scene, cfg, out):
         if "qm" in tr:
             # elastic joints: the drive's largest deflection max |theta_m - theta| over the move (rad)
             recs[-1]["deflection_max"] = float(np.abs(tr["qm"][sel] - q).max())
+        if "prio" in mv:
+            # queue supervisor: the priority of the request the move was admitted from
+            recs[-1]["prio"] = mv["prio"]
     return recs

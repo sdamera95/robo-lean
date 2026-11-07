@@ -17,3 +17,7 @@ root = "RoboLean.Demo.Main"
 [[lean_exe]]
 name = "cell-supervisor"
 root = "RoboLean.Cell.Main"
+
+[[lean_exe]]
+name = "cell-supervisor-queue"
+root = "RoboLean.Cell.MainQueue"

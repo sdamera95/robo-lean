@@ -225,8 +225,27 @@ def campaign(nruns, w, delta, keep=3):
     return out
 
 
-def make(mode, nruns, w, delta):
-    """The runs of one mode at gain w and tube radius delta."""
+# ------------------------------------------------------------------
+# the queue supervisor: the queue's capacity (the design value of the program-form theorem on the
+# queue supervisor) and the probabilities per cycle of the urgent scenario's requests (see
+# queue_planner.py); each run draws them from its own generator [20261107, 98, seed], separate from
+# the plant's and the plan's, so that a run with the queue supervisor has the plant and the plan of
+# the request-set run with the same seed
+capacity = 8
+urgent = dict(repick=1 / 2, home_place=1 / 4, home_cross=1 / 4, flood=1 / 4)
+
+
+def make(mode, nruns, w, delta, queue=None):
+    """The runs of one mode at gain w and tube radius delta; with `queue` (the capacity and the
+    urgent scenario's probabilities or None) on the queue supervisor."""
+    jobs = make_set(mode, nruns, w, delta)
+    if queue is None:
+        return jobs
+    return [(tag, seed, dict(cfg, queue=dict(queue, seed=[20261107, 98, seed])), p, keep) for tag, seed, cfg, p, keep in jobs]
+
+
+def make_set(mode, nruns, w, delta):
+    """The runs of one mode at gain w and tube radius delta on the request-set supervisor."""
     if mode == "campaign":
         return campaign(nruns, w, delta)
     if mode == "nominal-campaign":
@@ -319,7 +338,7 @@ def one(job, outdir=None, sup=None):
     """Run one job with the supervisor `sup` (the executable when None); return the per-move
     records, the event log and the supervisor transcript."""
     tag, seed, cfg, p, keep = job
-    sup = sup or sim.supervisor()
+    sup = sup or sim.supervisor(bool(cfg.get("queue")))
     o = sim.run(scene, cfg, p, sup)
     sup.close()
     recs = sim.analyse(scene, cfg, o)
@@ -332,6 +351,8 @@ def one(job, outdir=None, sup=None):
     c.update({k: cfg.get(k) for k in ("stiffness", "joint_damping", "sense", "lag", "enc_noise", "jitter")})
     c.update({k: cfg.get(k) for k in ("model_rotor", "model_payload", "envelope")})
     c.update(pos_tol_deg=str(cfg["pos_tol_deg"]), vel_tol=str(cfg["vel_tol"]))
+    if cfg.get("queue"):
+        c["queue"] = cfg["queue"]
     lines = [dict(r, run=tag, seed=seed, supervisor=sup.kind, cfg=c) for r in recs]
     ev = dict(run=tag, seed=seed, supervisor=sup.kind, events=o["events"], fault_motion_deg=o.get("fault_motion_deg"))
     if "unstable_t" in o:
