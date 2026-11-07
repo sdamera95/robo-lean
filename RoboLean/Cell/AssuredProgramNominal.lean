@@ -9,13 +9,13 @@ The assured cell theorem on measured samples with the rotor inertia and the nomi
 controller's model (`RoboLean.Cell.AssuredNominal`), with the hypothesis on the run replaced by:
 the supervisor's states and actions are the policy program's own output (`Policy.IsProgramRun`)
 on a stream of requests and samples, at a configuration whose arrival tolerances leave room for a
-position sample error of `1/50` rad.
+position sample error of `1/50` rad and a speed sample error of `3/10` rad/s.
 
 * `Policy.designNominal`: the program's configuration (the cell's supervisor parameters,
-  `h = 1/10` s, `T = 2` s, position tolerance `3` degrees, speed tolerance `5` rad/s, encoders of
-  `2^18` counts per revolution).
+  `h = 1/10` s, `T = 2` s, position tolerance `3` degrees, speed tolerance `51/10` rad/s, encoders
+  of `2^18` counts per revolution).
 * `Loop.cell_assured_program_nominal_design`: the conclusions of the design-point theorem for
-  every run of the program whose samples are within `1/50` rad and `1/5` rad/s of the true state.
+  every run of the program whose samples are within `1/50` rad and `3/10` rad/s of the true state.
 * `Loop.cell_assured_program_nominal_design_exact`: the same for samples equal to the true state.
 * `Loop.program_hold_nominal_assured`: the idle program on encoder samples of the arm at rest at
   home with a mass error of `1` kg held by friction meets every hypothesis.
@@ -38,14 +38,15 @@ namespace RoboLean.Cell.Policy
 point: the cell's supervisor parameters `Instances.params` (three cells, home `(0, -40, 30)`
 degrees, age bound 25), the period `1/10` s, the move duration `2` s, the position tolerance `3`
 degrees (`π/60 ≈ 0.0524` rad, room for the tube radius `3/100` rad and a position sample error of
-`1/50` rad), the speed tolerance `5` rad/s and encoders of `2^18` counts per revolution. A design
-definition, not from MLS. -/
+`1/50` rad), the speed tolerance `51/10` rad/s (`2 · 80 · 3/100 + 3/10`: room for the tube's speed
+error at the gain `80` rad/s and a speed sample error of `3/10` rad/s) and encoders of `2^18`
+counts per revolution. A design definition, not from MLS. -/
 def designNominal : Config where
   sup := Supervisor.Instances.params
   period := 1 / 10
   duration := 2
   posTol := 3
-  velTol := 5
+  velTol := 51 / 10
   countsPerRev := 2 ^ 18
 
 end RoboLean.Cell.Policy
@@ -57,10 +58,10 @@ namespace RoboLean.Cell.Loop
 open Set Supervisor
 
 /-- The loop data of the nominal-model configuration: `h = 1/10` s, `T = 2` s, position tolerance
-`degToRad 3` rad, speed tolerance `5` rad/s. A design statement, not from MLS. -/
+`degToRad 3` rad, speed tolerance `51/10` rad/s. A design statement, not from MLS. -/
 theorem designNominal_loop :
-    Policy.designNominal.loop = openCellParams (1 / 10) 2 (degToRad 3) 5 := by
-  show openCellParams (((1 / 10 : ℚ)) : ℝ) ((2 : ℚ) : ℝ) (degToRad 3) ((5 : ℚ) : ℝ) = _
+    Policy.designNominal.loop = openCellParams (1 / 10) 2 (degToRad 3) (51 / 10) := by
+  show openCellParams (((1 / 10 : ℚ)) : ℝ) ((2 : ℚ) : ℝ) (degToRad 3) (((51 / 10 : ℚ)) : ℝ) = _
   norm_num
 
 /-- **The assured cell with every decision taken by the program, on measured samples, with the
@@ -76,7 +77,7 @@ rotor inertia `J' ≥ 3/2` kg m² on every joint and the actual mass `m ≥ 0` (
 `dm + (15/4) dJ + (f_c + (29/5) f_v)/150 ≤ 8/5`; the unknown is the mass error, the rotor-inertia
 error and the friction, and the elasticity of the drives is not in the theorem's plant. If at
 every boundary `k/10` s each joint angle of the sample, read in radians, is within `1/50` rad of
-the true joint angle and each joint speed estimate is within `1/5` rad/s of the true joint speed
+the true joint angle and each joint speed estimate is within `3/10` rad/s of the true joint speed
 (`hsamp`), and under `htrack` (on each period the plant obeys its equations of motion under a
 friction torque `f` with the computed torque of the controller's model tracking the quintic
 reference of the program's last admitted move at the gain `80` rad/s, with right derivatives,
@@ -94,7 +95,7 @@ theorem cell_assured_program_nominal_design (hsup : Supervisor.Contract Instance
     {x v acc f : ℝ → Fin 3 → ℝ}
     (hsamp : ∀ k : ℕ, ∀ i : Fin 3,
       |(smp k).toRad Policy.designNominal i - x (k * (1 / 10)) i| ≤ 1 / 50 ∧
-        |(smp k).velRad i - v (k * (1 / 10)) i| ≤ 1 / 5)
+        |(smp k).velRad i - v (k * (1 / 10)) i| ≤ 3 / 10)
     (htrack : ∀ k : ℕ, ∀ t ∈ Ioc ((k : ℝ) * (1 / 10)) ((k + 1) * (1 / 10)),
       CellArmFollowsNominalRightAt 80 2 J mn J' m fc fv x v acc f
         (DegPoint.toRad (st (k + 1)).src) (DegPoint.toRad (st (k + 1)).goal)
@@ -108,7 +109,7 @@ theorem cell_assured_program_nominal_design (hsup : Supervisor.Contract Instance
     (∀ k, (st k).sup.busy = true → (st (k + 1)).sup.busy = false →
       dist (sceneTool (x (k * (1 / 10)))) (sceneTool (DegPoint.toRad (st k).goal)) ≤
         219 / 5000) := by
-  have hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) 5) Instances.params
+  have hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) (51 / 10)) Instances.params
       (fun k => (smp k).toRad Policy.designNominal) (fun k => (smp k).velRad)
       (fun k => (st k).toCell) acts := by
     have h := hprog.isMeasuredCellRun
@@ -164,11 +165,12 @@ theorem idleProgramNominal_isProgramRun (smp : ℕ → Policy.Sample) :
 /-- **The program on encoder samples of the held run meets every hypothesis.** For a supervisor
 whose runs meet the contract (`hsup`), the idle program at the configuration
 `Policy.designNominal`, run on the encoder samples (`2^18` counts per revolution, speeds floored to
-a multiple of `1/5` rad/s, within `1/2000` rad and `1/5` rad/s of the true state) of the arm at
-rest at home, with the controller's model carrying the rotor inertia `17/10` kg m² on every joint
-and the nominal mass `1` kg, and the plant the rotor inertia `17/10` kg m² and the actual mass
-`2` kg (a mass error of `1` kg) held by the friction torque `(1 − 2) · toolGravity(home)` (at most
-`9` N m in every joint; `f_c = 9` N m, `f_v = 0`), meets every hypothesis of
+a multiple of `1/5` rad/s, so zero at rest and within `1/2000` rad and `1/5 ≤ 3/10` rad/s of the
+true state) of the arm at rest at home, with the controller's model carrying the rotor inertia
+`17/10` kg m² on every joint and the nominal mass `1` kg, and the plant the rotor inertia `17/10`
+kg m² and the actual mass `2` kg (a mass error of `1` kg) held by the friction torque
+`(1 − 2) · toolGravity(home)` (at most `9` N m in every joint; `f_c = 9` N m, `f_v = 0`), meets
+every hypothesis of
 `cell_assured_program_nominal_design`; hence both links keep `9/100` m from every obstacle at every
 `t ≥ 0` (s), the supervisor never faults and its age stays below 25, and the statements about
 admissions and finishes hold (vacuously here, since nothing is admitted). A design statement, not
@@ -219,10 +221,10 @@ theorem program_hold_nominal_assured (hsup : Supervisor.Contract Instances.param
       |(encoderSample (fun _ => θ) 0 k).toRad Policy.designNominal i -
           (fun _ => θ) (k * (1 / 10)) i| ≤ 1 / 50 ∧
         |(encoderSample (fun _ => θ) 0 k).velRad i - (0 : ℝ → Fin 3 → ℝ) (k * (1 / 10)) i| ≤
-          1 / 5 := by
+          3 / 10 := by
     intro k i
     obtain ⟨h1, h2⟩ := encoderSample_within (fun _ => θ) 0 k i
-    exact ⟨h1.trans (by norm_num), h2⟩
+    exact ⟨h1.trans (by norm_num), h2.trans (by norm_num)⟩
   have h0 : InTube (3 / 100) 80 (DegPoint.toRad Instances.params.home) 0
       ((fun _ => θ) 0) ((0 : ℝ → Fin 3 → ℝ) 0) := by
     intro i

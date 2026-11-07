@@ -34,7 +34,7 @@ shows the motion never leaves.
 * `Loop.cell_assured_contract_design_nominal_right`: the assured cell at the design point on exact
   samples, with the supervisor's contract as premise.
 * `Loop.cell_assured_measured_design_nominal_right`: the same on samples within `1/50` rad and
-  `1/5` rad/s of the true state, with the arrival tolerances `3` degrees and `5` rad/s.
+  `3/10` rad/s of the true state, with the arrival tolerances `3` degrees and `51/10` rad/s.
 * `Loop.demo_assured_contract_nominal_right`, `Loop.hold_assured_contract_nominal_right`: the
   demonstration run with the model equal to the plant, and a run at rest at home with a mass error
   of `1` kg held by friction, meet every hypothesis of the exact-sample theorem.
@@ -274,7 +274,8 @@ nominal payload in the controller's model (a design statement, not from MLS; com
 MLS eq. (4.49), p. 191, for the robot of p. 303; the plant's equations, MLS eq. (4.47), p. 190,
 with friction as a joint force, p. 170).** With `h = 1/10` s, `T = 2` s, `ω = 80` rad/s,
 `δ = 3/100` rad, the position tolerance `δ_a = 3` degrees (`π/60` rad), the speed tolerance
-`v_a = 5` rad/s, and samples within `εq = 1/50` rad and `εv = 1/5` rad/s of the true state, let
+`v_a = 51/10` rad/s (`2 · 80 · 3/100 + 3/10`), and samples within `εq = 1/50` rad and
+`εv = 3/10` rad/s of the true state, let
 the controller's model carry the rotor inertia `J` (kg m²) on every joint and the nominal mass
 `mn ≥ 0` (kg) at the tool point, and the plant the rotor inertia `J' ≥ 3/2` kg m² on every joint
 and the actual mass `m ≥ 0` (kg), with `|m − mn| ≤ dm`, `|J' − J| ≤ dJ`, `f_c, f_v ≥ 0` (N m,
@@ -296,10 +297,10 @@ theorem cell_assured_measured_design_nominal_right {J mn J' m dm dJ fc fv : ℝ}
     (hsup : Supervisor.Contract Instances.params)
     {x v acc f : ℝ → Fin 3 → ℝ} {xm vm : ℕ → Fin 3 → ℝ} {c : ℕ → CellState}
     {acts : ℕ → List Action}
-    (hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) 5) Instances.params
+    (hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) (51 / 10)) Instances.params
       xm vm c acts)
     (hsamp : ∀ k : ℕ, ∀ i : Fin 3, |xm k i - x (k * (1 / 10)) i| ≤ 1 / 50 ∧
-      |vm k i - v (k * (1 / 10)) i| ≤ 1 / 5)
+      |vm k i - v (k * (1 / 10)) i| ≤ 3 / 10)
     (htrack : ∀ k : ℕ, ∀ t ∈ Ioc ((k : ℝ) * (1 / 10)) ((k + 1) * (1 / 10)),
       CellArmFollowsNominalRightAt 80 2 J mn J' m fc fv x v acc f
         (DegPoint.toRad (c (k + 1)).src) (DegPoint.toRad (c (k + 1)).goal)
@@ -316,11 +317,11 @@ theorem cell_assured_measured_design_nominal_right {J mn J' m dm dJ fc fv : ℝ}
   have H := cell_measured_hyps (by norm_num : (0 : ℝ) < 1 / 10) (by norm_num : (0 : ℝ) < 2)
     (by rw [design_steps]; norm_num) (by norm_num : (0 : ℝ) ≤ 80) nominal_radius_add_le_posTol
     (by norm_num) hrun hsamp htrack
-    (cellArm_moveCorollary_nominal_right hmn hm hJ' hdm hdJ hfc hfv hcond (1 / 10) (degToRad 3) 5
-      hcont) h0
+    (cellArm_moveCorollary_nominal_right hmn hm hJ' hdm hdJ hfc hfv hcond (1 / 10) (degToRad 3)
+      (51 / 10) hcont) h0
   have hc := hrun.loopContract hsup (fun _ _ hab => hab)
   obtain ⟨hclear, hfault, hfin, htool, -⟩ :=
-    H.assured hc (openCellParams_certify (1 / 10) 2 (degToRad 3) 5)
+    H.assured hc (openCellParams_certify (1 / 10) 2 (degToRad 3) (51 / 10))
       (by norm_num [cellInflation]) sceneTool_lipschitz
   refine ⟨hclear, hfault, fun k₀ hidle hbusy => ?_, fun k hbusy hidle => ?_⟩
   · obtain ⟨-, h2, h3⟩ := hfin k₀ hidle hbusy

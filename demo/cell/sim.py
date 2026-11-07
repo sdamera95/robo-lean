@@ -23,14 +23,15 @@ repo = Path(__file__).resolve().parents[2]
 exe = os.environ.get("CELL_SUPERVISOR_CMD", ".lake/build/bin/cell-supervisor")
 
 
-def tolerances(w, delta, eps_q=Fraction(1, 2000)):
+def tolerances(w, delta, eps_q=Fraction(1, 2000), eps_v=Fraction(1, 5)):
     """The arrival tolerances the program decides with at gain w and tube radius delta, as exact
     rationals: the position tolerance in degrees, delta plus the position sample allowance eps_q
-    (rad) rounded up to a quarter degree, and the speed tolerance 2 w delta + 1/5 in rad/s (at
-    (80, 0.03): 7/4 and 5 with eps_q = 1/2000, 3 and 5 with eps_q = 1/50)."""
+    (rad) rounded up to a quarter degree, and the speed tolerance 2 w delta + eps_v in rad/s for
+    the speed sample allowance eps_v (at (80, 0.03): 7/4 and 5 with eps_q = 1/2000, 3 and 5 with
+    eps_q = 1/50; at (50, 0.03) with eps_q = 1/50 and eps_v = 3/10: 3 and 33/10)."""
     w, delta = Fraction(str(w)), Fraction(str(delta))
     return dict(pos_tol_deg=Fraction(math.ceil(4 * math.degrees(float(delta) + float(eps_q))), 4),
-                vel_tol=2 * w * delta + Fraction(1, 5))
+                vel_tol=2 * w * delta + eps_v)
 
 
 nominal = dict(

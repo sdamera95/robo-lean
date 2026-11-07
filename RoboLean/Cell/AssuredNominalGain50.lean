@@ -24,7 +24,7 @@ rad, which a first-exit argument shows the motion never leaves.
   rad/s² in every joint.
 * `Loop.cellArm_moveCorollary_nominal_gain50`: the loop's move corollary at `(50, 3/100)`.
 * `Loop.cell_assured_measured_design_nominal_gain50`: the assured cell on samples within `1/50` rad
-  and `1/5` rad/s of the true state, with the arrival tolerances `3` degrees and `16/5` rad/s.
+  and `3/10` rad/s of the true state, with the arrival tolerances `3` degrees and `33/10` rad/s.
 * `Policy.designNominalGain50`, `Loop.designNominalGain50_loop`: the program's configuration.
 * `Loop.cell_assured_program_nominal_gain50`: the same with the program's run as hypothesis.
 * `Loop.idleProgramNominalGain50`, `Loop.idleProgramNominalGain50_isProgramRun`,
@@ -170,9 +170,9 @@ private theorem nominal_radius_add_le_posTol_gain50 : (3 : ℝ) / 100 + 1 / 50 �
 payload in the controller's model (a design statement, not from MLS; computed torque of MLS
 eq. (4.49), p. 191, for the robot of p. 303; the plant's equations, MLS eq. (4.47), p. 190, with
 friction as a joint force, p. 170).** With `h = 1/10` s, `T = 2` s, `ω = 50` rad/s, `δ = 3/100`
-rad, the position tolerance `δ_a = 3` degrees (`π/60` rad), the speed tolerance `v_a = 16/5` rad/s
-(`2 · 50 · 3/100 + 1/5`), and samples within `εq = 1/50` rad and `εv = 1/5` rad/s of the true
-state, let the controller's model carry the rotor inertia `J` (kg m²) on every joint and the
+rad, the position tolerance `δ_a = 3` degrees (`π/60` rad), the speed tolerance `v_a = 33/10`
+rad/s (`2 · 50 · 3/100 + 3/10`), and samples within `εq = 1/50` rad and `εv = 3/10` rad/s of the
+true state, let the controller's model carry the rotor inertia `J` (kg m²) on every joint and the
 nominal mass `mn ≥ 0` (kg) at the tool point, and the plant the rotor inertia `J' ≥ 3/2` kg m² on
 every joint and the actual mass `m ≥ 0` (kg), with `|m − mn| ≤ dm`, `|J' − J| ≤ dJ`,
 `f_c, f_v ≥ 0` (N m, N m s) and `dm + (7/2) dJ + (f_c + 4 f_v)/60 ≤ 3/2`. The unknown is the mass
@@ -194,10 +194,10 @@ theorem cell_assured_measured_design_nominal_gain50 {J mn J' m dm dJ fc fv : ℝ
     (hsup : Supervisor.Contract Instances.params)
     {x v acc f : ℝ → Fin 3 → ℝ} {xm vm : ℕ → Fin 3 → ℝ} {c : ℕ → CellState}
     {acts : ℕ → List Action}
-    (hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) (16 / 5)) Instances.params
+    (hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) (33 / 10)) Instances.params
       xm vm c acts)
     (hsamp : ∀ k : ℕ, ∀ i : Fin 3, |xm k i - x (k * (1 / 10)) i| ≤ 1 / 50 ∧
-      |vm k i - v (k * (1 / 10)) i| ≤ 1 / 5)
+      |vm k i - v (k * (1 / 10)) i| ≤ 3 / 10)
     (htrack : ∀ k : ℕ, ∀ t ∈ Ioc ((k : ℝ) * (1 / 10)) ((k + 1) * (1 / 10)),
       CellArmFollowsNominalRightAt 50 2 J mn J' m fc fv x v acc f
         (DegPoint.toRad (c (k + 1)).src) (DegPoint.toRad (c (k + 1)).goal)
@@ -215,10 +215,10 @@ theorem cell_assured_measured_design_nominal_gain50 {J mn J' m dm dJ fc fv : ℝ
     (by rw [design_steps]; norm_num) (by norm_num : (0 : ℝ) ≤ 50)
     nominal_radius_add_le_posTol_gain50 (by norm_num) hrun hsamp htrack
     (cellArm_moveCorollary_nominal_gain50 hmn hm hJ' hdm hdJ hfc hfv hcond (1 / 10) (degToRad 3)
-      (16 / 5) hcont) h0
+      (33 / 10) hcont) h0
   have hc := hrun.loopContract hsup (fun _ _ hab => hab)
   obtain ⟨hclear, hfault, hfin, htool, -⟩ :=
-    H.assured hc (openCellParams_certify (1 / 10) 2 (degToRad 3) (16 / 5))
+    H.assured hc (openCellParams_certify (1 / 10) 2 (degToRad 3) (33 / 10))
       (by norm_num [cellInflation]) sceneTool_lipschitz
   refine ⟨hclear, hfault, fun k₀ hidle hbusy => ?_, fun k hbusy hidle => ?_⟩
   · obtain ⟨-, h2, h3⟩ := hfin k₀ hidle hbusy
@@ -237,15 +237,16 @@ namespace Cell.Policy
 /-- The policy program's configuration at the gain-50 design point: the cell's supervisor
 parameters `Instances.params` (three cells, home `(0, -40, 30)` degrees, age bound 25), the period
 `1/10` s, the move duration `2` s, the position tolerance `3` degrees (`π/60 ≈ 0.0524` rad), the
-speed tolerance `16/5` rad/s (`2 · 50 · 3/100 + 1/5`: room for the tube's speed error at the gain
-`50` rad/s and a speed sample error of `1/5` rad/s) and encoders of `2^18` counts per revolution.
+speed tolerance `33/10` rad/s (`2 · 50 · 3/100 + 3/10`: room for the tube's speed error at the
+gain `50` rad/s and a speed sample error of `3/10` rad/s) and encoders of `2^18` counts per
+revolution.
 A design definition, not from MLS. -/
 def designNominalGain50 : Config where
   sup := Supervisor.Instances.params
   period := 1 / 10
   duration := 2
   posTol := 3
-  velTol := 16 / 5
+  velTol := 33 / 10
   countsPerRev := 2 ^ 18
 
 end Cell.Policy
@@ -255,10 +256,10 @@ namespace Cell.Loop
 open Set Supervisor
 
 /-- The loop data of the gain-50 configuration: `h = 1/10` s, `T = 2` s, position tolerance
-`degToRad 3` rad, speed tolerance `16/5` rad/s. A design statement, not from MLS. -/
+`degToRad 3` rad, speed tolerance `33/10` rad/s. A design statement, not from MLS. -/
 theorem designNominalGain50_loop :
-    Policy.designNominalGain50.loop = openCellParams (1 / 10) 2 (degToRad 3) (16 / 5) := by
-  show openCellParams (((1 / 10 : ℚ)) : ℝ) ((2 : ℚ) : ℝ) (degToRad 3) (((16 / 5 : ℚ)) : ℝ) = _
+    Policy.designNominalGain50.loop = openCellParams (1 / 10) 2 (degToRad 3) (33 / 10) := by
+  show openCellParams (((1 / 10 : ℚ)) : ℝ) ((2 : ℚ) : ℝ) (degToRad 3) (((33 / 10 : ℚ)) : ℝ) = _
   norm_num
 
 /-- **The assured cell at the gain 50 with every decision taken by the program, on measured
@@ -273,7 +274,7 @@ plant the rotor inertia `J' ≥ 3/2` kg m² on every joint and the actual mass `
 `dm + (7/2) dJ + (f_c + 4 f_v)/60 ≤ 3/2`; the unknown is the mass error, the rotor-inertia error
 and the friction, and the elasticity of the drives is not in the theorem's plant. If at every
 boundary `k/10` s each joint angle of the sample, read in radians, is within `1/50` rad of the true
-joint angle and each joint speed estimate is within `1/5` rad/s of the true joint speed (`hsamp`),
+joint angle and each joint speed estimate is within `3/10` rad/s of the true joint speed (`hsamp`),
 and under `htrack` (on each period the plant obeys its equations of motion under a friction torque
 `f` with the computed torque of the controller's model tracking the quintic reference of the
 program's last admitted move at the gain `50` rad/s, with right derivatives), `hcont` and `h0`:
@@ -291,7 +292,7 @@ theorem cell_assured_program_nominal_gain50 (hsup : Supervisor.Contract Instance
     {x v acc f : ℝ → Fin 3 → ℝ}
     (hsamp : ∀ k : ℕ, ∀ i : Fin 3,
       |(smp k).toRad Policy.designNominalGain50 i - x (k * (1 / 10)) i| ≤ 1 / 50 ∧
-        |(smp k).velRad i - v (k * (1 / 10)) i| ≤ 1 / 5)
+        |(smp k).velRad i - v (k * (1 / 10)) i| ≤ 3 / 10)
     (htrack : ∀ k : ℕ, ∀ t ∈ Ioc ((k : ℝ) * (1 / 10)) ((k + 1) * (1 / 10)),
       CellArmFollowsNominalRightAt 50 2 J mn J' m fc fv x v acc f
         (DegPoint.toRad (st (k + 1)).src) (DegPoint.toRad (st (k + 1)).goal)
@@ -305,7 +306,7 @@ theorem cell_assured_program_nominal_gain50 (hsup : Supervisor.Contract Instance
     (∀ k, (st k).sup.busy = true → (st (k + 1)).sup.busy = false →
       dist (sceneTool (x (k * (1 / 10)))) (sceneTool (DegPoint.toRad (st k).goal)) ≤
         219 / 5000) := by
-  have hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) (16 / 5)) Instances.params
+  have hrun : IsMeasuredCellRun (openCellParams (1 / 10) 2 (degToRad 3) (33 / 10)) Instances.params
       (fun k => (smp k).toRad Policy.designNominalGain50) (fun k => (smp k).velRad)
       (fun k => (st k).toCell) acts := by
     have h := hprog.isMeasuredCellRun
@@ -330,15 +331,16 @@ theorem idleProgramNominalGain50_isProgramRun (smp : ℕ → Policy.Sample) :
 /-- **The program at the gain 50 on encoder samples of the held run meets every hypothesis.** For
 a supervisor whose runs meet the contract (`hsup`), the idle program at the configuration
 `Policy.designNominalGain50`, run on the encoder samples (`2^18` counts per revolution, speeds
-floored to a multiple of `1/5` rad/s, within `1/2000` rad and `1/5` rad/s of the true state) of the
-arm at rest at home, with the controller's model carrying the rotor inertia `17/10` kg m² on every
-joint and the nominal mass `1` kg, and the plant the rotor inertia `17/10` kg m² and the actual
-mass `2` kg (a mass error of `1` kg) held by the friction torque `(1 − 2) · toolGravity(home)` (at
-most `9` N m in every joint; `dm = 1` kg, `dJ = 0`, `f_c = 9` N m, `f_v = 0`, `1 + 9/60 ≤ 3/2`),
-meets every hypothesis of `cell_assured_program_nominal_gain50`; hence both links keep `9/100` m
-from every obstacle at every `t ≥ 0` (s), the supervisor never faults and its age stays below 25,
-and the statements about admissions and finishes hold (vacuously here, since nothing is admitted).
-A design statement, not from MLS. -/
+floored to a multiple of `1/5` rad/s, so zero at rest and within `1/2000` rad and `1/5 ≤ 3/10`
+rad/s of the true state) of the arm at rest at home, with the controller's model carrying the
+rotor inertia `17/10` kg m² on every joint and the nominal mass `1` kg, and the plant the rotor
+inertia `17/10` kg m² and the actual mass `2` kg (a mass error of `1` kg) held by the friction
+torque `(1 − 2) · toolGravity(home)` (at most `9` N m in every joint; `dm = 1` kg, `dJ = 0`,
+`f_c = 9` N m, `f_v = 0`, `1 + 9/60 ≤ 3/2`), meets every hypothesis of
+`cell_assured_program_nominal_gain50`; hence both links keep `9/100` m from every obstacle at every
+`t ≥ 0` (s), the supervisor never faults and its age stays below 25, and the statements about
+admissions and finishes hold (vacuously here, since nothing is admitted). A design statement, not
+from MLS. -/
 theorem program_hold_nominal_gain50_assured (hsup : Supervisor.Contract Instances.params) :
     (∀ t : ℝ, 0 ≤ t → sceneClear (DegPoint.toRad Instances.params.home)) ∧
     (∀ k, (idleProgramNominalGain50 k).sup.faulted = false ∧
@@ -387,10 +389,10 @@ theorem program_hold_nominal_gain50_assured (hsup : Supervisor.Contract Instance
       |(encoderSample (fun _ => θ) 0 k).toRad Policy.designNominalGain50 i -
           (fun _ => θ) (k * (1 / 10)) i| ≤ 1 / 50 ∧
         |(encoderSample (fun _ => θ) 0 k).velRad i - (0 : ℝ → Fin 3 → ℝ) (k * (1 / 10)) i| ≤
-          1 / 5 := by
+          3 / 10 := by
     intro k i
     obtain ⟨h1, h2⟩ := encoderSample_within (fun _ => θ) 0 k i
-    exact ⟨h1.trans (by norm_num), h2⟩
+    exact ⟨h1.trans (by norm_num), h2.trans (by norm_num)⟩
   have h0 : InTube (3 / 100) 50 (DegPoint.toRad Instances.params.home) 0
       ((fun _ => θ) 0) ((0 : ℝ → Fin 3 → ℝ) 0) := by
     intro i

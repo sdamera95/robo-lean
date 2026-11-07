@@ -17,6 +17,7 @@ A checked theorem is about its model; this harness measures how a plant outside 
 - `smoke.py`: one or two cycles on the realistic plant at `(ω, δ) = (80, 0.03)`, with the per-move lines and the transcript of the protocol.
 - `jobs.py`: the runs (randomized campaign, stress sweeps, ablation of the disturbance, fault run, and the sweeps of the further non-idealities: `plant` and `plant-worst` over a provisional grid, `plant-cited` and `plant-cited-worst` at values for a joint of this size from published sources, with the rotor inertia 1.7 kg·m²) with fixed seeds, the planner, the drawn ranges, and the worker for one run.
 - `plant_check.py`: the elastic joints, the actuator lag, the encoder noise and the timing jitter, each on one run, against quantities recomputed from the trace (the link and rotor equations, a first-order filter of the commanded torque, the jitter and the noise drawn).
+- `model.py`, `model_check.py`: the controller's nominal model with a known rotor inertia and the part's nominal mass, and its check against MuJoCo's inertia matrix and bias forces.
 - `plant_sweep.py`: one run per setting of the further non-idealities, in parallel, with a summary line per run.
 - `campaign.py`: runs one mode at one (gain, tube radius) pair in parallel, one JSON line per move.
 - `bounds.py`: every measured quantity of a group of moves against its bound, and the rule that picks the design point; `design_point.py` prints it.
@@ -49,7 +50,7 @@ The scene's waypoints plus five the evaluation adds (`extra_waypoints` in `arm.p
 
 ## Controller
 
-Computed torque on the nominal model (no friction, no rotor inertia, no payload, no model error) with `K_p = ω² I`, `K_v = 2ω I`, tracking the clamped quintic reference of each admitted move with duration `T = 2` s, from the waypoint the arm is at to the admitted goal, starting at the time of the boundary of its admission. The controller reads the measured state (quantized position, filtered velocity) at 1 kHz. On a timeout it holds the measured configuration (protective stop).
+Computed torque with `K_p = ω² I`, `K_v = 2ω I` on the controller's model: the unloaded arm by default (no friction, no rotor inertia, no payload, no model error), or, with `model_rotor` (kg·m², a known rotor inertia on every joint) and `model_payload` (kg, the nominal mass of the part, counted while the part is held), the nominal model of `model.py` (the arm plus `J I` in the inertia matrix plus the point-mass terms at the tool per unit mass times the nominal mass; `model_check.py` checks them against MuJoCo). The law tracks the clamped quintic reference of each admitted move with duration `T = 2` s, from the waypoint the arm is at to the admitted goal, starting at the time of the boundary of its admission. The controller reads the measured state (quantized position, filtered velocity) at 1 kHz. On a timeout it holds the measured configuration (protective stop).
 
 ## Protocol: every decision is the program's
 
@@ -68,6 +69,8 @@ Tolerances, for the gain `ω` and the tube radius `δ`, as exact rationals: `pos
 The records keep, at every boundary, the largest difference between the sample and the true state and, while a move is due, the arrival test with the program's tolerances (in radians) on the sample and on the true state. That comparison is a record only and decides nothing.
 
 Gain and tube radius: the campaign runs on the same seeds at the candidates `(ω, δ) = (120, 0.02)`, `(80, 0.03)`, `(80, 0.05)` and, for comparison, `(60, 0.05)`. The design point is the first of the first three on which every move finishes at `k₀ + ⌈T/h⌉`, no commanded torque saturates and `maxᵢ |(M̂⁻¹d)ᵢ| ≤ 0.8 ω²δ`; the stress sweeps, the ablation, the fault run and the figures use it.
+
+Campaign on the nominal model (`nominal-campaign`, `jobs.py`): the controller's model carries the rotor inertia `1.7` kg·m² and the part's nominal mass; the plant's rotor inertia is `1.7 + e` with `e` from U[−0.05, 0.05] kg·m², the part's nominal mass from U[0, 5] kg and its actual mass off by a mass error drawn uniformly inside the budget the proved condition leaves after the rotor error and the friction (Coulomb U[0, 5] N·m and viscous U[0, 2] N·m·s/rad per joint), so that every run satisfies `|Δm| + c_J |ΔJ| + c_f (f_c + c_v f_v) ≤ b` with the constants of the design point (`envelopes` in `jobs.py`: at `(80, 0.03)` `3.75`, `1/150`, `5.8`, `1.6`; at `(50, 0.03)` `3.5`, `1/60`, `4`, `1.5`); elastic joints of stiffness log-uniform in [10⁴, 6·10⁴] N·m/rad with a damping ratio U[0.05, 0.2], the encoders on the motor side, one count of noise, one substep of jitter and a drive lag U[0.5, 1] ms. The position sample allowance is `1/50` rad (the drive's deflection) and the speed sample allowance `3/10` rad/s (the drive's oscillation in the velocity estimate), so `posTol` is `3` degrees at `δ = 0.03` and `velTol` is `51/10` rad/s at gain 80 and `33/10` at gain 50. The stress runs (`nominal-stress-{mass,friction,rotor,stiffness,lag}`) take one quantity beyond the envelope with the others at the middle of the ranges (lag `0.75` ms; the lag sweep also at a `5` kg part). Every drawn value and the condition's left side are kept under `envelope` in each move's record.
 
 ## Measured per move
 
@@ -91,4 +94,7 @@ uv run python plant_sweep.py plant out 12 80 0.03
 uv run python plant_sweep.py plant-worst out 12 80 0.03      # likewise 60 0.03, 40 0.03
 uv run python plant_sweep.py plant-cited out 12 80 0.03
 uv run python plant_sweep.py plant-cited-worst out 12 80 0.03  # likewise 60 0.03, 40 0.03
+uv run python model_check.py
+uv run python campaign.py nominal-campaign out-nominal 500 8 50 0.03   # likewise 80 0.03
+uv run python plant_sweep.py nominal-stress-lag out-nominal 8 50 0.03  # likewise -mass, -friction, -rotor, -stiffness
 ```

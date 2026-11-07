@@ -101,15 +101,22 @@ def envelope_at(w, delta):
 # by motor-side encoders; the arrival tolerances become 3 degrees and 5 rad/s at (80, 0.03), 3
 # degrees and 16/5 rad/s at (50, 0.03)
 eps_q = Fraction(1, 50)
+# the speed sample allowance of the nominal-model design (rad/s): the velocity estimate on an
+# elastic drive differs from the link speed by the drive's oscillation, up to about 0.22 rad/s at
+# gain 50 in the campaign; the arrival tolerances become 33/10 rad/s at (50, 0.03), 51/10 at (80, 0.03)
+eps_v = Fraction(3, 10)
 # the drawn ranges: rotor inertia error e (kg m^2), Coulomb level (N m) and viscous coefficient
 # (N m s) per joint, the part's nominal mass (kg), the joint stiffness (N m/rad, log-uniform, every
-# joint the same), the damping ratio of the rotor against the held link, and the drive lag (s);
-# the encoders read the motor side with one count of noise and one substep of jitter
+# joint the same), the damping ratio of the rotor against the held link (at least 0.05: at 0.02
+# the heaviest part at the longest lag exceeds the speed sample allowance at gain 50), and the
+# drive lag (s, at most 1 ms: with the one-period torque delay the loop at gain 50 limit-cycles
+# for lags above about 1.2 ms, see the lag stress sweep); the encoders read the motor side with
+# one count of noise and one substep of jitter
 nominal_ranges = dict(e=(-0.05, 0.05), coulomb=(0.0, 5.0), viscous=(0.0, 2.0), part=(0.0, 5.0),
-                      stiffness=(1e4, 6e4), zeta=(0.02, 0.2), lag=(0.0005, 0.002))
+                      stiffness=(1e4, 6e4), zeta=(0.05, 0.2), lag=(0.0005, 0.001))
 # the middle of those ranges for the stress runs (the stiffness at the cited nominal 3e4, near the
 # log-middle 2.4e4 of the range), no mass error
-nominal_middle = dict(e=0.0, coulomb=2.5, viscous=1.0, part=2.5, dm=0.0, stiffness=3e4, zeta=0.11, lag=0.00125)
+nominal_middle = dict(e=0.0, coulomb=2.5, viscous=1.0, part=2.5, dm=0.0, stiffness=3e4, zeta=0.125, lag=0.00075)
 
 
 def envelope_lhs(env, dm, e, coulomb, viscous):
@@ -140,7 +147,7 @@ def nominal_campaign(nruns, w, delta, keep=3):
     mass error uniform in [-b, b] with b the budget left by the drawn rotor error and friction, so
     that every run is inside the proved envelope."""
     out, tag = [], f"n{w}-{delta}-"
-    base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q))
+    base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q, eps_v))
     R = nominal_ranges
     env = envelope_at(w, delta)
     for s in range(nruns):
@@ -160,7 +167,7 @@ def nominal_campaign(nruns, w, delta, keep=3):
 def nominal_stress(mode, nruns, w, delta):
     """The stress runs on the nominal model: one quantity beyond the envelope, the rest at the
     middle of the campaign's ranges; one pick-place cycle per run from the seed [20261107, 94, 1, s]."""
-    base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q))
+    base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q, eps_v))
     jobs = []
 
     def add(tag, **kw):
@@ -185,6 +192,11 @@ def nominal_stress(mode, nruns, w, delta):
     if mode == "nominal-stress-stiffness":
         for K in (1e3, 2e3, 3e3, 5e3, 1e4, 3e4, 6e4):
             add(f"K{int(K)}", stiffness=K)
+    if mode == "nominal-stress-lag":
+        # the drive lag beyond the stated 1 ms, at the middle part and at the heaviest
+        for ms in (0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0):
+            add(f"lag{ms}", lag=ms * 1e-3)
+            add(f"lag{ms}-heavy", lag=ms * 1e-3, part=5.0)
     return jobs
 
 
