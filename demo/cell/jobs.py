@@ -2,6 +2,7 @@
 # ablation of the disturbance and the fault run, each with a fixed seed, and the worker that runs
 # one of them and returns its per-move records.
 import json
+from fractions import Fraction
 
 import numpy as np
 
@@ -77,6 +78,115 @@ rotor = 1.7
 cited = dict(elastic=elastic(3e4, rotor=rotor), lag=dict(lag=0.001), noise=dict(enc_noise=1), jitter=dict(jitter=1))
 cited_worst = dict(elastic=elastic(1e4, zeta=0.02, rotor=rotor), lag=dict(lag=0.002), noise=dict(enc_noise=2), jitter=dict(jitter=1))
 
+# ------------------------------------------------------------------
+# the runs on the nominal model: the controller knows the rotor inertia J = 1.7 kg m^2 on every joint
+# and the part's nominal mass m_hat; the plant has the rotor inertia J' = J + e (the same on every
+# joint), the part's actual mass m = m_hat + dm, and joint friction within Coulomb level f_c and
+# viscous coefficient f_v. The proved condition at each design point (gain, tube radius) is
+#   |dm| + rotor |J' - J| + friction (f_c + speed f_v) <= budget
+# (kg, kg m^2, N m, N m s, with J' >= 3/2) with the constants below, the friction speed being the
+# joint speed bound at that gain (rad/s); f_c and f_v are the largest Coulomb level and viscous
+# coefficient over the joints. A design point with no entry is an error.
+envelopes = {(80, 0.03): dict(rotor=15 / 4, friction=1 / 150, speed=29 / 5, budget=8 / 5),
+             (50, 0.03): dict(rotor=7 / 2, friction=1 / 60, speed=4, budget=3 / 2)}
+
+
+def envelope_at(w, delta):
+    """The constants of the proved condition at gain w and tube radius delta."""
+    assert (w, delta) in envelopes, f"no proved envelope at gain {w} and tube radius {delta}"
+    return envelopes[(w, delta)]
+
+
+# the position sample allowance of the measured-sample theorem (rad): the drive's deflection read
+# by motor-side encoders; the arrival tolerances become 3 degrees and 5 rad/s at (80, 0.03), 3
+# degrees and 16/5 rad/s at (50, 0.03)
+eps_q = Fraction(1, 50)
+# the drawn ranges: rotor inertia error e (kg m^2), Coulomb level (N m) and viscous coefficient
+# (N m s) per joint, the part's nominal mass (kg), the joint stiffness (N m/rad, log-uniform, every
+# joint the same), the damping ratio of the rotor against the held link, and the drive lag (s);
+# the encoders read the motor side with one count of noise and one substep of jitter
+nominal_ranges = dict(e=(-0.05, 0.05), coulomb=(0.0, 5.0), viscous=(0.0, 2.0), part=(0.0, 5.0),
+                      stiffness=(1e4, 6e4), zeta=(0.02, 0.2), lag=(0.0005, 0.002))
+# the middle of those ranges for the stress runs (the stiffness at the cited nominal 3e4, near the
+# log-middle 2.4e4 of the range), no mass error
+nominal_middle = dict(e=0.0, coulomb=2.5, viscous=1.0, part=2.5, dm=0.0, stiffness=3e4, zeta=0.11, lag=0.00125)
+
+
+def envelope_lhs(env, dm, e, coulomb, viscous):
+    """The left side of the proved condition with the constants `env` for a mass error dm, a rotor
+    inertia error e and the joints' Coulomb levels and viscous coefficients."""
+    return abs(dm) + env["rotor"] * abs(e) + env["friction"] * (max(coulomb) + env["speed"] * max(viscous))
+
+
+def nominal_run(base, e, part, dm, coulomb, viscous, K, zeta, lag, **drawn):
+    """The configuration of one run on the nominal model: the model's rotor inertia `rotor` and
+    nominal part mass `part`; the plant's rotor inertia rotor + e on every joint, the part's actual
+    mass max(part + dm, 0), the friction per joint, elastic joints of stiffness K and damping ratio
+    zeta read on the motor side, the drive lag, one count of encoder noise and one substep of
+    jitter. The drawn values and the left side of the condition (with the mass error as applied)
+    are kept under `envelope`, with the constants of the condition at the run's gain and tube."""
+    env = envelope_at(base["omega"], base["delta"])
+    Jp = rotor + e
+    m = max(part + dm, 0.0)
+    lhs = envelope_lhs(env, m - part, e, coulomb, viscous)
+    return dict(base, **fixed, model_rotor=rotor, model_payload=part, armature=[Jp] * 3, payload=m,
+                coulomb=list(coulomb), viscous=list(viscous), **elastic(K, zeta=zeta, rotor=Jp, sense="motor"),
+                lag=lag, enc_noise=1, jitter=1,
+                envelope=dict(drawn, e=e, part=part, dm=dm, dm_applied=m - part, lhs=lhs, constants=env, budget=env["budget"]))
+
+
+def nominal_campaign(nruns, w, delta, keep=3):
+    """The randomized campaign on the nominal model; run s draws from the seed [20261107, 94, s], the
+    mass error uniform in [-b, b] with b the budget left by the drawn rotor error and friction, so
+    that every run is inside the proved envelope."""
+    out, tag = [], f"n{w}-{delta}-"
+    base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q))
+    R = nominal_ranges
+    env = envelope_at(w, delta)
+    for s in range(nruns):
+        rng = np.random.default_rng([20261107, 94, s])
+        e = float(rng.uniform(*R["e"]))
+        c, v = rng.uniform(*R["coulomb"], 3).tolist(), rng.uniform(*R["viscous"], 3).tolist()
+        part = float(rng.uniform(*R["part"]))
+        b = env["budget"] - envelope_lhs(env, 0.0, e, c, v)
+        dm = float(rng.uniform(-b, b))
+        K = float(np.exp(rng.uniform(*np.log(R["stiffness"]))))
+        zeta, lag = float(rng.uniform(*R["zeta"])), float(rng.uniform(*R["lag"]))
+        cfg = dict(nominal_run(base, e, part, dm, c, v, K, zeta, lag, b=b), plant_seed=s)
+        out.append((tag + str(s).zfill(4), s, cfg, plan(rng, 4), s < keep))
+    return out
+
+
+def nominal_stress(mode, nruns, w, delta):
+    """The stress runs on the nominal model: one quantity beyond the envelope, the rest at the
+    middle of the campaign's ranges; one pick-place cycle per run from the seed [20261107, 94, 1, s]."""
+    base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q))
+    jobs = []
+
+    def add(tag, **kw):
+        p = dict(nominal_middle, **kw)
+        for s in range(nruns):
+            rng = np.random.default_rng([20261107, 94, 1, s])
+            cfg = nominal_run(base, p["e"], p["part"], p["dm"], [p["coulomb"]] * 3, [p["viscous"]] * 3, p["stiffness"], p["zeta"], p["lag"])
+            jobs.append((f"{tag}-{s}", s, dict(cfg, plant_seed=s), plan(rng, 1, inject=0), False))
+
+    if mode == "nominal-stress-mass":
+        # the mass error, both signs while the actual mass stays nonnegative
+        for dm in (0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0):
+            add(f"dm{dm}", dm=dm)
+            if 0 < dm <= nominal_middle["part"]:
+                add(f"dm-{dm}", dm=-dm)
+    if mode == "nominal-stress-friction":
+        for c in (0, 10, 30, 60, 100, 150, 250):
+            add(f"coulomb{c}", coulomb=float(c), viscous=1.0)
+    if mode == "nominal-stress-rotor":
+        for e in (0.0, 0.1, 0.2, 0.4, 0.8):
+            add(f"rotor{e}", e=e)
+    if mode == "nominal-stress-stiffness":
+        for K in (1e3, 2e3, 3e3, 5e3, 1e4, 3e4, 6e4):
+            add(f"K{int(K)}", stiffness=K)
+    return jobs
+
 
 def campaign(nruns, w, delta, keep=3):
     """The randomized campaign at gain w and tube radius delta; run s draws from the seed
@@ -93,6 +203,10 @@ def make(mode, nruns, w, delta):
     """The runs of one mode at gain w and tube radius delta."""
     if mode == "campaign":
         return campaign(nruns, w, delta)
+    if mode == "nominal-campaign":
+        return nominal_campaign(nruns, w, delta)
+    if mode.startswith("nominal-stress-"):
+        return nominal_stress(mode, nruns, w, delta)
     nominal = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta))
     jobs = []
     if mode == "stress-payload":
@@ -186,6 +300,8 @@ def one(job, outdir=None, sup=None):
                             events=json.dumps(o["events"]), cfg=json.dumps(cfg, default=str))
     c = {k: cfg[k] for k in ("omega", "delta", "payload", "coulomb", "viscous", "armature", "model", "counts", "cutoff", "delay", "limit", "fault")}
     c.update({k: cfg.get(k) for k in ("stiffness", "joint_damping", "sense", "lag", "enc_noise", "jitter")})
+    c.update({k: cfg.get(k) for k in ("model_rotor", "model_payload", "envelope")})
+    c.update(pos_tol_deg=str(cfg["pos_tol_deg"]), vel_tol=str(cfg["vel_tol"]))
     lines = [dict(r, run=tag, seed=seed, supervisor=sup.kind, cfg=c) for r in recs]
     ev = dict(run=tag, seed=seed, supervisor=sup.kind, events=o["events"], fault_motion_deg=o.get("fault_motion_deg"))
     if "unstable_t" in o:

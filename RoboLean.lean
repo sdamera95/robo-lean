@@ -474,3 +474,8 @@ import RoboLean.Cell.AssuredProgramInstance
 import RoboLean.Cell.Payload
 import RoboLean.Cell.PayloadTube
 import RoboLean.Cell.AssuredPhysical
+import RoboLean.Cell.KnownModel
+import RoboLean.Cell.AssuredNominal
+import RoboLean.Cell.AssuredProgramNominal
+import RoboLean.Cell.KnownModelGain50
+import RoboLean.Cell.AssuredNominalGain50

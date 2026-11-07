@@ -16,18 +16,20 @@ import mujoco
 import numpy as np
 
 import arm
+import model
 
 repo = Path(__file__).resolve().parents[2]
 # the command that starts the program, run from the repository root
 exe = os.environ.get("CELL_SUPERVISOR_CMD", ".lake/build/bin/cell-supervisor")
 
 
-def tolerances(w, delta):
+def tolerances(w, delta, eps_q=Fraction(1, 2000)):
     """The arrival tolerances the program decides with at gain w and tube radius delta, as exact
-    rationals: the position tolerance in degrees, delta plus 1/2000 rad rounded up to a quarter
-    degree, and the speed tolerance 2 w delta + 1/5 in rad/s (at (80, 0.03): 7/4 and 5)."""
+    rationals: the position tolerance in degrees, delta plus the position sample allowance eps_q
+    (rad) rounded up to a quarter degree, and the speed tolerance 2 w delta + 1/5 in rad/s (at
+    (80, 0.03): 7/4 and 5 with eps_q = 1/2000, 3 and 5 with eps_q = 1/50)."""
     w, delta = Fraction(str(w)), Fraction(str(delta))
-    return dict(pos_tol_deg=Fraction(math.ceil(4 * math.degrees(float(delta) + 1 / 2000)), 4),
+    return dict(pos_tol_deg=Fraction(math.ceil(4 * math.degrees(float(delta) + float(eps_q))), 4),
                 vel_tol=2 * w * delta + Fraction(1, 5))
 
 
@@ -38,6 +40,9 @@ nominal = dict(
     # elastic joints (None: rigid), the side the encoders read, the actuator's time constant (s),
     # encoder noise (counts), timing jitter (substeps) and the seed of the noise and the jitter
     stiffness=None, joint_damping=None, sense="link", lag=0.0, enc_noise=0, jitter=0, plant_seed=0,
+    # the controller's model: the rotor inertia J on every joint (kg m^2) and the part's nominal mass
+    # m_hat (kg), on while the plant carries the part (from a pick finish to a place finish)
+    model_rotor=0.0, model_payload=0.0,
 )
 
 # the realistic plant of one cycle: friction, rotor inertia, encoders, filter, delay and a payload
@@ -187,6 +192,10 @@ def run(scene, cfg, plan, sup):
     # elastic plant: motor angles, velocities and accelerations and the spring torque on the links;
     # the noise and jitter drawn
     log_qm, log_vm, log_am, log_sp, log_nz, log_jit = [], [], [], [], [], []
+    # the controller's model: rotor inertia, the part's nominal mass, and whether the part is held
+    # (logged per simulator step)
+    J_hat, m_hat, carry = cfg.get("model_rotor", 0.0), cfg.get("model_payload", 0.0), False
+    log_carry = []
     ctl_tau, ctl_mv, dist, end_k, stop_at = [], [], [], None, None
     # a record that decides nothing: at every boundary, k, max |sample - true| of position and
     # velocity, and, while a busy move is due, the arrival test with the program's tolerances (in
@@ -238,11 +247,14 @@ def run(scene, cfg, plan, sup):
                     events.append(dict(k=k, cmd="finish", ans="ok"))
                     moves[-1].update(k_end=k, outcome="finish", t_end=t)
                     role = W[at(st["at"])]["role"]
+                    # the part attaches to the plant and enters the controller's model together
                     if role == "pick":
                         m.body_mass[pay] = cfg["payload"]
                         m.body_inertia[pay] = 0.4 * cfg["payload"] * cfg["load_radius"]**2 + 1e-12
+                        carry = True
                     if role == "place":
                         m.body_mass[pay], m.body_inertia[pay] = 1e-9, 1e-12
+                        carry = False
                 if kind == "timeout":
                     events.append(dict(k=k, cmd="timeout", ans="ok"))
                     moves[-1].update(k_end=k, outcome="timeout", t_end=t)
@@ -260,7 +272,7 @@ def run(scene, cfg, plan, sup):
             m.dof_damping[lv[f["joint"]]] = f["damping"]
             events.append(dict(k=k_ctrl / nper, cmd="fault", joint=f["joint"], t=t))
         r, rd, rdd = arm.reference(a, b, t0, T, t)
-        tau = arm.computed_torque(w, r, rd, rdd, q_meas, vf)
+        tau = model.computed_torque(w, r, rd, rdd, q_meas, vf, J_hat, m_hat if carry else 0.0)
         ctl_tau.append(tau)
         ctl_mv.append(len(moves) - 1)
         if cfg["delay"]:
@@ -282,6 +294,7 @@ def run(scene, cfg, plan, sup):
             log_t.append(t + j * cfg["dt"])
             log_q.append(d.qpos[lq].copy())
             log_v.append(d.qvel[lv].copy())
+            log_carry.append(carry)
             if el is not None:
                 log_qm.append(d.qpos[rq].copy())
                 log_vm.append(d.qvel[rv].copy())
@@ -306,6 +319,7 @@ def run(scene, cfg, plan, sup):
     trace = dict(t=np.array(log_t), q=np.array(log_q), v=np.array(log_v), qacc=np.array(log_a), tau=np.array(log_tau),
                  mv=np.array(log_mv), ctl_tau=np.array(ctl_tau), ctl_mv=np.array(ctl_mv), dist=np.array(dist).reshape(-1, 2, len(oid)))
     trace["bnd"] = np.array(bnd, float)
+    trace["carry"] = np.array(log_carry, bool)
     if el is not None:
         trace.update(qm=np.array(log_qm), vm=np.array(log_vm), qacc_m=np.array(log_am), spring=np.array(log_sp))
     if nn:
@@ -342,10 +356,20 @@ def analyse(scene, cfg, out):
     rdd = inside * sdd[:, None] / T**2 * (B[i] - A[i])
     e, ed = tr["q"] - r, tr["v"] - rd
     z = ed + w * e
-    M = arm.mass(tr["q"])
+    # the controller's model at each sample, with its payload on where the part was held: d_total is
+    # the disturbance relative to that model, M_hat (e'' + 2 w e' + w^2 e), and minvd is
+    # M_hat^-1 d_total, the acceleration-level residual e'' + 2 w e' + w^2 e of the error equation on
+    # the link-side trace (equal to it up to round-off whatever M_hat is); d_plant is
+    # M_hat theta'' + C_hat theta' + N_hat minus the applied torque
+    J_hat, m_hat = cfg.get("model_rotor", 0.0), cfg.get("model_payload", 0.0)
+    if np.any(J_hat) or np.any(m_hat):
+        mp = m_hat * tr["carry"]
+        M, bias = model.mass(tr["q"], J_hat, mp), model.bias(tr["q"], tr["v"], mp)
+    else:
+        M, bias = arm.mass(tr["q"]), arm.bias(tr["q"], tr["v"])
     dtot = np.einsum("nij,nj->ni", M, tr["qacc"] - rdd + 2 * w * ed + w**2 * e)
     minvd = np.linalg.solve(M, dtot[..., None])[..., 0]
-    dpl = np.einsum("nij,nj->ni", M, tr["qacc"]) + arm.bias(tr["q"], tr["v"]) - tr["tau"]
+    dpl = np.einsum("nij,nj->ni", M, tr["qacc"]) + bias - tr["tau"]
     lam = np.linalg.eigvalsh(M)[:, 0]
     cl = arm.cells(scene)
     lo = np.radians(np.array([[float(x) for x in c[0]] for c in cl]))
@@ -398,4 +422,7 @@ def analyse(scene, cfg, out):
             due_boundaries=int(dueb.sum()), arrival_disagree=int((dueb & (bd[:, 4] != bd[:, 5])).sum()),
             arrival_true_at_end=bool(bd[kb, 5][-1]) if kb.any() else None,
         ))
+        if "qm" in tr:
+            # elastic joints: the drive's largest deflection max |theta_m - theta| over the move (rad)
+            recs[-1]["deflection_max"] = float(np.abs(tr["qm"][sel] - q).max())
     return recs
