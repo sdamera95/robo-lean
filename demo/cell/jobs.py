@@ -142,16 +142,18 @@ def nominal_run(base, e, part, dm, coulomb, viscous, K, zeta, lag, **drawn):
                 envelope=dict(drawn, e=e, part=part, dm=dm, dm_applied=m - part, lhs=lhs, constants=env, budget=env["budget"]))
 
 
-def nominal_campaign(nruns, w, delta, keep=3):
+def nominal_campaign(nruns, w, delta, keep=3, held_out=False):
     """The randomized campaign on the nominal model; run s draws from the seed [20261107, 94, s], the
     mass error uniform in [-b, b] with b the budget left by the drawn rotor error and friction, so
-    that every run is inside the proved envelope."""
+    that every run is inside the proved envelope. The held-out campaign draws run s from the seed
+    [20261107, 95, s] and uses the plant seed 1000 + s, so that it shares no plant with the first."""
     out, tag = [], f"n{w}-{delta}-"
+    key, shift = (95, 1000) if held_out else (94, 0)
     base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q, eps_v))
     R = nominal_ranges
     env = envelope_at(w, delta)
     for s in range(nruns):
-        rng = np.random.default_rng([20261107, 94, s])
+        rng = np.random.default_rng([20261107, key, s])
         e = float(rng.uniform(*R["e"]))
         c, v = rng.uniform(*R["coulomb"], 3).tolist(), rng.uniform(*R["viscous"], 3).tolist()
         part = float(rng.uniform(*R["part"]))
@@ -159,8 +161,8 @@ def nominal_campaign(nruns, w, delta, keep=3):
         dm = float(rng.uniform(-b, b))
         K = float(np.exp(rng.uniform(*np.log(R["stiffness"]))))
         zeta, lag = float(rng.uniform(*R["zeta"])), float(rng.uniform(*R["lag"]))
-        cfg = dict(nominal_run(base, e, part, dm, c, v, K, zeta, lag, b=b), plant_seed=s)
-        out.append((tag + str(s).zfill(4), s, cfg, plan(rng, 4), s < keep))
+        cfg = dict(nominal_run(base, e, part, dm, c, v, K, zeta, lag, b=b), plant_seed=shift + s)
+        out.append((tag + str(shift + s).zfill(4), shift + s, cfg, plan(rng, 4), s < keep))
     return out
 
 
@@ -229,6 +231,8 @@ def make(mode, nruns, w, delta):
         return campaign(nruns, w, delta)
     if mode == "nominal-campaign":
         return nominal_campaign(nruns, w, delta)
+    if mode == "nominal-held-out":
+        return nominal_campaign(nruns, w, delta, held_out=True)
     if mode.startswith("nominal-stress-"):
         return nominal_stress(mode, nruns, w, delta)
     if mode == "nominal-fault":
