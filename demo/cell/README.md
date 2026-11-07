@@ -19,6 +19,7 @@ A checked theorem is about its model; this harness measures how a plant outside 
 - `plant_check.py`: the elastic joints, the actuator lag, the encoder noise and the timing jitter, each on one run, against quantities recomputed from the trace (the link and rotor equations, a first-order filter of the commanded torque, the jitter and the noise drawn).
 - `model.py`, `model_check.py`: the controller's nominal model with a known rotor inertia and the part's nominal mass, and its check against MuJoCo's inertia matrix and bias forces.
 - `plant_sweep.py`: one run per setting of the further non-idealities, in parallel, with a summary line per run.
+- `worst_case.py`: the largest acceleration quantity and speed sample error over the nominal-model campaign's class at `(ω, δ) = (50, 0.03)`, searched at every corner of the ranges (the mass error at the edge of the proved condition, either sign) on four plans, at the vertices of the proved condition itself, and by Nelder–Mead from the ten campaign runs with the largest values; one JSON line per run and a summary.
 - `campaign.py`: runs one mode at one (gain, tube radius) pair in parallel, one JSON line per move.
 - `bounds.py`: every measured quantity of a group of moves against its bound, and the rule that picks the design point; `design_point.py` prints it.
 - `summarize.py`, `figures.py`: the summary against the bounds and the figures at the design point (SVG and PDF).
@@ -97,4 +98,5 @@ uv run python plant_sweep.py plant-cited-worst out 12 80 0.03  # likewise 60 0.0
 uv run python model_check.py
 uv run python campaign.py nominal-campaign out-nominal 500 8 50 0.03   # likewise 80 0.03
 uv run python plant_sweep.py nominal-stress-lag out-nominal 8 50 0.03  # likewise -mass, -friction, -rotor, -stiffness
+uv run python worst_case.py out-worst 8
 ```
