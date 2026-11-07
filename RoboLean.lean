@@ -471,3 +471,6 @@ import RoboLean.Cell.LoopMeasured
 import RoboLean.Cell.AssuredMeasured
 import RoboLean.Cell.AssuredProgram
 import RoboLean.Cell.AssuredProgramInstance
+import RoboLean.Cell.Payload
+import RoboLean.Cell.PayloadTube
+import RoboLean.Cell.AssuredPhysical
