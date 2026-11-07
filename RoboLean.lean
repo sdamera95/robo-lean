@@ -479,3 +479,4 @@ import RoboLean.Cell.AssuredNominal
 import RoboLean.Cell.AssuredProgramNominal
 import RoboLean.Cell.KnownModelGain50
 import RoboLean.Cell.AssuredNominalGain50
+import RoboLean.Cell.AssuredMeasuredGain50

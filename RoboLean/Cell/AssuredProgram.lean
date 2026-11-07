@@ -16,8 +16,9 @@ action; the timed run of the cell loop that the earlier theorems assume is deriv
 * `Policy.design`: the program's configuration at the design point (the cell's supervisor
   parameters, `h = 1/10` s, `T = 2` s, position tolerance `7/4` degrees, speed tolerance `5`
   rad/s, encoders of `2^18` counts per revolution).
-* `cell_assured_program_design`: the conclusions of `cell_assured_contract_design_tight_right` for
-  every run of the program whose samples are the true state.
+* `cell_assured_program_design`: the conclusions of `cell_assured_contract_design_tight_right`, and
+  the supervisor busy from an admission to its due boundary, for every run of the program whose
+  samples are the true state.
 * `cell_assured_program_measured_design`: the same for every run of the program whose samples are
   within `1/2000` rad and `1/5` rad/s of the true state.
 * `Policy.exists_isProgramRun`: under the supervisor's contract the program never blocks one of
@@ -83,10 +84,11 @@ every run of the policy program at the design configuration `Policy.design` (`hp
 the quintic reference of the program's last admitted move, with right derivatives, and
 `|(M(x)⁻¹ d)ᵢ| ≤ 192` rad/s²), `hcont` and `h0` of `cell_assured_contract_design_tight_right`:
 the links keep `9/100` m from every obstacle at every `t ≥ 0`; the supervisor never faults and its
-age stays below 25; a move admitted at boundary `k₀` is finished at boundary `k₀ + 20` with the arm
-at its goal; and at each finish the tool is within `219/5000` m of the goal's tool position.
-Proved from `cell_assured_contract_right` with the arrival tolerances `7/4` degrees and `5` rad/s.
-A design statement, not from MLS. -/
+age stays below 25; a move admitted at boundary `k₀` keeps the supervisor busy at the boundaries
+`k₀ + 1, …, k₀ + 20` and is finished at boundary `k₀ + 20` with the arm at its goal; and at each
+finish the tool is within `219/5000` m of the goal's tool position. Proved from
+`cell_assured_contract_right` with the arrival tolerances `7/4` degrees and `5` rad/s. A design
+statement, not from MLS. -/
 theorem cell_assured_program_design (hsup : Supervisor.Contract Instances.params)
     {reqs : ℕ → List Waypoint} {smp : ℕ → Policy.Sample} {st : ℕ → Policy.State}
     {acts : ℕ → List Action} (hprog : Policy.IsProgramRun Policy.design reqs smp st acts)
@@ -101,6 +103,7 @@ theorem cell_assured_program_design (hsup : Supervisor.Contract Instances.params
     (∀ t, 0 ≤ t → sceneClear (x t)) ∧
     (∀ k, (st k).sup.faulted = false ∧ (st k).sup.age < 25) ∧
     (∀ k₀, (st k₀).sup.busy = false → (st (k₀ + 1)).sup.busy = true →
+      (∀ j, j < 20 → (st (k₀ + 1 + j)).sup.busy = true) ∧
       (st (k₀ + 20 + 1)).sup.busy = false ∧ (st (k₀ + 20 + 1)).sup.current = (st (k₀ + 1)).goal) ∧
     (∀ k, (st k).sup.busy = true → (st (k + 1)).sup.busy = false →
       dist (sceneTool (x (k * (1 / 10)))) (sceneTool (DegPoint.toRad (st k).goal)) ≤
@@ -120,9 +123,9 @@ theorem cell_assured_program_design (hsup : Supervisor.Contract Instances.params
       (ω := 80) (δ := 3 / 100) (by norm_num) (by norm_num) (by rw [design_steps]; norm_num)
       (by norm_num) hδa (by norm_num) (by norm_num) hsup hrun htrack hcont h0
   refine ⟨hclear, hfault, fun k₀ hidle hbusy => ?_, fun k hbusy hidle => ?_⟩
-  · obtain ⟨-, -, h2, h3⟩ := hfin k₀ hidle hbusy
-    rw [design_steps] at h2 h3
-    exact ⟨h2, h3⟩
+  · obtain ⟨-, h1, h2, h3⟩ := hfin k₀ hidle hbusy
+    rw [design_steps] at h1 h2 h3
+    exact ⟨h1, h2, h3⟩
   · obtain ⟨-, -, -, h4⟩ := htool k hbusy hidle
     exact le_of_le_of_eq h4 (by norm_num)
 
@@ -130,7 +133,8 @@ theorem cell_assured_program_design (hsup : Supervisor.Contract Instances.params
 `cell_assured_program_design`, with the samples no longer equal to the true state: at every
 boundary `k/10` s each joint angle of the sample, read in radians, is within `1/2000` rad of the
 true joint angle and each joint speed estimate is within `1/5` rad/s of the true joint speed
-(`hsamp`). The conclusions are unchanged and concern the true motion. Proved from
+(`hsamp`). The conclusions are those of `cell_assured_program_design` without the supervisor busy
+before the due boundary, and concern the true motion. Proved from
 `cell_assured_measured_design_right`. A design statement, not from MLS. -/
 theorem cell_assured_program_measured_design (hsup : Supervisor.Contract Instances.params)
     {reqs : ℕ → List Waypoint} {smp : ℕ → Policy.Sample} {st : ℕ → Policy.State}

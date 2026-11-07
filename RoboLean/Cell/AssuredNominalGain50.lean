@@ -185,9 +185,9 @@ policy's action on the measured sample, each accepted by the supervisor), every 
 tracking hypothesis `CellArmFollowsNominalRightAt` at the gain 50 on each period (`htrack`),
 `(x, v)` continuous on `[0, ∞)` (`hcont`) and the arm starting in the tube around home at rest
 (`h0`): the links keep `9/100` m from every obstacle at every `t ≥ 0`, the supervisor never faults
-and its age stays below 25, a move admitted at boundary `k₀` is finished at boundary `k₀ + 20` at
-its goal, and at each finish the tool at the true configuration is within `219/5000` m of the
-goal's tool position. -/
+and its age stays below 25, a move admitted at boundary `k₀` keeps the supervisor busy at the
+boundaries `k₀ + 1, …, k₀ + 20` and is finished at boundary `k₀ + 20` at its goal, and at each
+finish the tool at the true configuration is within `219/5000` m of the goal's tool position. -/
 theorem cell_assured_measured_design_nominal_gain50 {J mn J' m dm dJ fc fv : ℝ} (hmn : 0 ≤ mn)
     (hm : 0 ≤ m) (hJ' : 3 / 2 ≤ J') (hdm : |m - mn| ≤ dm) (hdJ : |J' - J| ≤ dJ) (hfc : 0 ≤ fc)
     (hfv : 0 ≤ fv) (hcond : dm + 7 / 2 * dJ + (fc + 4 * fv) / 60 ≤ 3 / 2)
@@ -207,6 +207,7 @@ theorem cell_assured_measured_design_nominal_gain50 {J mn J' m dm dJ fc fv : ℝ
     (∀ t, 0 ≤ t → sceneClear (x t)) ∧
     (∀ k, (c k).sup.faulted = false ∧ (c k).sup.age < 25) ∧
     (∀ k₀, (c k₀).sup.busy = false → (c (k₀ + 1)).sup.busy = true →
+      (∀ j, j < 20 → (c (k₀ + 1 + j)).sup.busy = true) ∧
       (c (k₀ + 20 + 1)).sup.busy = false ∧ (c (k₀ + 20 + 1)).sup.current = (c (k₀ + 1)).goal) ∧
     (∀ k, (c k).sup.busy = true → (c (k + 1)).sup.busy = false →
       dist (sceneTool (x (k * (1 / 10)))) (sceneTool (DegPoint.toRad (c k).goal)) ≤
@@ -221,11 +222,12 @@ theorem cell_assured_measured_design_nominal_gain50 {J mn J' m dm dJ fc fv : ℝ
     H.assured hc (openCellParams_certify (1 / 10) 2 (degToRad 3) (33 / 10))
       (by norm_num [cellInflation]) sceneTool_lipschitz
   refine ⟨hclear, hfault, fun k₀ hidle hbusy => ?_, fun k hbusy hidle => ?_⟩
-  · obtain ⟨-, h2, h3⟩ := hfin k₀ hidle hbusy
+  · obtain ⟨h1, h2, h3⟩ := hfin k₀ hidle hbusy
+    have h1' : ∀ j, j < ⌈(2 : ℝ) / (1 / 10)⌉₊ → (c (k₀ + 1 + j)).sup.busy = true := h1
     have h2' : (c (k₀ + ⌈(2 : ℝ) / (1 / 10)⌉₊ + 1)).sup.busy = false := h2
     have h3' : (c (k₀ + ⌈(2 : ℝ) / (1 / 10)⌉₊ + 1)).sup.current = (c (k₀ + 1)).goal := h3
-    rw [design_steps] at h2' h3'
-    exact ⟨h2', h3'⟩
+    rw [design_steps] at h1' h2' h3'
+    exact ⟨h1', h2', h3'⟩
   · have h4 : dist (sceneTool (x (k * (1 / 10)))) (sceneTool (DegPoint.toRad (c k).goal)) ≤
         73 / 50 * (3 / 100) := htool k hbusy hidle
     linarith
@@ -279,9 +281,10 @@ and under `htrack` (on each period the plant obeys its equations of motion under
 `f` with the computed torque of the controller's model tracking the quintic reference of the
 program's last admitted move at the gain `50` rad/s, with right derivatives), `hcont` and `h0`:
 the links keep `9/100` m from every obstacle at every `t ≥ 0`; the supervisor never faults and its
-age stays below 25; a move admitted at boundary `k₀` is finished at boundary `k₀ + 20` with the
-arm at its goal; and at each finish the tool is within `219/5000` m of the goal's tool position.
-Proved from `cell_assured_measured_design_nominal_gain50`. -/
+age stays below 25; a move admitted at boundary `k₀` keeps the supervisor busy at the boundaries
+`k₀ + 1, …, k₀ + 20` and is finished at boundary `k₀ + 20` with the arm at its goal; and at each
+finish the tool is within `219/5000` m of the goal's tool position. Proved from
+`cell_assured_measured_design_nominal_gain50`. -/
 theorem cell_assured_program_nominal_gain50 (hsup : Supervisor.Contract Instances.params)
     {reqs : ℕ → List Waypoint} {smp : ℕ → Policy.Sample} {st : ℕ → Policy.State}
     {acts : ℕ → List Action}
@@ -302,6 +305,7 @@ theorem cell_assured_program_nominal_gain50 (hsup : Supervisor.Contract Instance
     (∀ t, 0 ≤ t → sceneClear (x t)) ∧
     (∀ k, (st k).sup.faulted = false ∧ (st k).sup.age < 25) ∧
     (∀ k₀, (st k₀).sup.busy = false → (st (k₀ + 1)).sup.busy = true →
+      (∀ j, j < 20 → (st (k₀ + 1 + j)).sup.busy = true) ∧
       (st (k₀ + 20 + 1)).sup.busy = false ∧ (st (k₀ + 20 + 1)).sup.current = (st (k₀ + 1)).goal) ∧
     (∀ k, (st k).sup.busy = true → (st (k + 1)).sup.busy = false →
       dist (sceneTool (x (k * (1 / 10)))) (sceneTool (DegPoint.toRad (st k).goal)) ≤
@@ -398,13 +402,15 @@ theorem program_hold_nominal_gain50_assured (hsup : Supervisor.Contract Instance
     intro i
     simp only [hθ, sub_self, Pi.zero_apply, mul_zero, add_zero, abs_zero]
     exact ⟨by norm_num, by norm_num⟩
-  exact cell_assured_program_nominal_gain50 (J := 17 / 10) (mn := 1) (J' := 17 / 10) (m := 2)
+  obtain ⟨h1, h2, h3, h4⟩ :=
+    cell_assured_program_nominal_gain50 (J := 17 / 10) (mn := 1) (J' := 17 / 10) (m := 2)
     (dm := 1) (dJ := 0) (fc := 9) (fv := 0) hsup
     (idleProgramNominalGain50_isProgramRun (encoderSample (fun _ => θ) 0)) (by norm_num)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num) le_rfl (by norm_num)
     hsamp htrack
     (by simpa using (continuousOn_const :
       ContinuousOn (fun _ : ℝ => (θ, (0 : Fin 3 → ℝ))) (Ici 0))) h0
+  exact ⟨h1, h2, fun k₀ hidle hbusy => (h3 k₀ hidle hbusy).2, h4⟩
 
 end Cell.Loop
 end RoboLean
