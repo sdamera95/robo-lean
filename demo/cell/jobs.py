@@ -200,6 +200,18 @@ def nominal_stress(mode, nruns, w, delta):
     return jobs
 
 
+def nominal_fault(w, delta):
+    """The fault run on the nominal model at the middle of the campaign's ranges: the base yaw
+    joint seizes 30% into the crossing move (move 4; move 0 is the rest move), a brake modelled as
+    a very large viscous damping on that joint, integrated implicitly; and the same plan unfaulted."""
+    p = ["lift_pick", "pick_1", "lift_pick", "lift_place", "place_1", "lift_place", "lift_pick"]
+    base = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta, eps_q, eps_v))
+    m = nominal_middle
+    cfg = nominal_run(base, m["e"], m["part"], m["dm"], [m["coulomb"]] * 3, [m["viscous"]] * 3, m["stiffness"], m["zeta"], m["lag"])
+    return [("nominal-fault-yaw", 0, dict(cfg, fault=dict(joint=0, move=4, frac=0.3, damping=1e7)), p, True),
+            ("nominal-fault-free", 0, cfg, p, True)]
+
+
 def campaign(nruns, w, delta, keep=3):
     """The randomized campaign at gain w and tube radius delta; run s draws from the seed
     [20261105, s] whatever w and delta are."""
@@ -219,6 +231,8 @@ def make(mode, nruns, w, delta):
         return nominal_campaign(nruns, w, delta)
     if mode.startswith("nominal-stress-"):
         return nominal_stress(mode, nruns, w, delta)
+    if mode == "nominal-fault":
+        return nominal_fault(w, delta)
     nominal = dict(sim.nominal, omega=w, delta=delta, **sim.tolerances(w, delta))
     jobs = []
     if mode == "stress-payload":
