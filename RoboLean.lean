@@ -467,6 +467,10 @@ import RoboLean.Cell.Witness
 import RoboLean.Cell.AssuredTorque
 import RoboLean.Cell.Policy
 import RoboLean.Cell.PolicyRun
+import RoboLean.Cell.SupervisorQueue
+import RoboLean.Cell.SupervisorQueueContractHand
+import RoboLean.Cell.PolicyQueue
+import RoboLean.Cell.PolicyQueueRun
 import RoboLean.Cell.LoopMeasured
 import RoboLean.Cell.AssuredMeasured
 import RoboLean.Cell.AssuredProgram
