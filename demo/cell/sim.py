@@ -35,6 +35,9 @@ nominal = dict(
     omega=80.0, delta=0.05, h=0.1, T=2.0, bound=25, dt=0.00025, ctrl=0.001, limit=150.0,
     coulomb=[0.0] * 3, viscous=[0.0] * 3, armature=[0.0] * 3, counts=0, cutoff=0.0, delay=False,
     payload=0.0, load_radius=0.035, fault=None, tail=1.0, model=None, **tolerances(80.0, 0.05),
+    # elastic joints (None: rigid), the side the encoders read, the actuator's time constant (s),
+    # encoder noise (counts), timing jitter (substeps) and the seed of the noise and the jitter
+    stiffness=None, joint_damping=None, sense="link", lag=0.0, enc_noise=0, jitter=0, plant_seed=0,
 )
 
 # the realistic plant of one cycle: friction, rotor inertia, encoders, filter, delay and a payload
@@ -77,11 +80,31 @@ def parse(ans):
     return word, st
 
 
+def elastic(cfg):
+    """The joint stiffness and damping as arrays of three, or None for the rigid plant (stiffness
+    None or 0)."""
+    K = np.zeros(3) + (cfg.get("stiffness") or 0.0)
+    if not K.any():
+        return None
+    assert (K > 0).all() and np.all(np.zeros(3) + cfg["armature"] > 0), "elastic joints need stiffness and rotor inertia on every joint"
+    return K, np.zeros(3) + (cfg.get("joint_damping") or 0.0)
+
+
 def build(scene, cfg):
-    m = mujoco.MjModel.from_xml_string(arm.mjcf(scene, dt=cfg["dt"], limit=cfg["limit"] or 1e9))
-    m.dof_armature[:] = cfg["armature"]
-    m.dof_damping[:] = cfg["viscous"]
-    m.dof_frictionloss[:] = cfg["coulomb"]
+    el = elastic(cfg)
+    if el is not None:
+        # elastic joints: rotor inertia and friction (Coulomb and viscous) sit on the motor side, the
+        # links carry none
+        m = mujoco.MjModel.from_xml_string(arm.mjcf(scene, dt=cfg["dt"], limit=cfg["limit"] or 1e9, stiffness=el[0], joint_damping=el[1],
+                                                    rotor=np.zeros(3) + cfg["armature"]))
+        mv = [m.jnt_dofadr[m.joint(f"m{i}").id] for i in range(3)]
+        m.dof_damping[mv] = cfg["viscous"]
+        m.dof_frictionloss[mv] = cfg["coulomb"]
+    else:
+        m = mujoco.MjModel.from_xml_string(arm.mjcf(scene, dt=cfg["dt"], limit=cfg["limit"] or 1e9))
+        m.dof_armature[:] = cfg["armature"]
+        m.dof_damping[:] = cfg["viscous"]
+        m.dof_frictionloss[:] = cfg["coulomb"]
     # model error of the plant: factors on each link's mass, mass-centre offset and principal
     # inertias (the link lengths and joint axes stay exact; the controller keeps the nominal model)
     if cfg.get("model"):
@@ -98,6 +121,24 @@ def run(scene, cfg, plan, sup):
     cl = arm.cells(scene)
     m = build(scene, cfg)
     d = mujoco.MjData(m)
+    el = elastic(cfg)
+    # coordinates of the links (the theorem's state, the one the trace keeps) and of the motors (the
+    # links' own on the rigid plant), and the side the encoders read
+    lq = np.array([m.jnt_qposadr[m.joint(f"j{i}").id] for i in range(3)])
+    lv = np.array([m.jnt_dofadr[m.joint(f"j{i}").id] for i in range(3)])
+    rq = np.array([m.jnt_qposadr[m.joint(f"m{i}").id] for i in range(3)]) if el is not None else lq
+    rv = np.array([m.jnt_dofadr[m.joint(f"m{i}").id] for i in range(3)]) if el is not None else lv
+    motor = cfg.get("sense", "link") == "motor"
+    assert cfg.get("sense", "link") in ("link", "motor")
+    sq, sv = (rq, rv) if motor else (lq, lv)
+    # encoder noise: an integer number of counts per sample, uniform over -n..n, on the counts the
+    # controller and the program read; timing jitter: each control step's torque takes effect a
+    # uniform random number 0..n of substeps late (never, if that is the whole period), the previous
+    # torque held meanwhile; actuator lag: a first-order low-pass on the torque, exact per substep
+    nn, nj, lag = cfg.get("enc_noise", 0), cfg.get("jitter", 0), cfg.get("lag", 0.0)
+    assert not nn or cfg["counts"], "encoder noise needs encoders (counts)"
+    rng = np.random.default_rng(cfg.get("plant_seed", 0))
+    decay = np.exp(-cfg["dt"] / lag) if lag else 0.0
     caps = [m.geom("cap1").id, m.geom("cap2").id]
     obs = [o["name"] for o in scene["obstacles"]]
     oid = [m.geom(o).id for o in obs]
@@ -126,8 +167,12 @@ def run(scene, cfg, plan, sup):
         if not ans.startswith("ok "):
             raise RuntimeError(line + " -> " + ans)
         events.append(dict(k=0, cmd=line.split()[0], ans="ok"))
-    d.qpos[:] = W[home]["rad"]
+    d.qpos[lq] = W[home]["rad"]
     mujoco.mj_forward(m, d)
+    if el is not None:
+        # start at rest in static equilibrium: each spring carries its link's gravity torque
+        d.qpos[rq] = d.qpos[lq] + d.qfrc_bias[lv] / el[0]
+        mujoco.mj_forward(m, d)
 
     # moves: (name_from, name_to, a, b, t0, k0); index -1 is the hold at home before the first move
     moves = []
@@ -135,10 +180,13 @@ def run(scene, cfg, plan, sup):
     # the planner's requests reach the program at boundary 0: home first, so that the program's first
     # decision is the rest move home -> home admitted at boundary 0, as in the loop model
     t0, reqs, busy = 0.0, [home] + list(plan), False
-    qprev = np.round(d.qpos / res) * res if res else d.qpos.copy()
+    qprev = np.round(d.qpos[sq] / res) * res if res else d.qpos[sq].copy()
     vf = np.zeros(3)
-    tau_prev = None
+    tau_prev = held = ta = unstable = None
     log_t, log_q, log_v, log_a, log_tau, log_mv = [], [], [], [], [], []
+    # elastic plant: motor angles, velocities and accelerations and the spring torque on the links;
+    # the noise and jitter drawn
+    log_qm, log_vm, log_am, log_sp, log_nz, log_jit = [], [], [], [], [], []
     ctl_tau, ctl_mv, dist, end_k, stop_at = [], [], [], None, None
     # a record that decides nothing: at every boundary, k, max |sample - true| of position and
     # velocity, and, while a busy move is due, the arrival test with the program's tolerances (in
@@ -147,20 +195,24 @@ def run(scene, cfg, plan, sup):
     k_ctrl = 0
     while True:
         t = k_ctrl * ctrl
-        q_meas = np.round(d.qpos / res) * res if res else d.qpos.copy()
+        nz = rng.integers(-nn, nn + 1, 3) if nn else 0
+        if nn:
+            log_nz.append(nz)
+        q_meas = (np.round(d.qpos[sq] / res) + nz) * res if res else d.qpos[sq].copy()
         if cfg["cutoff"]:
             vf = vf + alpha * ((q_meas - qprev) / ctrl - vf)
         else:
-            vf = d.qvel.copy()
+            vf = d.qvel[sv].copy()
         qprev = q_meas
         if k_ctrl % nper == 0:
             k = k_ctrl // nper
-            counts = np.round(d.qpos / step).astype(np.int64)
+            counts = np.round(d.qpos[sq] / step).astype(np.int64) + nz
             qs = counts * step
+            ql, vl = d.qpos[lq], d.qvel[lv]
             due = busy and k - moves[-1]["k0"] >= nT
             arr = busy and bool(np.all(np.abs(qs - moves[-1]["b"]) <= pt) and np.all(np.abs(vf) <= vt))
-            arr_true = busy and bool(np.all(np.abs(d.qpos - moves[-1]["b"]) <= pt) and np.all(np.abs(d.qvel) <= vt))
-            bnd.append([k, np.abs(qs - d.qpos).max(), np.abs(vf - d.qvel).max(), due, arr, arr_true])
+            arr_true = busy and bool(np.all(np.abs(ql - moves[-1]["b"]) <= pt) and np.all(np.abs(vl) <= vt))
+            bnd.append([k, np.abs(qs - ql).max(), np.abs(vf - vl).max(), due, arr, arr_true])
 
             # the sample: the encoder counts and the exact rational value of each velocity estimate
             sample = [str(c) for c in counts] + [fmt(Fraction(float(x))) for x in vf]
@@ -203,9 +255,9 @@ def run(scene, cfg, plan, sup):
             if stop_at is not None and k >= stop_at:
                 break
         f = cfg["fault"]
-        if f and len(moves) > f["move"] and t >= moves[f["move"]]["t0"] + f["frac"] * T and m.dof_damping[f["joint"]] < f["damping"]:
+        if f and len(moves) > f["move"] and t >= moves[f["move"]]["t0"] + f["frac"] * T and m.dof_damping[lv[f["joint"]]] < f["damping"]:
             # the joint seizes: a brake modelled as a very large viscous damping (implicit integration)
-            m.dof_damping[f["joint"]] = f["damping"]
+            m.dof_damping[lv[f["joint"]]] = f["damping"]
             events.append(dict(k=k_ctrl / nper, cmd="fault", joint=f["joint"], t=t))
         r, rd, rdd = arm.reference(a, b, t0, T, t)
         tau = arm.computed_torque(w, r, rd, rdd, q_meas, vf)
@@ -213,22 +265,56 @@ def run(scene, cfg, plan, sup):
         ctl_mv.append(len(moves) - 1)
         if cfg["delay"]:
             tau, tau_prev = (tau if tau_prev is None else tau_prev), tau
-        d.ctrl[:] = tau
+        if lag and cfg["limit"]:
+            # the lag filters the torque the drive can deliver
+            tau = np.clip(tau, -cfg["limit"], cfg["limit"])
+        jit = int(rng.integers(0, nj + 1)) if nj else 0
+        if nj:
+            log_jit.append(jit)
         for j in range(nsub):
+            u = tau if j >= jit or held is None else held
+            if lag:
+                # the filter's output at the end of the substep, the input held over it
+                ta = u if ta is None else u + (ta - u) * decay
+                d.ctrl[:] = ta
+            else:
+                d.ctrl[:] = u
             log_t.append(t + j * cfg["dt"])
-            log_q.append(d.qpos.copy())
-            log_v.append(d.qvel.copy())
+            log_q.append(d.qpos[lq].copy())
+            log_v.append(d.qvel[lv].copy())
+            if el is not None:
+                log_qm.append(d.qpos[rq].copy())
+                log_vm.append(d.qvel[rv].copy())
             mujoco.mj_step(m, d)
-            log_a.append(d.qacc.copy())
+            log_a.append(d.qacc[lv].copy())
             log_tau.append(d.actuator_force.copy())
             log_mv.append(len(moves) - 1)
+            if el is not None:
+                log_am.append(d.qacc[rv].copy())
+                log_sp.append(d.qfrc_passive[lv].copy())
             if j == 0:
                 dist.append([mujoco.mj_geomDistance(m, d, c, o, 1.0, None) for c in caps for o in oid])
+            if d.warning[mujoco.mjtWarning.mjWARN_BADQACC].number:
+                # the integration diverged and MuJoCo reset the state: the run ends here
+                unstable = t + j * cfg["dt"]
+                break
+        if unstable is not None:
+            break
+        if jit < nsub:
+            held = tau
         k_ctrl += 1
     trace = dict(t=np.array(log_t), q=np.array(log_q), v=np.array(log_v), qacc=np.array(log_a), tau=np.array(log_tau),
                  mv=np.array(log_mv), ctl_tau=np.array(ctl_tau), ctl_mv=np.array(ctl_mv), dist=np.array(dist).reshape(-1, 2, len(oid)))
     trace["bnd"] = np.array(bnd, float)
+    if el is not None:
+        trace.update(qm=np.array(log_qm), vm=np.array(log_vm), qacc_m=np.array(log_am), spring=np.array(log_sp))
+    if nn:
+        trace["noise"] = np.array(log_nz)
+    if nj:
+        trace["jitter"] = np.array(log_jit)
     out = dict(moves=moves, events=events, trace=trace, obstacles=obs)
+    if unstable is not None:
+        out["unstable_t"] = unstable
     fe = [e for e in events if e["cmd"] == "fault"]
     if fe:
         # how far the seized joint moved between the seizure and the end of the run

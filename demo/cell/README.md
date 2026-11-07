@@ -15,7 +15,9 @@ A checked theorem is about its model; this harness measures how a plant outside 
 - `sim.py`: one supervised run and its per-move analysis, the arrival tolerances (`tolerances`) and the realistic plant of one cycle.
 - `cycle.py`: one cycle on the ideal and on the realistic plant.
 - `smoke.py`: one or two cycles on the realistic plant at `(ω, δ) = (80, 0.03)`, with the per-move lines and the transcript of the protocol.
-- `jobs.py`: the runs (randomized campaign, stress sweeps, ablation of the disturbance, fault run) with fixed seeds, the planner, the drawn ranges, and the worker for one run.
+- `jobs.py`: the runs (randomized campaign, stress sweeps, ablation of the disturbance, fault run, and the sweeps of the further non-idealities: `plant` and `plant-worst` over a provisional grid, `plant-cited` and `plant-cited-worst` at values for a joint of this size from published sources, with the rotor inertia 1.7 kg·m²) with fixed seeds, the planner, the drawn ranges, and the worker for one run.
+- `plant_check.py`: the elastic joints, the actuator lag, the encoder noise and the timing jitter, each on one run, against quantities recomputed from the trace (the link and rotor equations, a first-order filter of the commanded torque, the jitter and the noise drawn).
+- `plant_sweep.py`: one run per setting of the further non-idealities, in parallel, with a summary line per run.
 - `campaign.py`: runs one mode at one (gain, tube radius) pair in parallel, one JSON line per move.
 - `bounds.py`: every measured quantity of a group of moves against its bound, and the rule that picks the design point; `design_point.py` prints it.
 - `summarize.py`, `figures.py`: the summary against the bounds and the figures at the design point (SVG and PDF).
@@ -29,6 +31,15 @@ Non-idealities, each switchable: actuator limit 150 N·m per joint; Coulomb fric
 Model error of the plant, drawn per run: each link's mass and mass-centre offset multiplied by a factor from U[0.9, 1.1], each link's principal inertias by one factor from U[0.8, 1.2]; link lengths and joint axes stay exact, and the controller keeps the nominal model.
 
 Campaign ranges, drawn per run: payload U[0, 5] kg (5 kg is the rated payload of the arm whose link data the model uses); Coulomb U[0, 10] N·m and viscous U[0, 10] N·m·s/rad per joint; rotor inertia U[0, 0.1] kg·m² per joint. These are generous representative ranges chosen for the evaluation, not identified from an arm. The stress sweeps, the ablation and the fault run use the middle of the ranges (payload 2.5 kg, Coulomb 5 N·m, viscous 5 N·m·s/rad, rotor inertia 0.05 kg·m², no model error) and vary one quantity.
+
+Further non-idealities, each off by default (the plant and every run above are then unchanged):
+
+- Elastic joints (`stiffness`, N·m/rad per joint, `None` or 0 for the rigid plant; `joint_damping`, N·m·s/rad per joint): the two-inertia model of Spong (1987). Each joint has a motor angle `θ_m` besides the link angle `θ`; the link receives the spring torque `K (θ_m − θ) + D (θ̇_m − θ̇)` and the rotor its negative plus the actuator torque, `J θ̈_m = τ − K (θ_m − θ) − D (θ̇_m − θ̇) − friction`. The rotor inertia `J` is the `armature` of the rigid plant, and the Coulomb and viscous friction act on the rotor, on the motor side of the spring (a modelling choice: in a geared drive the motor, its bearings and the gear's input stage sit before the compliance); the links then carry neither. The rotor's kinetic energy is that of its own rotation only (Spong's simplifying assumption): in MuJoCo each rotor is a body hinged to the world, coupled to its link by a fixed tendon of length `θ_m − θ` with that stiffness and damping. A run starts at rest in static equilibrium (each spring carrying its link's gravity torque). The sweeps give the damping as the ratio `ζ` of the rotor against the held link, `D = 2ζ√(K J)`. `sense` (`"link"` or `"motor"`) says which angle the encoders read; the records (`q`, `v`, `qacc` of the trace, the tracking error, the disturbance `d` and the sample errors) are always those of the links.
+- Actuator lag (`lag`, seconds): a first-order low-pass with that time constant on the torque the drive delivers, after the one-period delay and the actuator limit, integrated exactly over each simulator step with its input held.
+- Encoder noise (`enc_noise`, counts): an integer drawn uniformly from `−n, …, n` for each joint at each control period and added to the encoder count; the controller and the program read the same noisy count, and the velocity estimate inherits the noise through the filter. It requires encoders (`counts`).
+- Timing jitter (`jitter`, simulator steps of 0.25 ms): each control period's torque takes effect a number of steps late drawn uniformly from `0, …, n`, the torque of the previous period held meanwhile; a delay of a whole period (4 steps) means the period's torque is never applied.
+
+The noise and the jitter are drawn from a generator seeded by `plant_seed` (default 0).
 
 Fault: one joint seizes during a move, modelled as a brake (a viscous damping of 10⁷ N·m·s/rad on that joint, integrated implicitly), so that the joint stays put; the program's timeout and the protective stop that follows are what the run shows.
 
@@ -75,4 +86,9 @@ uv run python design_point.py out                         # prints the design po
 uv run python campaign.py stress-payload out 5 24 120 0.02  # likewise stress-friction, ablation (1 run), fault (1 run)
 uv run python summarize.py out
 uv run python figures.py out
+uv run python plant_check.py
+uv run python plant_sweep.py plant out 12 80 0.03
+uv run python plant_sweep.py plant-worst out 12 80 0.03      # likewise 60 0.03, 40 0.03
+uv run python plant_sweep.py plant-cited out 12 80 0.03
+uv run python plant_sweep.py plant-cited-worst out 12 80 0.03  # likewise 60 0.03, 40 0.03
 ```

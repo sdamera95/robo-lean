@@ -165,12 +165,32 @@ def cells(scene):
 # ------------------------------------------------------------------
 # the MuJoCo model of the plant
 
-def mjcf(scene, armature=0.0, damping=0.0, frictionloss=0.0, dt=0.00025, limit=150.0, contact=True):
+def mjcf(scene, armature=0.0, damping=0.0, frictionloss=0.0, dt=0.00025, limit=150.0, contact=True,
+         stiffness=None, joint_damping=None, rotor=None):
     """MJCF of the plant: the nominal arm (body frames at the joints, inertial frames at the mass
     centres with the base orientation at theta = 0, diagonal inertias as in MLS p. 172), capsules of
     radius rho around the two link segments, a payload body at the tool point (mass set at run
-    time), torque motors with the limit, joint friction and rotor inertia, and the obstacles."""
+    time), torque motors with the limit, joint friction and rotor inertia, and the obstacles.
+
+    With `stiffness` (three values, N m/rad) the joints are elastic (the two-inertia model of Spong,
+    1987): each joint gets a motor coordinate m_i of its own, a rotor body hinged to the world with no
+    coupling to the links but through the spring (the rotor's kinetic energy is that of its own
+    rotation only), and a fixed tendon of length m_i - theta_i with that stiffness, the damping
+    `joint_damping` (N m s/rad) and rest length 0, so that the link receives
+    K (m_i - theta_i) + D (m_i' - theta_i') and the rotor its negative. The motors then act on the
+    motor coordinates. The rotor inertia `rotor` (kg m^2, three values) is written here as the
+    rotor joints' armature, because MuJoCo reads the inertia of a body hinged to the world alone
+    from constants computed when the model is compiled; friction is set on the rotors at run time.
+    Without `stiffness` the string is exactly that of the rigid plant."""
     f = lambda v: " ".join(repr(float(x)) for x in v)
+    act, rot, ten = ("j0", "j1", "j2"), "", ""
+    if stiffness is not None:
+        act = ("m0", "m1", "m2")
+        rot = "".join(f'\n    <body name="rotor{i}">\n      <joint name="m{i}" type="hinge" axis="0 0 1" armature="{float(rotor[i])!r}"/>\n'
+                      f'      <inertial pos="0 0 0" mass="1e-6" diaginertia="1e-9 1e-9 1e-9"/>\n    </body>' for i in range(3))
+        ten = ("\n  <tendon>" + "".join(f'\n    <fixed name="spring{i}" stiffness="{float(stiffness[i])!r}" damping="{float(joint_damping[i])!r}" '
+                                        f'springlength="0">\n      <joint joint="m{i}" coef="1"/>\n      <joint joint="j{i}" coef="-1"/>\n'
+                                        '    </fixed>' for i in range(3)) + "\n  </tendon>")
     ct = 'contype="1" conaffinity="0"' if contact else 'contype="0" conaffinity="0"'
     obs = []
     for o in scene["obstacles"]:
@@ -211,12 +231,12 @@ def mjcf(scene, armature=0.0, damping=0.0, frictionloss=0.0, dt=0.00025, limit=1
           </body>
         </body>
       </body>
-    </body>
-  </worldbody>
+    </body>{rot}
+  </worldbody>{ten}
   <actuator>
-    <motor joint="j0" ctrlrange="{-limit} {limit}"/>
-    <motor joint="j1" ctrlrange="{-limit} {limit}"/>
-    <motor joint="j2" ctrlrange="{-limit} {limit}"/>
+    <motor joint="{act[0]}" ctrlrange="{-limit} {limit}"/>
+    <motor joint="{act[1]}" ctrlrange="{-limit} {limit}"/>
+    <motor joint="{act[2]}" ctrlrange="{-limit} {limit}"/>
   </actuator>
 </mujoco>
 """

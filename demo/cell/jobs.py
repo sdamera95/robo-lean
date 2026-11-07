@@ -49,6 +49,34 @@ def draw(rng):
 # no model error)
 middle = dict(payload=2.5, coulomb=[5.0] * 3, viscous=[5.0] * 3, armature=[0.05] * 3)
 
+# the ablation's plan (one cycle) and its plant at the top of every range
+ablation_plan = ["lift_pick", "pick_2", "lift_pick", "lift_place", "place_2", "lift_place", "lift_pick"]
+top = dict(payload=ranges["payload"][1], coulomb=[ranges["coulomb"][1]] * 3, viscous=[ranges["viscous"][1]] * 3,
+           armature=[ranges["armature"][1]] * 3, limit=150.0, counts=2**18, cutoff=100.0, delay=True,
+           model=dict(mass=[ranges["mass"][1]] * 3, offset=[ranges["offset"][1]] * 3, inertia=[ranges["inertia"][1]] * 3))
+
+
+def elastic(K, zeta=0.05, rotor=ranges["armature"][1], sense="link"):
+    """Elastic joints of stiffness K (N m/rad, every joint) with the damping D = 2 zeta sqrt(K J) of
+    damping ratio zeta for the rotor of inertia J against the link held still."""
+    return dict(stiffness=[float(K)] * 3, joint_damping=[2 * zeta * float(np.sqrt(K * rotor))] * 3, sense=sense)
+
+
+# the plant's further non-idealities at their middle values: elastic joints, actuator lag (s), encoder
+# noise (counts) and timing jitter (substeps)
+mid = dict(elastic=elastic(1e4), lag=dict(lag=0.002), noise=dict(enc_noise=2), jitter=dict(jitter=2))
+# the same at the worst values of the sweep's grid
+worst = dict(elastic=elastic(3e3), lag=dict(lag=0.005), noise=dict(enc_noise=4), jitter=dict(jitter=4))
+
+# values for a joint of this size from published sources: a size-25 harmonic drive at ratio 100 has a
+# catalogue stiffness of 2.7e4 to 5.7e4 N m/rad (whole joints softer, lightweight arms 1e4 to 2e4); the
+# identified motor and reducer inertia of the three large joints of an arm of this class, reflected
+# through the ratio 100, is 1.5 to 1.9 kg m^2; no damping figure was found, so the damping ratio is
+# swept from 0.02 to 0.2; drive lag 0.5 to 2 ms; a 19-bit link encoder; loop jitter within 0.25 ms
+rotor = 1.7
+cited = dict(elastic=elastic(3e4, rotor=rotor), lag=dict(lag=0.001), noise=dict(enc_noise=1), jitter=dict(jitter=1))
+cited_worst = dict(elastic=elastic(1e4, zeta=0.02, rotor=rotor), lag=dict(lag=0.002), noise=dict(enc_noise=2), jitter=dict(jitter=1))
+
 
 def campaign(nruns, w, delta, keep=3):
     """The randomized campaign at gain w and tube radius delta; run s draws from the seed
@@ -80,10 +108,7 @@ def make(mode, nruns, w, delta):
                 cfg = dict(nominal, **fixed, **dict(middle, coulomb=[float(c)] * 3))
                 jobs.append((f"f{c:03d}-{s}", s, cfg, plan(rng, 1, inject=0), False))
     if mode == "ablation":
-        p = ["lift_pick", "pick_2", "lift_pick", "lift_place", "place_2", "lift_place", "lift_pick"]
-        top = dict(payload=ranges["payload"][1], coulomb=[ranges["coulomb"][1]] * 3, viscous=[ranges["viscous"][1]] * 3,
-                   armature=[ranges["armature"][1]] * 3, limit=150.0, counts=2**18, cutoff=100.0, delay=True,
-                   model=dict(mass=[ranges["mass"][1]] * 3, offset=[ranges["offset"][1]] * 3, inertia=[ranges["inertia"][1]] * 3))
+        p = ablation_plan
         jobs.append(("ideal", 0, dict(nominal), p, False))
         for k in ("payload", "coulomb", "viscous", "armature", "delay"):
             jobs.append((f"only-{k}", 0, dict(nominal, **{k: top[k]}), p, False))
@@ -97,6 +122,52 @@ def make(mode, nruns, w, delta):
         # brake modelled as a very large viscous damping on that joint, integrated implicitly
         jobs.append(("fault-yaw", 0, dict(base, fault=dict(joint=0, move=4, frac=0.3, damping=1e7)), p, True))
         jobs.append(("fault-free", 0, base, p, True))
+    if mode == "plant":
+        # the ablation's plant at the top of every range (the reference), each further non-ideality
+        # over its grid alone (elastic joints read on either side, damping ratio 0.05), the four
+        # together at their middle values
+        ref = dict(nominal, **top)
+        jobs.append(("ref", 0, ref, ablation_plan, True))
+        for K in (3e3, 1e4, 3e4, 1e5):
+            for sense in ("link", "motor"):
+                jobs.append((f"elastic-{int(K)}-{sense}", 0, dict(ref, **elastic(K, sense=sense)), ablation_plan, False))
+        for lag in (0.001, 0.002, 0.005):
+            jobs.append((f"lag-{lag}", 0, dict(ref, lag=lag), ablation_plan, False))
+        for n in (1, 2, 4):
+            jobs.append((f"noise-{n}", 0, dict(ref, enc_noise=n), ablation_plan, False))
+        for n in (1, 2, 4):
+            jobs.append((f"jitter-{n}", 0, dict(ref, jitter=n), ablation_plan, False))
+        jobs.append(("all-mid", 0, dict(ref, **mid["elastic"], **mid["lag"], **mid["noise"], **mid["jitter"]), ablation_plan, True))
+    if mode == "plant-worst":
+        # the four together at the grid's worst values, the encoders on either side, next to the
+        # reference plant at the same gain
+        ref = dict(nominal, **top)
+        jobs.append(("ref", 0, ref, ablation_plan, False))
+        for sense in ("link", "motor"):
+            cfg = dict(ref, **worst["elastic"], **worst["lag"], **worst["noise"], **worst["jitter"])
+            jobs.append((f"all-worst-{sense}-w{int(w)}", 0, dict(cfg, sense=sense), ablation_plan, sense == "link"))
+    if mode in ("plant-cited", "plant-cited-worst"):
+        # the reference plant with the cited rotor inertia, rigid and elastic
+        ref = dict(nominal, **top)
+        heavy = dict(ref, armature=[rotor] * 3)
+        jobs.append(("ref", 0, ref, ablation_plan, False))
+        jobs.append(("ref-rotor", 0, heavy, ablation_plan, False))
+    if mode == "plant-cited":
+        # stiffness over the cited range, the damping ratio over 0.02 to 0.2, either side sensed; the
+        # four together at the cited middle values and at the cited worst values
+        for K in (1e4, 3e4, 6e4):
+            for z in (0.02, 0.05, 0.2):
+                for sense in ("link", "motor"):
+                    jobs.append((f"elastic-{int(K)}-z{z}-{sense}", 0, dict(heavy, **elastic(K, zeta=z, rotor=rotor, sense=sense)), ablation_plan, False))
+        for name, v in (("cited-mid", cited), ("cited-worst", cited_worst)):
+            for sense in ("link", "motor"):
+                cfg = dict(heavy, **v["elastic"], **v["lag"], **v["noise"], **v["jitter"])
+                jobs.append((f"{name}-{sense}", 0, dict(cfg, sense=sense), ablation_plan, sense == "link"))
+    if mode == "plant-cited-worst":
+        # the four together at the cited worst values at this gain
+        for sense in ("link", "motor"):
+            cfg = dict(heavy, **cited_worst["elastic"], **cited_worst["lag"], **cited_worst["noise"], **cited_worst["jitter"])
+            jobs.append((f"cited-worst-{sense}-w{int(w)}", 0, dict(cfg, sense=sense), ablation_plan, sense == "link"))
     return jobs
 
 
@@ -114,6 +185,9 @@ def one(job, outdir=None, sup=None):
                             moves=json.dumps([{k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in mv.items()} for mv in o["moves"]]),
                             events=json.dumps(o["events"]), cfg=json.dumps(cfg, default=str))
     c = {k: cfg[k] for k in ("omega", "delta", "payload", "coulomb", "viscous", "armature", "model", "counts", "cutoff", "delay", "limit", "fault")}
+    c.update({k: cfg.get(k) for k in ("stiffness", "joint_damping", "sense", "lag", "enc_noise", "jitter")})
     lines = [dict(r, run=tag, seed=seed, supervisor=sup.kind, cfg=c) for r in recs]
     ev = dict(run=tag, seed=seed, supervisor=sup.kind, events=o["events"], fault_motion_deg=o.get("fault_motion_deg"))
+    if "unstable_t" in o:
+        ev["unstable_t"] = o["unstable_t"]
     return lines, ev, sup.transcript
