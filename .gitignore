@@ -12,8 +12,10 @@
 /.vscode/
 /analysis-scratch/
 
-# The demo's generated outputs (plots, run log)
+# The demo's generated outputs (plots, run log, campaign records and traces)
 /demo/out/
+/demo/cell/out*/
+*.npz
 
 # Quarantined, retracted work: never staged
 garbage_*
